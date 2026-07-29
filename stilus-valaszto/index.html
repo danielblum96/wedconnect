@@ -49,7 +49,6 @@
     color: var(--page-muted);
     line-height: 1.6;
   }
-
   /* ---- Grid ---- */
   .style-grid {
     display: grid;
@@ -67,7 +66,7 @@
     padding: 30px 24px 26px;
     display: flex;
     flex-direction: column;
-    min-height: 350px;
+    min-height: 460px;
     box-shadow: 0 10px 26px -14px rgba(20, 15, 10, 0.35);
     border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
     position: relative;
@@ -100,14 +99,6 @@
     padding: 10px 0 24px;
   }
 
-  .motif {
-    width: 40px;
-    height: 40px;
-    color: var(--accent);
-    opacity: 0.9;
-    margin-bottom: 4px;
-  }
-
   .mock-names {
     font-size: 1.9rem;
     text-align: center;
@@ -126,6 +117,42 @@
   .f-caps    { font-family: "Cinzel", serif; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; font-size: 1.4rem; }
   .f-hand    { font-family: "Caveat", cursive; font-weight: 600; font-size: 2.4rem; }
   .f-serif-i { font-family: "Cormorant Garamond", serif; font-style: italic; font-weight: 500; }
+
+  .card-message {
+    text-align: center;
+    padding: 6px 0 22px;
+  }
+  .card-message p {
+    margin: 0 0 12px;
+    line-height: 1.45;
+  }
+  .card-message p:first-child {
+    font-size: 1.08rem;
+    font-style: italic;
+  }
+  .card-message p:last-child {
+    margin-bottom: 0;
+    font-size: 0.92rem;
+    opacity: 0.85;
+  }
+
+  .card-cta {
+    display: block;
+    width: fit-content;
+    margin: 0 auto 26px;
+    padding: 12px 30px;
+    background: var(--accent);
+    color: var(--btn-fg, var(--fg));
+    border-radius: 999px;
+    font-family: "Poppins", sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    text-align: center;
+    box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.4);
+  }
 
   .card-info {
     border-top: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
@@ -154,29 +181,6 @@
 </head>
 <body>
 
-<svg style="display:none">
-  <symbol id="ic-modern" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="15" y="15" width="18" height="18"/></symbol>
-  <symbol id="ic-luxury" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M24 8 L34 18 L24 40 L14 18 Z"/><path d="M14 18 H34"/><path d="M24 8 L19 18 M24 8 L29 18"/></symbol>
-  <symbol id="ic-klasszikus" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="18" r="7"/><path d="M24 25 C24 32 20 34 20 40"/><path d="M20 34 C16 34 16 30 20 30"/></symbol>
-  <symbol id="ic-rusztikus" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="15"/><circle cx="24" cy="24" r="9"/><circle cx="24" cy="24" r="3"/></symbol>
-  <symbol id="ic-boho" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M24 40 C22 28 20 18 16 8"/><path d="M24 40 C24 26 24 16 24 6"/><path d="M24 40 C26 28 28 18 32 8"/></symbol>
-  <symbol id="ic-vintage" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30 C14 20 24 20 24 12 C24 20 34 20 34 30"/><path d="M18 30 C18 24 24 24 24 18 C24 24 30 24 30 30"/></symbol>
-  <symbol id="ic-romantikus" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="12" r="4"/><circle cx="33" cy="18" r="4"/><circle cx="29" cy="28" r="4"/><circle cx="19" cy="28" r="4"/><circle cx="15" cy="18" r="4"/><circle fill="currentColor" stroke="none" cx="24" cy="20" r="3"/></symbol>
-  <symbol id="ic-kerti" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16 C16 28 32 28 40 16"/><circle fill="currentColor" stroke="none" cx="14" cy="21" r="2"/><circle fill="currentColor" stroke="none" cx="24" cy="25" r="2"/><circle fill="currentColor" stroke="none" cx="34" cy="21" r="2"/></symbol>
-  <symbol id="ic-mediterran" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 34 C20 34 28 26 38 14"/><ellipse cx="18" cy="30" rx="4" ry="2" transform="rotate(-30 18 30)"/><ellipse cx="26" cy="24" rx="4" ry="2" transform="rotate(-30 26 24)"/><ellipse cx="33" cy="18" rx="4" ry="2" transform="rotate(-30 33 18)"/></symbol>
-  <symbol id="ic-tengerparti" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20 C12 14 16 14 22 20 C28 26 32 26 38 20"/><path d="M6 30 C12 24 16 24 22 30 C28 36 32 36 38 30"/></symbol>
-  <symbol id="ic-industrial" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M24 8 L34 14 L34 26 L24 32 L14 26 L14 14 Z"/><circle cx="24" cy="20" r="4"/></symbol>
-  <symbol id="ic-glam" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M24 6 L27 21 L42 24 L27 27 L24 42 L21 27 L6 24 L21 21 Z"/></symbol>
-  <symbol id="ic-artdeco" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 34 A16 16 0 0 1 40 34"/><path d="M12 34 A12 12 0 0 1 36 34"/><path d="M16 34 A8 8 0 0 1 32 34"/><path d="M24 18 V34"/></symbol>
-  <symbol id="ic-skandinav" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M24 8 L32 20 H16 Z"/><path d="M24 16 L34 30 H14 Z"/><rect x="22" y="30" width="4" height="10"/></symbol>
-  <symbol id="ic-darkromance" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M24 40 C24 30 24 20 24 10"/><path d="M24 24 L18 20 M24 30 L30 26"/><circle cx="24" cy="8" r="5"/></symbol>
-  <symbol id="ic-forest" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M24 6 L34 22 H14 Z"/><path d="M24 16 L32 30 H16 Z"/><rect x="22" y="30" width="4" height="10"/></symbol>
-  <symbol id="ic-fairytale" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 40 V22 H20 V40"/><path d="M28 40 V22 H34 V40"/><path d="M14 22 L17 16 L20 22"/><path d="M28 22 L31 16 L34 22"/><path d="M20 40 V30 H28 V40"/></symbol>
-  <symbol id="ic-farmhouse" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 40 V22 L24 10 L38 22 V40 Z"/><path d="M20 40 V28 H28 V40"/></symbol>
-  <symbol id="ic-botanical" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M24 40 C10 28 10 12 24 8 C38 12 38 28 24 40 Z"/><path d="M24 40 V8"/></symbol>
-  <symbol id="ic-coastal" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M24 34 C14 34 14 22 24 20 C31 21 31 28 25 28 C21 28 21 24 24 24"/></symbol>
-</svg>
-
 <header>
   <div class="eyebrow">WedConnect</div>
   <h1>Válaszd ki az esküvőtök stílusát</h1>
@@ -185,209 +189,331 @@
 
 <div class="style-grid">
 
-  <article class="style-card" style="--bg:#ffffff; --fg:#161616; --accent:#161616;">
+  <article class="style-card" style="--bg:#ffffff; --fg:#161616; --accent:#161616; --btn-fg:#ffffff;">
     <div class="card-index">01</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-modern"/></svg>
       <div class="mock-names f-sans">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Modern minimalista</h3><p>Letisztult, fehér, fekete, egyszerű formák</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#0d0d0d,#1c1a16); --fg:#f2e6c9; --accent:#cfa64b;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#0d0d0d,#1c1a16); --fg:#f2e6c9; --accent:#cfa64b; --btn-fg:#1a1408;">
     <div class="card-index">02</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-luxury"/></svg>
       <div class="mock-names f-caps">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Luxury / Elegáns</h3><p>Kristályok, arany, prémium virágok, exkluzív hangulat</p></div>
   </article>
 
-  <article class="style-card" style="--bg:#fbfaf5; --fg:#22301f; --accent:#a9833f;">
+  <article class="style-card" style="--bg:#fbfaf5; --fg:#22301f; --accent:#a9833f; --btn-fg:#fffaf0;">
     <div class="card-index">03</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-klasszikus"/></svg>
       <div class="mock-names f-script">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Klasszikus</h3><p>Időtálló elegancia, fehér rózsák, gyertyák</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#7a5638,#5b3f28); --fg:#fbf1e1; --accent:#e0bd83;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#7a5638,#5b3f28); --fg:#fbf1e1; --accent:#e0bd83; --btn-fg:#4a3320;">
     <div class="card-index">04</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-rusztikus"/></svg>
       <div class="mock-names f-hand">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Rusztikus</h3><p>Fa, pajta, juta, természetes anyagok</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#e9d3ac,#cf9a67); --fg:#4a3320; --accent:#7c8a54;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#e9d3ac,#cf9a67); --fg:#4a3320; --accent:#7c8a54; --btn-fg:#fbf6ec;">
     <div class="card-index">05</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-boho"/></svg>
       <div class="mock-names f-hand">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Boho</h3><p>Pampafű, makramé, földszínek, laza hangulat</p></div>
   </article>
 
-  <article class="style-card" style="--bg:#f3e6e2; --fg:#6b4a52; --accent:#b98a95;">
+  <article class="style-card" style="--bg:#f3e6e2; --fg:#6b4a52; --accent:#b98a95; --btn-fg:#fbf3f1;">
     <div class="card-index">06</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-vintage"/></svg>
       <div class="mock-names f-script">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Vintage</h3><p>Régi bútorok, csipke, pasztell színek</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#fdedf0,#f6d6dc); --fg:#7a3f4c; --accent:#d98fa0;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#fdedf0,#f6d6dc); --fg:#7a3f4c; --accent:#d98fa0; --btn-fg:#4c1f29;">
     <div class="card-index">07</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-romantikus"/></svg>
       <div class="mock-names f-script">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Romantikus</h3><p>Sok virág, lágy színek, gyertyafény</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#2a3350,#3d4a70); --fg:#f5efe0; --accent:#f2c14e;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#2a3350,#3d4a70); --fg:#f5efe0; --accent:#f2c14e; --btn-fg:#2a2005;">
     <div class="card-index">08</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-kerti"/></svg>
       <div class="mock-names f-serif-i">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Kerti (Garden Party)</h3><p>Szabadtéri vacsora, fényfüzérek</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#f5e7c6,#e3bd7c); --fg:#6b3d1f; --accent:#b1451f;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#f5e7c6,#e3bd7c); --fg:#6b3d1f; --accent:#b1451f; --btn-fg:#fff8ec;">
     <div class="card-index">09</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-mediterran"/></svg>
       <div class="mock-names f-serif-i">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Mediterrán / Toszkán</h3><p>Olajfa, citrom, terrakotta, hosszú faasztalok</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#eaf6fb,#cdeaf4); --fg:#225063; --accent:#4a8fa8;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#eaf6fb,#cdeaf4); --fg:#225063; --accent:#4a8fa8; --btn-fg:#eaf6fb;">
     <div class="card-index">10</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-tengerparti"/></svg>
       <div class="mock-names f-hand">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Tengerparti</h3><p>Homok, kagylók, világoskék árnyalatok</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#3c3c3c,#282828); --fg:#e9e9e9; --accent:#b0603f;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#3c3c3c,#282828); --fg:#e9e9e9; --accent:#b0603f; --btn-fg:#f7ede7;">
     <div class="card-index">11</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-industrial"/></svg>
       <div class="mock-names f-sans">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Industrial</h3><p>Tégla, beton, fekete fémek</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#141414,#242424); --fg:#f2e7d2; --accent:#d4af37;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#141414,#242424); --fg:#f2e7d2; --accent:#d4af37; --btn-fg:#1a1408;">
     <div class="card-index">12</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-glam"/></svg>
       <div class="mock-names f-caps">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Modern Glam</h3><p>Márvány, fekete-arany, tükrök</p></div>
   </article>
 
-  <article class="style-card" style="--bg:#111111; --fg:#f0e6d0; --accent:#c9a227;">
+  <article class="style-card" style="--bg:#111111; --fg:#f0e6d0; --accent:#c9a227; --btn-fg:#1a1408;">
     <div class="card-index">13</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-artdeco"/></svg>
       <div class="mock-names f-caps">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Art Deco</h3><p>Geometrikus minták, arany, a 20-as évek hangulata</p></div>
   </article>
 
-  <article class="style-card" style="--bg:#f7f5ef; --fg:#2e3a2f; --accent:#8faa8b;">
+  <article class="style-card" style="--bg:#f7f5ef; --fg:#2e3a2f; --accent:#8faa8b; --btn-fg:#f7f9f6;">
     <div class="card-index">14</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-skandinav"/></svg>
       <div class="mock-names f-sans">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Skandináv</h3><p>Világos fa, fehér, természetesség</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#1c0e13,#2d0f17); --fg:#e9d5d0; --accent:#8a2e3a;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#1c0e13,#2d0f17); --fg:#e9d5d0; --accent:#8a2e3a; --btn-fg:#f6e6e4;">
     <div class="card-index">15</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-darkromance"/></svg>
       <div class="mock-names f-script">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Dark Romance</h3><p>Bordó, fekete, mély zöld árnyalatok</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#1f3524,#2c4632); --fg:#e6ead9; --accent:#7fae6a;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#1f3524,#2c4632); --fg:#e6ead9; --accent:#7fae6a; --btn-fg:#132018;">
     <div class="card-index">16</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-forest"/></svg>
       <div class="mock-names f-serif-i">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Forest / Woodland</h3><p>Erdő, mohák, fák, természetközeli</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#f3e9ff,#e3d1f5); --fg:#5a3d73; --accent:#c98fbb;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#f3e9ff,#e3d1f5); --fg:#5a3d73; --accent:#c98fbb; --btn-fg:#3a1f4d;">
     <div class="card-index">17</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-fairytale"/></svg>
       <div class="mock-names f-script">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Tündérmese (Fairytale)</h3><p>Kastély, rengeteg virág, meseszerű világ</p></div>
   </article>
 
-  <article class="style-card" style="--bg:#f7f2e6; --fg:#4a4038; --accent:#7f96a8;">
+  <article class="style-card" style="--bg:#f7f2e6; --fg:#4a4038; --accent:#7f96a8; --btn-fg:#f7faf9;">
     <div class="card-index">18</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-farmhouse"/></svg>
       <div class="mock-names f-hand">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Farmhouse</h3><p>Vidéki, egyszerű, otthonos</p></div>
   </article>
 
-  <article class="style-card" style="--bg:#fbfbf7; --fg:#2e3a2f; --accent:#4f7a52;">
+  <article class="style-card" style="--bg:#fbfbf7; --fg:#2e3a2f; --accent:#4f7a52; --btn-fg:#f4f8f2;">
     <div class="card-index">19</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-botanical"/></svg>
       <div class="mock-names f-serif-i">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Modern Botanical</h3><p>Rengeteg zöld növény, kevés virág</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#ffffff,#e4eef3); --fg:#1f3a4a; --accent:#2c6e8f;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#ffffff,#e4eef3); --fg:#1f3a4a; --accent:#2c6e8f; --btn-fg:#eef7fb;">
     <div class="card-index">20</div>
     <div class="card-face">
-      <svg class="motif"><use href="#ic-coastal"/></svg>
       <div class="mock-names f-sans">A &amp; B</div>
       <div class="mock-date">2026 . 06 . 20</div>
     </div>
+    <div class="card-message">
+      <p>Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!</p>
+      <p>Az esküvői képek hamarosan elérhetők lesznek!</p>
+    </div>
+    <a class="card-cta" href="#" onclick="return false;">Esküvői képek</a>
     <div class="card-info"><h3>Coastal</h3><p>Világos, tengerparti elegancia</p></div>
   </article>
 
 </div>
 
 <footer>WedConnect — válaszd ki a stílust, mi megálmodjuk a részleteket.</footer>
+
+<script>
+(function () {
+  // Várt slug-formátum: <nev1>-<nev2>-<eeee>-<hh>-<nn>, pl. "lili-mark-2026-08-14"
+  var parts = location.pathname.split("/").filter(Boolean);
+  var slug = parts.length > 1 && parts[0] === "stilus-valaszto" ? parts[1] : null;
+  if (!slug) return;
+
+  var segs = slug.split("-");
+  if (segs.length < 4) return;
+
+  var day = segs.pop();
+  var month = segs.pop();
+  var year = segs.pop();
+  var nameSegs = segs;
+
+  if (!/^\d{4}$/.test(year) || !/^\d{1,2}$/.test(month) || !/^\d{1,2}$/.test(day) || nameSegs.length === 0) {
+    return; // ismeretlen formátum, marad az "A & B" alapértelmezés
+  }
+
+  function capitalize(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  var displayNames = nameSegs.map(capitalize).join(" & ");
+
+  var honapNevek = ["január", "február", "március", "április", "május", "június",
+                     "július", "augusztus", "szeptember", "október", "november", "december"];
+  var monthIdx = parseInt(month, 10) - 1;
+  var honapNev = honapNevek[monthIdx] || month;
+  var displayDate = year + ". " + honapNev + " " + parseInt(day, 10) + ".";
+
+  document.querySelectorAll(".mock-names").forEach(function (el) {
+    el.textContent = displayNames;
+  });
+  document.querySelectorAll(".mock-date").forEach(function (el) {
+    el.textContent = displayDate;
+  });
+
+  document.title = displayNames + " esküvője — stílusválasztás";
+})();
+</script>
 
 </body>
 </html>
