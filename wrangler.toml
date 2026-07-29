@@ -1,0 +1,8 @@
+name = "wedconnect"
+pages_build_output_dir = "."
+compatibility_date = "2026-07-14"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "wedconnect-parok"
+database_id = "eb5018c6-ed60-4337-80b6-774dc1c7ffd2"
