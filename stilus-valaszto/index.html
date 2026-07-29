@@ -482,8 +482,15 @@
 (function () {
   // Várt slug-formátum: <nev1>-<nev2>-<eeee>-<hh>-<nn>, pl. "lili-mark-2026-08-14"
   var parts = location.pathname.split("/").filter(Boolean);
-  var slug = parts.length > 1 && parts[0] === "stilus-valaszto" ? parts[1] : null;
-  if (!slug) return;
+  var rawSlug = parts.length > 1 && parts[0] === "stilus-valaszto" ? parts[1] : null;
+  if (!rawSlug) return;
+
+  var slug;
+  try {
+    slug = decodeURIComponent(rawSlug);
+  } catch (e) {
+    slug = rawSlug; // hibás %-kódolás esetén inkább a nyers szöveggel próbálkozunk, mint hogy elszálljon
+  }
 
   var segs = slug.split("-");
   if (segs.length < 4) return;
