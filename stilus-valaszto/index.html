@@ -84,8 +84,7 @@
     font-family: "Poppins", sans-serif;
     font-size: 0.7rem;
     letter-spacing: 0.2em;
-    color: var(--accent);
-    opacity: 0.85;
+    color: var(--accent-text, var(--accent));
     margin-bottom: 18px;
   }
 
@@ -113,8 +112,7 @@
     font-family: "Poppins", sans-serif;
     font-size: 0.72rem;
     letter-spacing: 0.18em;
-    color: var(--accent);
-    opacity: 0.85;
+    color: var(--accent-text, var(--accent));
   }
 
   .f-script  { font-family: "Great Vibes", cursive; font-size: 2.6rem; }
@@ -138,7 +136,7 @@
   .card-message p:last-child {
     margin-bottom: 0;
     font-size: 0.92rem;
-    opacity: 0.85;
+    color: var(--fg-muted, var(--fg));
   }
 
   .card-cta {
@@ -173,7 +171,7 @@
     margin: 0;
     font-size: 0.95rem;
     line-height: 1.4;
-    opacity: 0.82;
+    color: var(--fg-muted, var(--fg));
   }
 
   footer {
@@ -194,7 +192,7 @@
 
 <div class="style-grid">
 
-  <article class="style-card" style="--bg:#ffffff; --fg:#161616; --accent:#161616; --btn-fg:#ffffff;">
+  <article class="style-card" style="--bg:#ffffff; --fg:#161616; --accent:#161616; --btn-fg:#fbfbfa; --accent-text:#161616; --fg-muted:#737373;">
     <div class="card-index">01</div>
     <div class="card-face">
       <div class="mock-names f-sans">A &amp; B</div>
@@ -208,7 +206,7 @@
     <div class="card-info"><h3>Modern minimalista</h3><p>Letisztult, fehér, fekete, egyszerű formák</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#0d0d0d,#1c1a16); --fg:#f2e6c9; --accent:#cfa64b; --btn-fg:#1a1408;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#0d0d0d,#1c1a16); --fg:#f2e6c9; --accent:#cfa64b; --btn-fg:#141414; --accent-text:#cfa74d; --fg-muted:#8b8474;">
     <div class="card-index">02</div>
     <div class="card-face">
       <div class="mock-names f-caps">A &amp; B</div>
@@ -222,7 +220,7 @@
     <div class="card-info"><h3>Luxury / Elegáns</h3><p>Kristályok, arany, prémium virágok, exkluzív hangulat</p></div>
   </article>
 
-  <article class="style-card" style="--bg:#fbfaf5; --fg:#22301f; --accent:#a9833f; --btn-fg:#fffaf0;">
+  <article class="style-card" style="--bg:#fbfaf5; --fg:#22301f; --accent:#a9833f; --btn-fg:#141414; --accent-text:#8c6d34; --fg-muted:#6a7366;">
     <div class="card-index">03</div>
     <div class="card-face">
       <div class="mock-names f-script">A &amp; B</div>
@@ -236,7 +234,7 @@
     <div class="card-info"><h3>Klasszikus</h3><p>Időtálló elegancia, fehér rózsák, gyertyák</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#7a5638,#5b3f28); --fg:#fbf1e1; --accent:#e0bd83; --btn-fg:#4a3320;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#7a5638,#5b3f28); --fg:#fbf1e1; --accent:#e0bd83; --btn-fg:#141414; --accent-text:#ecd6b2; --fg-muted:#e5d7c4;">
     <div class="card-index">04</div>
     <div class="card-face">
       <div class="mock-names f-hand">A &amp; B</div>
@@ -250,7 +248,7 @@
     <div class="card-info"><h3>Rusztikus</h3><p>Fa, pajta, juta, természetes anyagok</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#e9d3ac,#cf9a67); --fg:#4a3320; --accent:#7c8a54; --btn-fg:#fbf6ec;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#e9d3ac,#cf9a67); --fg:#4a3320; --accent:#7c8a54; --btn-fg:#141414; --accent-text:#353b24; --fg-muted:#4c3521;">
     <div class="card-index">05</div>
     <div class="card-face">
       <div class="mock-names f-hand">A &amp; B</div>
@@ -264,7 +262,7 @@
     <div class="card-info"><h3>Boho</h3><p>Pampafű, makramé, földszínek, laza hangulat</p></div>
   </article>
 
-  <article class="style-card" style="--bg:#f3e6e2; --fg:#6b4a52; --accent:#b98a95; --btn-fg:#fbf3f1;">
+  <article class="style-card" style="--bg:#f3e6e2; --fg:#6b4a52; --accent:#b98a95; --btn-fg:#141414; --accent-text:#7e5e65; --fg-muted:#7d5e65;">
     <div class="card-index">06</div>
     <div class="card-face">
       <div class="mock-names f-script">A &amp; B</div>
@@ -278,7 +276,7 @@
     <div class="card-info"><h3>Vintage</h3><p>Régi bútorok, csipke, pasztell színek</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#fdedf0,#f6d6dc); --fg:#7a3f4c; --accent:#d98fa0; --btn-fg:#4c1f29;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#fdedf0,#f6d6dc); --fg:#7a3f4c; --accent:#d98fa0; --btn-fg:#141414; --accent-text:#80545e; --fg-muted:#87505c;">
     <div class="card-index">07</div>
     <div class="card-face">
       <div class="mock-names f-script">A &amp; B</div>
@@ -292,7 +290,7 @@
     <div class="card-info"><h3>Romantikus</h3><p>Sok virág, lágy színek, gyertyafény</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#2a3350,#3d4a70); --fg:#f5efe0; --accent:#f2c14e; --btn-fg:#2a2005;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#2a3350,#3d4a70); --fg:#f5efe0; --accent:#f2c14e; --btn-fg:#141414; --accent-text:#f2c250; --fg-muted:#c0bebb;">
     <div class="card-index">08</div>
     <div class="card-face">
       <div class="mock-names f-serif-i">A &amp; B</div>
@@ -306,7 +304,7 @@
     <div class="card-info"><h3>Kerti (Garden Party)</h3><p>Szabadtéri vacsora, fényfüzérek</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#f5e7c6,#e3bd7c); --fg:#6b3d1f; --accent:#b1451f; --btn-fg:#fff8ec;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#f5e7c6,#e3bd7c); --fg:#6b3d1f; --accent:#b1451f; --btn-fg:#fbfbfa; --accent-text:#883518; --fg-muted:#714426;">
     <div class="card-index">09</div>
     <div class="card-face">
       <div class="mock-names f-serif-i">A &amp; B</div>
@@ -320,7 +318,7 @@
     <div class="card-info"><h3>Mediterrán / Toszkán</h3><p>Olajfa, citrom, terrakotta, hosszú faasztalok</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#eaf6fb,#cdeaf4); --fg:#225063; --accent:#4a8fa8; --btn-fg:#eaf6fb;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#eaf6fb,#cdeaf4); --fg:#225063; --accent:#4a8fa8; --btn-fg:#141414; --accent-text:#386b7e; --fg-muted:#426b7b;">
     <div class="card-index">10</div>
     <div class="card-face">
       <div class="mock-names f-hand">A &amp; B</div>
@@ -334,7 +332,7 @@
     <div class="card-info"><h3>Tengerparti</h3><p>Homok, kagylók, világoskék árnyalatok</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#3c3c3c,#282828); --fg:#e9e9e9; --accent:#b0603f; --btn-fg:#f7ede7;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#3c3c3c,#282828); --fg:#e9e9e9; --accent:#b0603f; --btn-fg:#fbfbfa; --accent-text:#cf9e8a; --fg-muted:#a9a9a9;">
     <div class="card-index">11</div>
     <div class="card-face">
       <div class="mock-names f-sans">A &amp; B</div>
@@ -348,7 +346,7 @@
     <div class="card-info"><h3>Industrial</h3><p>Tégla, beton, fekete fémek</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#141414,#242424); --fg:#f2e7d2; --accent:#d4af37; --btn-fg:#1a1408;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#141414,#242424); --fg:#f2e7d2; --accent:#d4af37; --btn-fg:#141414; --accent-text:#d4b039; --fg-muted:#938c80;">
     <div class="card-index">12</div>
     <div class="card-face">
       <div class="mock-names f-caps">A &amp; B</div>
@@ -362,7 +360,7 @@
     <div class="card-info"><h3>Modern Glam</h3><p>Márvány, fekete-arany, tükrök</p></div>
   </article>
 
-  <article class="style-card" style="--bg:#111111; --fg:#f0e6d0; --accent:#c9a227; --btn-fg:#1a1408;">
+  <article class="style-card" style="--bg:#111111; --fg:#f0e6d0; --accent:#c9a227; --btn-fg:#141414; --accent-text:#caa329; --fg-muted:#837e72;">
     <div class="card-index">13</div>
     <div class="card-face">
       <div class="mock-names f-caps">A &amp; B</div>
@@ -376,7 +374,7 @@
     <div class="card-info"><h3>Art Deco</h3><p>Geometrikus minták, arany, a 20-as évek hangulata</p></div>
   </article>
 
-  <article class="style-card" style="--bg:#f7f5ef; --fg:#2e3a2f; --accent:#8faa8b; --btn-fg:#f7f9f6;">
+  <article class="style-card" style="--bg:#f7f5ef; --fg:#2e3a2f; --accent:#8faa8b; --btn-fg:#141414; --accent-text:#61745f; --fg-muted:#687067;">
     <div class="card-index">14</div>
     <div class="card-face">
       <div class="mock-names f-sans">A &amp; B</div>
@@ -390,7 +388,7 @@
     <div class="card-info"><h3>Skandináv</h3><p>Világos fa, fehér, természetesség</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#1c0e13,#2d0f17); --fg:#e9d5d0; --accent:#8a2e3a; --btn-fg:#f6e6e4;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#1c0e13,#2d0f17); --fg:#e9d5d0; --accent:#8a2e3a; --btn-fg:#fbfbfa; --accent-text:#b1737b; --fg-muted:#917f7f;">
     <div class="card-index">15</div>
     <div class="card-face">
       <div class="mock-names f-script">A &amp; B</div>
@@ -404,7 +402,7 @@
     <div class="card-info"><h3>Dark Romance</h3><p>Bordó, fekete, mély zöld árnyalatok</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#1f3524,#2c4632); --fg:#e6ead9; --accent:#7fae6a; --btn-fg:#132018;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#1f3524,#2c4632); --fg:#e6ead9; --accent:#7fae6a; --btn-fg:#141414; --accent-text:#90b97d; --fg-muted:#a8b2a1;">
     <div class="card-index">16</div>
     <div class="card-face">
       <div class="mock-names f-serif-i">A &amp; B</div>
@@ -418,7 +416,7 @@
     <div class="card-info"><h3>Forest / Woodland</h3><p>Erdő, mohák, fák, természetközeli</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#f3e9ff,#e3d1f5); --fg:#5a3d73; --accent:#c98fbb; --btn-fg:#3a1f4d;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#f3e9ff,#e3d1f5); --fg:#5a3d73; --accent:#c98fbb; --btn-fg:#141414; --accent-text:#73526b; --fg-muted:#6c5284;">
     <div class="card-index">17</div>
     <div class="card-face">
       <div class="mock-names f-script">A &amp; B</div>
@@ -432,7 +430,7 @@
     <div class="card-info"><h3>Tündérmese (Fairytale)</h3><p>Kastély, rengeteg virág, meseszerű világ</p></div>
   </article>
 
-  <article class="style-card" style="--bg:#f7f2e6; --fg:#4a4038; --accent:#7f96a8; --btn-fg:#f7faf9;">
+  <article class="style-card" style="--bg:#f7f2e6; --fg:#4a4038; --accent:#7f96a8; --btn-fg:#141414; --accent-text:#5e6f7c; --fg-muted:#756c64;">
     <div class="card-index">18</div>
     <div class="card-face">
       <div class="mock-names f-hand">A &amp; B</div>
@@ -446,7 +444,7 @@
     <div class="card-info"><h3>Farmhouse</h3><p>Vidéki, egyszerű, otthonos</p></div>
   </article>
 
-  <article class="style-card" style="--bg:#fbfbf7; --fg:#2e3a2f; --accent:#4f7a52; --btn-fg:#f4f8f2;">
+  <article class="style-card" style="--bg:#fbfbf7; --fg:#2e3a2f; --accent:#4f7a52; --btn-fg:#fbfbfa; --accent-text:#4e7951; --fg-muted:#6c746b;">
     <div class="card-index">19</div>
     <div class="card-face">
       <div class="mock-names f-serif-i">A &amp; B</div>
@@ -460,7 +458,7 @@
     <div class="card-info"><h3>Modern Botanical</h3><p>Rengeteg zöld növény, kevés virág</p></div>
   </article>
 
-  <article class="style-card" style="--bg:linear-gradient(160deg,#ffffff,#e4eef3); --fg:#1f3a4a; --accent:#2c6e8f; --btn-fg:#eef7fb;">
+  <article class="style-card" style="--bg:linear-gradient(160deg,#ffffff,#e4eef3); --fg:#1f3a4a; --accent:#2c6e8f; --btn-fg:#fbfbfa; --accent-text:#2c6d8e; --fg-muted:#576b77;">
     <div class="card-index">20</div>
     <div class="card-face">
       <div class="mock-names f-sans">A &amp; B</div>
