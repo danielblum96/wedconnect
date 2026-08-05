@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS parok (
   drive_link TEXT,
   allapot TEXT NOT NULL DEFAULT 'Új',
   szallitasi_cim TEXT,
+  valasztott_stilus TEXT,
   megjegyzes TEXT,
   letrehozva TEXT NOT NULL DEFAULT (datetime('now'))
 );
