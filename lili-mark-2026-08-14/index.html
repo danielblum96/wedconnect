@@ -12,7 +12,6 @@
   :root {
     --bg: linear-gradient(160deg, #f5e7c6, #e3bd7c);
     --fg: #6b3d1f;
-    --fg-muted: #714426;
     --accent: #b1451f;
     --accent-text: #883518;
     --btn-fg: #fbfbfa;
@@ -105,24 +104,32 @@
     color: var(--fg);
     margin: 0 0 14px;
   }
-  .note {
-    font-size: 1.05rem;
-    color: var(--fg-muted);
-    margin: 0 0 34px;
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
   }
   .cta {
     display: inline-block;
-    padding: 14px 38px;
+    padding: 14px 34px;
     background: var(--accent);
     color: var(--btn-fg);
     border-radius: 999px;
     font-family: "Poppins", sans-serif;
     font-size: 0.85rem;
     font-weight: 600;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     text-decoration: none;
     box-shadow: 0 8px 18px -8px rgba(20, 20, 20, 0.35);
+  }
+  .cta-secondary {
+    background: transparent;
+    color: var(--accent-text);
+    box-shadow: none;
+    border: 1.5px solid var(--accent);
   }
 </style>
 </head>
@@ -137,11 +144,11 @@
     <p class="message">
       Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!
     </p>
-    <p class="note">
-      Az esküvői képek hamarosan elérhetők lesznek!
-    </p>
 
-    <a class="cta" href="#" onclick="return false;">Esküvői képek</a>
+    <div class="cta-row">
+      <a class="cta" href="https://fotoshare.co/e/H8pP-OOCgN17s6WI-uY11" target="_blank" rel="noopener">Esküvői képek</a>
+      <a class="cta cta-secondary" href="https://drive.google.com/file/d/1EDxpuof8pzwLXfDcPnOezhYTslY6_UsG/view?usp=sharing" target="_blank" rel="noopener">Kagyló zoom videó</a>
+    </div>
   </div>
 </body>
 </html>
