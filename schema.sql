@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS parok (
   vendegszam INTEGER,
   nfc_kod TEXT UNIQUE,
   drive_link TEXT,
+  video_link TEXT,
   allapot TEXT NOT NULL DEFAULT 'Új',
   szallitasi_cim TEXT,
   valasztott_stilus TEXT,
