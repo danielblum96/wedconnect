@@ -26,3 +26,16 @@ export function countryToLang(orszag) {
   const map = { DE: "de", AT: "de", CH: "de" };
   return map[(orszag || "").toUpperCase()] || "de";
 }
+
+// A `parok.allapot` mező belső (magyar) érték marad az adatbázisban - csak a
+// MEGJELENÍTÉS fordítódik, ugyanaz a minta, mint a stílusoknál (id vs. nevek).
+const STATUS_LABELS = {
+  Új: { hu: "Új", de: "Neu" },
+  Aktív: { hu: "Aktív", de: "Aktiv" },
+};
+
+export function getStatusLabel(status, lang) {
+  const entry = STATUS_LABELS[status];
+  if (!entry) return status || "";
+  return entry[lang] || entry.hu;
+}

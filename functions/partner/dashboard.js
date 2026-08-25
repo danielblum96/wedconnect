@@ -1,7 +1,7 @@
 import { getSessionReseller } from "../_utils/auth.js";
 import { STYLES, FONT_RECIPES, getStyleName, resolveStyleByStoredValue } from "../_utils/styles.js";
 import { escapeHtml, safeHref } from "../_utils/html.js";
-import { getCopy } from "../_utils/i18n.js";
+import { getCopy, getStatusLabel } from "../_utils/i18n.js";
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -17,6 +17,7 @@ export async function onRequestGet(context) {
   const url = new URL(request.url);
   const saved = url.searchParams.get("saved");
   const error = url.searchParams.get("error");
+  const deleted = url.searchParams.get("deleted");
 
   const defaultMessage = getCopy(reseller.nyelv || "de").defaultMessage;
 
@@ -54,28 +55,37 @@ export async function onRequestGet(context) {
 
       const pageUrl = `https://wedconnect.eu/${p.slug}`;
       const styleName = getStyleName(resolveStyleByStoredValue(p.valasztott_stilus), "de");
+      const statusLabel = getStatusLabel(p.allapot, "de");
+      const searchText = `${p.par_neve} ${p.eskuvo_datuma} ${styleName}`.toLowerCase();
 
       return `
-        <div class="couple">
+        <div class="couple" data-search="${escapeHtml(searchText)}">
           <div class="couple-head">
             <div>
               <div class="couple-name">${escapeHtml(p.par_neve)}</div>
-              <div class="couple-meta">${escapeHtml(p.eskuvo_datuma)} · ${escapeHtml(styleName)} · <span class="status">${escapeHtml(p.allapot)}</span></div>
+              <div class="couple-meta">${escapeHtml(p.eskuvo_datuma)} · ${escapeHtml(styleName)} · <span class="status">${escapeHtml(statusLabel)}</span></div>
               <a class="couple-link" href="${safeHref(pageUrl)}" target="_blank" rel="noopener">${escapeHtml(pageUrl)}</a>
             </div>
-            <details>
-              <summary>Bearbeiten</summary>
-              <form method="POST" action="/api/couple-update" class="edit-form">
+            <div class="couple-actions">
+              <button type="button" class="btn-qr" data-url="${escapeHtml(pageUrl)}" data-filename="${escapeHtml(p.slug)}-qr.png">QR-Code</button>
+              <form method="POST" action="/api/couple-delete" class="delete-form" onsubmit="return confirm('Soll dieses Brautpaar wirklich endgültig gelöscht werden?')">
                 <input type="hidden" name="par_id" value="${p.id}">
-                <label>Eigene Nachricht (leer lassen für den Standardtext)</label>
-                <textarea name="egyedi_uzenet" rows="2" placeholder="Vielen Dank, dass du diesen Tag mit uns feierst...">${escapeHtml(p.egyedi_uzenet || "")}</textarea>
-                <label>Buttons (Beschriftung + Link, max. 5)</label>
-                ${gombRows}
-                <button type="submit" class="btn-save">Speichern</button>
-                ${saved === String(p.id) ? '<span class="saved-note">Gespeichert ✓</span>' : ""}
+                <button type="submit" class="btn-delete">Löschen</button>
               </form>
-            </details>
+            </div>
           </div>
+          <details>
+            <summary>Bearbeiten</summary>
+            <form method="POST" action="/api/couple-update" class="edit-form">
+              <input type="hidden" name="par_id" value="${p.id}">
+              <label>Eigene Nachricht (leer lassen für den Standardtext)</label>
+              <textarea name="egyedi_uzenet" rows="2" placeholder="Vielen Dank, dass du diesen Tag mit uns feierst...">${escapeHtml(p.egyedi_uzenet || "")}</textarea>
+              <label>Buttons (Beschriftung + Link, max. 5)</label>
+              ${gombRows}
+              <button type="submit" class="btn-save">Speichern</button>
+              ${saved === String(p.id) ? '<span class="saved-note">Gespeichert ✓</span>' : ""}
+            </form>
+          </details>
         </div>`;
     })
     .join("");
@@ -90,6 +100,7 @@ export async function onRequestGet(context) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="/assets/qrcode.min.js"></script>
 <style>
   :root { --bg:#faf7f2; --fg:#2b2620; --muted:#7a7266; --accent:#b48b56; --card:#ffffff; }
   * { box-sizing: border-box; }
@@ -144,6 +155,14 @@ export async function onRequestGet(context) {
   .btn-row { display:flex; gap:8px; align-items:center; }
   .btn-remove-row { flex:none; border:none; background:none; color:var(--muted); font-size:1.2rem; line-height:1; cursor:pointer; padding:0 4px 14px; }
   .btn-add-row { border:1px dashed #ddd6c9; background:none; color:var(--accent); border-radius:8px; padding:9px 14px; font-size:0.85rem; font-weight:600; cursor:pointer; font-family:inherit; margin-bottom:20px; }
+  .info-box { background:#eaf5ee; color:#3a7a4e; border:1px solid #bfe0cb; padding:10px 14px; border-radius:8px; font-size:0.85rem; margin-bottom:18px; }
+  .search-row input { margin-bottom:18px; }
+  .couple-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+  .couple-actions { display:flex; gap:8px; flex:none; }
+  .delete-form { display:inline; }
+  .btn-qr, .btn-delete { padding:7px 14px; border-radius:999px; font-weight:600; font-size:0.78rem; cursor:pointer; font-family:inherit; white-space:nowrap; }
+  .btn-qr { border:1px solid #ddd6c9; background:none; color:var(--fg); }
+  .btn-delete { border:1px solid #e0b8ac; background:none; color:#b1451f; }
 </style>
 </head>
 <body>
@@ -156,6 +175,7 @@ export async function onRequestGet(context) {
 </header>
 <main>
   ${error ? `<div class="error-box">Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</div>` : ""}
+  ${deleted ? `<div class="info-box">Brautpaar gelöscht.</div>` : ""}
   <div class="new-couple">
     <h2>Neues Brautpaar hinzufügen</h2>
     <form method="POST" action="/api/couple-create" id="new-couple-form" novalidate>
@@ -205,7 +225,13 @@ export async function onRequestGet(context) {
   </div>
 
   <h2>Ihre Brautpaare</h2>
+  ${
+    parok && parok.length
+      ? `<div class="search-row"><input type="text" id="couple-search" placeholder="Suchen (Name, Datum, Stil)..."></div>`
+      : ""
+  }
   ${rows || '<p class="empty">Noch kein Brautpaar angelegt. Fügen Sie oben das erste hinzu!</p>'}
+  ${parok && parok.length ? `<p class="empty" id="no-results" hidden>Keine Treffer für diese Suche.</p>` : ""}
 </main>
 <script>
 (function () {
@@ -330,6 +356,52 @@ export async function onRequestGet(context) {
 
   renderPreviews();
   showStep(1);
+
+  var searchInput = document.getElementById("couple-search");
+  if (searchInput) {
+    var coupleEls = Array.prototype.slice.call(document.querySelectorAll(".couple"));
+    var noResults = document.getElementById("no-results");
+    searchInput.addEventListener("input", function () {
+      var q = searchInput.value.trim().toLowerCase();
+      var anyVisible = false;
+      coupleEls.forEach(function (el) {
+        var match = !q || (el.getAttribute("data-search") || "").indexOf(q) !== -1;
+        el.style.display = match ? "" : "none";
+        if (match) anyVisible = true;
+      });
+      if (noResults) noResults.hidden = anyVisible;
+    });
+  }
+
+  document.querySelectorAll(".btn-qr").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var pageUrl = btn.getAttribute("data-url");
+      var filename = btn.getAttribute("data-filename");
+      var qr = qrcode(0, "M");
+      qr.addData(pageUrl);
+      qr.make();
+      var count = qr.getModuleCount();
+      var cell = 10;
+      var margin = cell * 4;
+      var size = count * cell + margin * 2;
+      var canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      var ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = "#000000";
+      for (var r = 0; r < count; r++) {
+        for (var c = 0; c < count; c++) {
+          if (qr.isDark(r, c)) ctx.fillRect(margin + c * cell, margin + r * cell, cell, cell);
+        }
+      }
+      var link = document.createElement("a");
+      link.download = filename;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    });
+  });
 })();
 </script>
 </body>
