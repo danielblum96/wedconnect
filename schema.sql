@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS parok (
   viszontelado_id INTEGER REFERENCES viszontelado(id),
   rendeles_id INTEGER REFERENCES rendelesek(id),
   egyedi_gombok TEXT,
-  egyedi_uzenet TEXT
+  egyedi_uzenet TEXT,
+  nyelv TEXT NOT NULL DEFAULT 'hu'
 );
 
 CREATE TABLE IF NOT EXISTS viszontelado (
@@ -24,6 +25,7 @@ CREATE TABLE IF NOT EXISTS viszontelado (
   email TEXT NOT NULL UNIQUE,
   jelszo_hash TEXT NOT NULL,
   orszag TEXT NOT NULL,
+  nyelv TEXT NOT NULL DEFAULT 'de',
   allapot TEXT NOT NULL DEFAULT 'Aktív',
   letrehozva TEXT NOT NULL DEFAULT (datetime('now'))
 );

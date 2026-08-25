@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Partner Login — WedConnect</title>
+<title>Partner-Login — WedConnect</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
@@ -102,28 +102,28 @@
 <body>
   <div class="card">
     <div class="brand">Wed<span>Connect</span></div>
-    <h1>Partner Login</h1>
+    <h1>Partner-Login</h1>
     <div class="error" id="err"></div>
     <form method="POST" action="/api/reseller-login">
       <label for="email">Email</label>
       <input type="email" id="email" name="email" required autocomplete="username">
-      <label for="jelszo">Password</label>
+      <label for="jelszo">Passwort</label>
       <input type="password" id="jelszo" name="jelszo" required autocomplete="current-password">
-      <button type="submit">Log in</button>
+      <button type="submit">Einloggen</button>
     </form>
-    <div class="foot">No account yet? <a href="/de/registrieren">Become a partner</a></div>
+    <div class="foot">Noch kein Konto? <a href="/de/registrieren">Partner werden</a></div>
   </div>
   <script>
     var params = new URLSearchParams(location.search);
     var err = params.get("error");
     if (err) {
       var messages = {
-        missing_fields: "Please fill in both fields.",
-        invalid: "Incorrect email or password.",
-        suspended: "This account is currently inactive. Please contact us."
+        missing_fields: "Bitte füllen Sie beide Felder aus.",
+        invalid: "Email oder Passwort ist falsch.",
+        suspended: "Dieses Konto ist derzeit inaktiv. Bitte kontaktieren Sie uns."
       };
       var box = document.getElementById("err");
-      box.textContent = messages[err] || "Something went wrong. Please try again.";
+      box.textContent = messages[err] || "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.";
       box.style.display = "block";
     }
   </script>

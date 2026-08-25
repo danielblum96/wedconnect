@@ -31,9 +31,9 @@ export async function onRequestPost(context) {
   }
 
   await env.DB.prepare(
-    "INSERT INTO parok (par_neve, eskuvo_datuma, slug, allapot, valasztott_stilus, viszontelado_id) VALUES (?, ?, ?, 'Aktív', ?, ?)"
+    "INSERT INTO parok (par_neve, eskuvo_datuma, slug, allapot, valasztott_stilus, viszontelado_id, nyelv) VALUES (?, ?, ?, 'Aktív', ?, ?, ?)"
   )
-    .bind(`${nev1} & ${nev2}`, datum, slug, style.nev, reseller.id)
+    .bind(`${nev1} & ${nev2}`, datum, slug, style.id, reseller.id, reseller.nyelv || "de")
     .run();
 
   return Response.redirect(new URL("/partner/dashboard", request.url).href, 303);

@@ -1,7 +1,6 @@
-import { STYLES, FONT_RECIPES, namesFontSize } from "./_utils/styles.js";
+import { FONT_RECIPES, namesFontSize, resolveStyleByStoredValue } from "./_utils/styles.js";
 import { escapeHtml, safeHref } from "./_utils/html.js";
-
-const DEFAULT_MESSAGE = "Köszönjük, hogy velünk ünnepled életünk egyik legszebb napját!";
+import { getCopy } from "./_utils/i18n.js";
 
 function notFound() {
   const html = `<!DOCTYPE html>
@@ -45,16 +44,17 @@ export async function onRequestGet(context) {
   if (staticResp) return staticResp;
 
   const par = await env.DB.prepare(
-    "SELECT par_neve, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok FROM parok WHERE slug = ?"
+    "SELECT par_neve, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, nyelv FROM parok WHERE slug = ?"
   )
     .bind(slug)
     .first();
 
   if (!par) return notFound();
 
-  const style = STYLES.find((s) => s.nev === par.valasztott_stilus) || STYLES[0];
+  const style = resolveStyleByStoredValue(par.valasztott_stilus);
   const fontRecipe = FONT_RECIPES[style.font] || FONT_RECIPES.sans;
   const fontSize = namesFontSize(style.font);
+  const copy = getCopy(par.nyelv);
 
   let gombok = [];
   try {
@@ -67,7 +67,7 @@ export async function onRequestGet(context) {
   const displayDate =
     dateParts.length === 3 ? `${dateParts[0]}.${dateParts[1]}.${dateParts[2]}.` : escapeHtml(par.eskuvo_datuma || "");
 
-  const message = escapeHtml(par.egyedi_uzenet || DEFAULT_MESSAGE);
+  const message = escapeHtml(par.egyedi_uzenet || copy.defaultMessage);
 
   const buttonsHtml = gombok.length
     ? `<div class="cta-row">${gombok
@@ -79,7 +79,7 @@ export async function onRequestGet(context) {
     : "";
 
   const html = `<!DOCTYPE html>
-<html lang="hu">
+<html lang="${par.nyelv === "de" ? "de" : "hu"}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -206,7 +206,7 @@ export async function onRequestGet(context) {
 </head>
 <body>
   <div class="card">
-    <div class="eyebrow">Esküvő</div>
+    <div class="eyebrow">${escapeHtml(copy.eyebrow)}</div>
     <h1 class="names">${escapeHtml(par.par_neve)}</h1>
     <div class="date">${displayDate}</div>
     <div class="divider"><span class="line"></span><span class="mark">❖</span><span class="line"></span></div>

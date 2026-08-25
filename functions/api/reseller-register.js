@@ -1,4 +1,5 @@
 import { hashPassword, newSessionToken, sessionCookie } from "../_utils/auth.js";
+import { countryToLang } from "../_utils/i18n.js";
 
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
 
@@ -23,10 +24,11 @@ export async function onRequestPost(context) {
   if (existing) return backWithError("email_exists");
 
   const jelszoHash = await hashPassword(jelszo);
+  const nyelv = countryToLang(orszag);
   const insert = await env.DB.prepare(
-    "INSERT INTO viszontelado (ceg_nev, email, jelszo_hash, orszag) VALUES (?, ?, ?, ?)"
+    "INSERT INTO viszontelado (ceg_nev, email, jelszo_hash, orszag, nyelv) VALUES (?, ?, ?, ?, ?)"
   )
-    .bind(cegNev, email, jelszoHash, orszag)
+    .bind(cegNev, email, jelszoHash, orszag, nyelv)
     .run();
 
   const viszonteladoId = insert.meta.last_row_id;

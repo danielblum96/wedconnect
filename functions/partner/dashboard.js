@@ -1,5 +1,5 @@
 import { getSessionReseller } from "../_utils/auth.js";
-import { STYLES } from "../_utils/styles.js";
+import { STYLES, getStyleName, resolveStyleByStoredValue } from "../_utils/styles.js";
 import { escapeHtml, safeHref } from "../_utils/html.js";
 
 export async function onRequestGet(context) {
@@ -17,7 +17,7 @@ export async function onRequestGet(context) {
   const saved = url.searchParams.get("saved");
   const error = url.searchParams.get("error");
 
-  const styleOptions = STYLES.map((s) => `<option value="${s.id}">${escapeHtml(s.nev)}</option>`).join("");
+  const styleOptions = STYLES.map((s) => `<option value="${s.id}">${escapeHtml(getStyleName(s, "de"))}</option>`).join("");
 
   const rows = (parok || [])
     .map((p) => {
@@ -32,32 +32,33 @@ export async function onRequestGet(context) {
           const g = gombok[i] || { label: "", url: "" };
           return `
             <div class="btn-row">
-              <input type="text" name="gomb_label" placeholder="Gomb felirata" value="${escapeHtml(g.label)}">
+              <input type="text" name="gomb_label" placeholder="Button-Beschriftung" value="${escapeHtml(g.label)}">
               <input type="url" name="gomb_url" placeholder="https://..." value="${escapeHtml(g.url)}">
             </div>`;
         })
         .join("");
 
       const pageUrl = `https://wedconnect.eu/${p.slug}`;
+      const styleName = getStyleName(resolveStyleByStoredValue(p.valasztott_stilus), "de");
 
       return `
         <div class="couple">
           <div class="couple-head">
             <div>
               <div class="couple-name">${escapeHtml(p.par_neve)}</div>
-              <div class="couple-meta">${escapeHtml(p.eskuvo_datuma)} · ${escapeHtml(p.valasztott_stilus || "")} · <span class="status">${escapeHtml(p.allapot)}</span></div>
+              <div class="couple-meta">${escapeHtml(p.eskuvo_datuma)} · ${escapeHtml(styleName)} · <span class="status">${escapeHtml(p.allapot)}</span></div>
               <a class="couple-link" href="${safeHref(pageUrl)}" target="_blank" rel="noopener">${escapeHtml(pageUrl)}</a>
             </div>
             <details>
-              <summary>Szerkesztés</summary>
+              <summary>Bearbeiten</summary>
               <form method="POST" action="/api/couple-update" class="edit-form">
                 <input type="hidden" name="par_id" value="${p.id}">
-                <label>Egyedi üzenet (üresen hagyva az alapértelmezett marad)</label>
-                <textarea name="egyedi_uzenet" rows="2" placeholder="Köszönjük, hogy velünk ünnepled...">${escapeHtml(p.egyedi_uzenet || "")}</textarea>
-                <label>Gombok (címke + link, max. 5)</label>
+                <label>Eigene Nachricht (leer lassen für den Standardtext)</label>
+                <textarea name="egyedi_uzenet" rows="2" placeholder="Vielen Dank, dass du diesen Tag mit uns feierst...">${escapeHtml(p.egyedi_uzenet || "")}</textarea>
+                <label>Buttons (Beschriftung + Link, max. 5)</label>
                 ${gombRows}
-                <button type="submit" class="btn-save">Mentés</button>
-                ${saved === String(p.id) ? '<span class="saved-note">Mentve ✓</span>' : ""}
+                <button type="submit" class="btn-save">Speichern</button>
+                ${saved === String(p.id) ? '<span class="saved-note">Gespeichert ✓</span>' : ""}
               </form>
             </details>
           </div>
@@ -66,7 +67,7 @@ export async function onRequestGet(context) {
     .join("");
 
   const html = `<!DOCTYPE html>
-<html lang="hu">
+<html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -115,28 +116,28 @@ export async function onRequestGet(context) {
   <div class="brand">Wed<span>Connect</span> Partner</div>
   <div style="display:flex; align-items:center; gap:16px;">
     <span class="who">${escapeHtml(reseller.ceg_nev)} (${escapeHtml(reseller.email)})</span>
-    <form class="logout-form" method="POST" action="/api/reseller-logout"><button type="submit">Kijelentkezés</button></form>
+    <form class="logout-form" method="POST" action="/api/reseller-logout"><button type="submit">Abmelden</button></form>
   </div>
 </header>
 <main>
-  ${error ? `<div class="error-box">Hiba történt, próbáld újra.</div>` : ""}
+  ${error ? `<div class="error-box">Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</div>` : ""}
   <div class="new-couple">
-    <h2>Új pár hozzáadása</h2>
+    <h2>Neues Brautpaar hinzufügen</h2>
     <form method="POST" action="/api/couple-create">
       <div class="field-row">
-        <div><label>Menyasszony neve</label><input type="text" name="nev1" required></div>
-        <div><label>Vőlegény neve</label><input type="text" name="nev2" required></div>
+        <div><label>Name der Braut</label><input type="text" name="nev1" required></div>
+        <div><label>Name des Bräutigams</label><input type="text" name="nev2" required></div>
       </div>
       <div class="field-row">
-        <div><label>Esküvő dátuma</label><input type="date" name="eskuvo_datuma" required></div>
-        <div><label>Stílus</label><select name="stilus" required>${styleOptions}</select></div>
+        <div><label>Hochzeitsdatum</label><input type="date" name="eskuvo_datuma" required></div>
+        <div><label>Stil</label><select name="stilus" required>${styleOptions}</select></div>
       </div>
-      <button type="submit">Oldal létrehozása</button>
+      <button type="submit">Seite erstellen</button>
     </form>
   </div>
 
-  <h2>Párjaid</h2>
-  ${rows || '<p class="empty">Még nincs felvett pár. Add hozzá az elsőt fent!</p>'}
+  <h2>Ihre Brautpaare</h2>
+  ${rows || '<p class="empty">Noch kein Brautpaar angelegt. Fügen Sie oben das erste hinzu!</p>'}
 </main>
 </body>
 </html>`;
