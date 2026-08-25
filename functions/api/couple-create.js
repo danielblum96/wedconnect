@@ -1,6 +1,7 @@
 import { getSessionReseller } from "../_utils/auth.js";
 import { slugify } from "../_utils/slug.js";
 import { getStyle } from "../_utils/styles.js";
+import { getCopy } from "../_utils/i18n.js";
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -12,6 +13,9 @@ export async function onRequestPost(context) {
   const nev2 = (formData.get("nev2") || "").toString().trim();
   const datum = (formData.get("eskuvo_datuma") || "").toString().trim();
   const stilusId = (formData.get("stilus") || "").toString().trim();
+  const uzenet = (formData.get("egyedi_uzenet") || "").toString().trim();
+  const labels = formData.getAll("gomb_label");
+  const urls = formData.getAll("gomb_url");
 
   function backWithError(code) {
     return Response.redirect(`${new URL("/partner/dashboard", request.url).href}?error=${code}`, 303);
@@ -30,10 +34,33 @@ export async function onRequestPost(context) {
     suffix++;
   }
 
+  // A dashboard-form alapból a nyelvnek megfelelő alapszöveget mutatja - ha a
+  // viszonteladó ezt változatlanul hagyja, NULL-t tárolunk (nem a szó szerinti
+  // szöveget), hogy egy jövőbeli, központi szövegmódosítás is érvényesüljön
+  // erre a rekordra, ugyanúgy, mint a valóban üresen hagyott egyedi üzeneteknél.
+  const defaultMessage = getCopy(reseller.nyelv || "de").defaultMessage;
+  const uzenetToStore = uzenet && uzenet !== defaultMessage ? uzenet : null;
+
+  const gombok = [];
+  for (let i = 0; i < labels.length; i++) {
+    const label = (labels[i] || "").toString().trim();
+    const url = (urls[i] || "").toString().trim();
+    if (label && url) gombok.push({ label, url });
+  }
+
   await env.DB.prepare(
-    "INSERT INTO parok (par_neve, eskuvo_datuma, slug, allapot, valasztott_stilus, viszontelado_id, nyelv) VALUES (?, ?, ?, 'Aktív', ?, ?, ?)"
+    "INSERT INTO parok (par_neve, eskuvo_datuma, slug, allapot, valasztott_stilus, viszontelado_id, nyelv, egyedi_uzenet, egyedi_gombok) VALUES (?, ?, ?, 'Aktív', ?, ?, ?, ?, ?)"
   )
-    .bind(`${nev1} & ${nev2}`, datum, slug, style.id, reseller.id, reseller.nyelv || "de")
+    .bind(
+      `${nev1} & ${nev2}`,
+      datum,
+      slug,
+      style.id,
+      reseller.id,
+      reseller.nyelv || "de",
+      uzenetToStore,
+      gombok.length ? JSON.stringify(gombok) : null
+    )
     .run();
 
   return Response.redirect(new URL("/partner/dashboard", request.url).href, 303);
