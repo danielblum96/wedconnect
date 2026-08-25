@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="WedConnect: die digitale Hochzeitsseite für Ihre Brautpaare — als neues Angebot für Ihr Hochzeitsunternehmen.">
+<title>WedConnect für Hochzeitsdienstleister</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf7f2;
+    --fg: #2b2620;
+    --muted: #6b6255;
+    --accent: #b48b56;
+    --accent-dark: #8c6d34;
+    --card-bg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Poppins", sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+  header.hero {
+    text-align: center;
+    padding: 90px 24px 70px;
+  }
+  .eyebrow {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+    margin-bottom: 20px;
+  }
+  h1 {
+    font-family: "Cormorant Garamond", serif;
+    font-weight: 600;
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    margin: 0 0 22px;
+    line-height: 1.2;
+  }
+  h1 em { font-style: italic; color: var(--accent-dark); }
+  .lead {
+    max-width: 640px;
+    margin: 0 auto 34px;
+    font-size: 1.15rem;
+    color: var(--muted);
+  }
+  .cta {
+    display: inline-block;
+    padding: 16px 42px;
+    background: var(--accent);
+    color: #1a1408;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    box-shadow: 0 12px 30px -12px rgba(140,109,52,0.5);
+  }
+  section { padding: 60px 0; }
+  .section-title {
+    font-family: "Cormorant Garamond", serif;
+    font-weight: 600;
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .section-sub {
+    text-align: center;
+    color: var(--muted);
+    max-width: 560px;
+    margin: 0 auto 48px;
+  }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 28px;
+  }
+  .step {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 30px 26px;
+    box-shadow: 0 10px 30px -18px rgba(0,0,0,0.12);
+  }
+  .step .num {
+    font-family: "Cormorant Garamond", serif;
+    font-size: 2.2rem;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .step h3 { margin: 0 0 8px; font-size: 1.05rem; }
+  .step p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+
+  .packages {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+  }
+  .package {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 32px 28px;
+    box-shadow: 0 10px 30px -18px rgba(0,0,0,0.12);
+    border-top: 4px solid var(--accent);
+  }
+  .package h3 {
+    font-family: "Cormorant Garamond", serif;
+    font-size: 1.4rem;
+    margin: 0 0 6px;
+  }
+  .package .tag {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent-dark);
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: block;
+  }
+  .package ul {
+    padding-left: 18px;
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+  .package li { margin-bottom: 8px; }
+
+  .styles-note {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 40px 32px;
+    text-align: center;
+    box-shadow: 0 10px 30px -18px rgba(0,0,0,0.12);
+  }
+
+  footer {
+    text-align: center;
+    padding: 50px 24px 70px;
+  }
+  footer .cta { margin-bottom: 18px; }
+  footer p { color: var(--muted); font-size: 0.85rem; }
+  footer a { color: var(--accent-dark); }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="eyebrow">Für Hochzeitsdienstleister</div>
+  <h1>Schenken Sie jedem <em>Brautpaar</em><br>eine eigene Hochzeitsseite.</h1>
+  <p class="lead">WedConnect ist ein neues Zusatzangebot für Fotografen, Hochzeitsplaner und andere Dienstleister: eine persönliche, stilvolle Webseite für jedes Brautpaar — mit eigenem Link, eigenem Design und eigenen Fotos.</p>
+  <a class="cta" href="/de/registrieren">Jetzt Partner werden</a>
+</header>
+
+<section class="wrap">
+  <div class="section-title">So funktioniert's</div>
+  <div class="section-sub">Sie registrieren sich einmal — danach erstellen Sie für jedes Brautpaar in wenigen Minuten eine eigene Seite.</div>
+  <div class="steps">
+    <div class="step">
+      <div class="num">01</div>
+      <h3>Partner werden</h3>
+      <p>Kostenlose Registrierung mit Ihren Unternehmensdaten — in unter zwei Minuten erledigt.</p>
+    </div>
+    <div class="step">
+      <div class="num">02</div>
+      <h3>Seite erstellen</h3>
+      <p>Name des Brautpaars, Hochzeitsdatum und gewünschter Stil — daraus entsteht die individuelle Seite.</p>
+    </div>
+    <div class="step">
+      <div class="num">03</div>
+      <h3>Inhalte einfügen</h3>
+      <p>Fügen Sie Buttons mit eigenen Links ein — zur Fotogalerie, zum Video oder wohin Sie möchten.</p>
+    </div>
+    <div class="step">
+      <div class="num">04</div>
+      <h3>Teilen</h3>
+      <p>Das Brautpaar erhält einen eigenen Link mit ihren Namen und dem Hochzeitsdatum — bereit zum Teilen mit den Gästen.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="section-title">Drei Möglichkeiten</div>
+  <div class="section-sub">Wählen Sie, was zu Ihrem Angebot passt — von der reinen Webseite bis zum physischen Geschenk.</div>
+  <div class="packages">
+    <div class="package">
+      <span class="tag">Paket 1</span>
+      <h3>Hochzeitsseite + QR-Code</h3>
+      <ul>
+        <li>Eigene, personalisierte Webseite für das Brautpaar</li>
+        <li>QR-Code zum einfachen Teilen mit den Gästen</li>
+        <li>Kein physisches Produkt — rein digital</li>
+      </ul>
+    </div>
+    <div class="package">
+      <span class="tag">Paket 2</span>
+      <h3>Hochzeitsseite + NFC-Tag</h3>
+      <ul>
+        <li>Alles aus Paket 1</li>
+        <li>NFC-Tags zum Antippen mit dem Smartphone</li>
+        <li>Anzahl frei wählbar — wir übernehmen den Versand</li>
+      </ul>
+    </div>
+    <div class="package">
+      <span class="tag">Paket 3</span>
+      <h3>Graviertes Geschenk + WedConnect</h3>
+      <ul>
+        <li>Lasergraviertes, physisches Geschenk (z. B. Save-the-Date-Objekt)</li>
+        <li>NFC-Tag direkt am Geschenk integriert</li>
+        <li>Eigene Hochzeitsseite inklusive</li>
+        <li>Kostenloser Versand ab 100 Stück</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="styles-note">
+    <div class="section-title" style="margin-bottom:14px;">Zwanzig Stile zur Auswahl</div>
+    <p style="color:var(--muted); max-width:560px; margin:0 auto;">Von klassisch-elegant bis modern-minimalistisch, von rustikal bis Art déco — jedes Brautpaar findet einen Stil, der zu seiner Hochzeit passt.</p>
+  </div>
+</section>
+
+<footer>
+  <a class="cta" href="/de/registrieren">Jetzt kostenlos registrieren</a>
+  <p>Bereits Partner? <a href="/partner/login">Hier einloggen</a></p>
+</footer>
+
+</body>
+</html>

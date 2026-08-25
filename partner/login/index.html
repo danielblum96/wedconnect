@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Partner Login — WedConnect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf7f2;
+    --fg: #2b2620;
+    --muted: #7a7266;
+    --accent: #b48b56;
+    --card-bg: #ffffff;
+    --error: #b1451f;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: "Poppins", sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .card {
+    background: var(--card-bg);
+    max-width: 420px;
+    width: 100%;
+    padding: 40px 36px;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px -20px rgba(0,0,0,0.15);
+  }
+  .brand {
+    font-family: "Cormorant Garamond", serif;
+    font-weight: 600;
+    font-size: 1.6rem;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  .brand span { color: var(--accent); }
+  h1 {
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--muted);
+    margin: 0 0 28px;
+  }
+  label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid #ddd6c9;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    margin-bottom: 18px;
+  }
+  input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #1a1408;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+  }
+  .error {
+    background: #fdeee7;
+    color: var(--error);
+    border: 1px solid #f3c8b3;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 18px;
+    display: none;
+  }
+  .foot {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .foot a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">Wed<span>Connect</span></div>
+    <h1>Partner Login</h1>
+    <div class="error" id="err"></div>
+    <form method="POST" action="/api/reseller-login">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required autocomplete="username">
+      <label for="jelszo">Password</label>
+      <input type="password" id="jelszo" name="jelszo" required autocomplete="current-password">
+      <button type="submit">Log in</button>
+    </form>
+    <div class="foot">No account yet? <a href="/de/registrieren">Become a partner</a></div>
+  </div>
+  <script>
+    var params = new URLSearchParams(location.search);
+    var err = params.get("error");
+    if (err) {
+      var messages = {
+        missing_fields: "Please fill in both fields.",
+        invalid: "Incorrect email or password.",
+        suspended: "This account is currently inactive. Please contact us."
+      };
+      var box = document.getElementById("err");
+      box.textContent = messages[err] || "Something went wrong. Please try again.";
+      box.style.display = "block";
+    }
+  </script>
+</body>
+</html>
