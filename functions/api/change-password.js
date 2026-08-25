@@ -11,7 +11,7 @@ export async function onRequestPost(context) {
   const uj2 = (formData.get("uj_jelszo2") || "").toString();
 
   function backWithError(code) {
-    return Response.redirect(`${new URL("/partner/dashboard", request.url).href}?pwerror=${code}`, 303);
+    return Response.redirect(`${new URL("/partner/account", request.url).href}?pwerror=${code}`, 303);
   }
 
   const user = await env.DB.prepare("SELECT jelszo_hash FROM viszontelado WHERE id = ?").bind(reseller.id).first();
@@ -23,5 +23,5 @@ export async function onRequestPost(context) {
   const hash = await hashPassword(uj);
   await env.DB.prepare("UPDATE viszontelado SET jelszo_hash = ? WHERE id = ?").bind(hash, reseller.id).run();
 
-  return Response.redirect(`${new URL("/partner/dashboard", request.url).href}?pwchanged=1`, 303);
+  return Response.redirect(`${new URL("/partner/account", request.url).href}?pwchanged=1`, 303);
 }

@@ -20,16 +20,8 @@ export async function onRequestGet(context) {
   const deleted = url.searchParams.get("deleted");
   const created = url.searchParams.get("created");
   const createdCouple = created ? (parok || []).find((p) => p.slug === created) : null;
-  const pwChanged = url.searchParams.get("pwchanged");
-  const pwError = url.searchParams.get("pwerror");
 
   const defaultMessage = getCopy(reseller.nyelv || "de").defaultMessage;
-
-  const pwErrorMessages = {
-    wrong_current: "Das aktuelle Passwort ist falsch.",
-    weak_password: "Das neue Passwort muss mindestens 8 Zeichen lang sein.",
-    mismatch: "Die beiden neuen Passwörter stimmen nicht überein.",
-  };
 
   const stylePicker = STYLES.map((s) => {
     return `
@@ -206,10 +198,6 @@ export async function onRequestGet(context) {
   .btn-qr { border:1px solid #ddd6c9; background:none; color:var(--fg); }
   .btn-delete { border:1px solid #e0b8ac; background:none; color:#b1451f; }
   .pw-link { font-size:0.85rem; color:var(--muted); text-decoration:underline; }
-  .account-box { background:var(--card); border-radius:12px; padding:14px 22px; margin-bottom:18px; box-shadow:0 6px 20px -16px rgba(0,0,0,0.15); }
-  .account-box summary { list-style:none; }
-  .account-box summary::-webkit-details-marker { display:none; }
-  .account-form { margin-top:14px; max-width:340px; }
 </style>
 </head>
 <body>
@@ -217,25 +205,11 @@ export async function onRequestGet(context) {
   <div class="brand">Wed<span>Connect</span> Partner</div>
   <div style="display:flex; align-items:center; gap:16px;">
     <span class="who">${escapeHtml(reseller.ceg_nev)} (${escapeHtml(reseller.email)})</span>
-    <a class="pw-link" href="#account-settings">Passwort ändern</a>
+    <a class="pw-link" href="/partner/account">Passwort ändern</a>
     <form class="logout-form" method="POST" action="/api/reseller-logout"><button type="submit">Abmelden</button></form>
   </div>
 </header>
 <main>
-  <details class="account-box" id="account-settings"${pwChanged || pwError ? " open" : ""}>
-    <summary>Passwort ändern</summary>
-    <form method="POST" action="/api/change-password" class="account-form">
-      ${pwError ? `<div class="error-box">${escapeHtml(pwErrorMessages[pwError] || "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.")}</div>` : ""}
-      ${pwChanged ? `<div class="info-box">Passwort geändert.</div>` : ""}
-      <label>Aktuelles Passwort</label>
-      <input type="password" name="jelenlegi_jelszo" required autocomplete="current-password">
-      <label>Neues Passwort</label>
-      <input type="password" name="uj_jelszo" required autocomplete="new-password" minlength="8">
-      <label>Neues Passwort bestätigen</label>
-      <input type="password" name="uj_jelszo2" required autocomplete="new-password" minlength="8">
-      <button type="submit" class="btn-save">Passwort speichern</button>
-    </form>
-  </details>
   ${error ? `<div class="error-box">Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</div>` : ""}
   ${deleted ? `<div class="info-box">Brautpaar gelöscht.</div>` : ""}
   ${
@@ -396,7 +370,7 @@ export async function onRequestGet(context) {
 
     var message = document.getElementById("f-uzenet").value.trim() || DEFAULT_MESSAGE;
 
-    var labels = Array.prototype.map.call(document.getElementsByName("gomb_label"), function (el) {
+    var labels = Array.prototype.map.call(form.querySelectorAll('[name="gomb_label"]'), function (el) {
       return el.value.trim();
     });
     var buttons = labels.filter(function (l) {
