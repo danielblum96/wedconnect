@@ -149,7 +149,7 @@ export async function onRequestGet(context) {
   .mock-btn { background:var(--accent); color:var(--btn-fg); font-family:"Poppins",sans-serif; font-size:0.62rem; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; padding:6px 14px; border-radius:999px; white-space:nowrap; max-width:150px; overflow:hidden; text-overflow:ellipsis; }
   .swatch-name { display:block; padding:9px 8px; font-size:0.78rem; font-weight:500; text-align:center; color:#4a4038; background:#fff; }
   .style-picker .style-swatch button.swatch-confirm {
-    display:block; width:100%; border:none; margin:0; font-family:inherit; cursor:pointer;
+    display:block; width:100%; border:none; border-radius:0; margin:0; font-family:inherit; cursor:pointer;
     max-height:0; opacity:0; padding:0 8px; overflow:hidden;
     font-size:0.92rem; font-weight:800; letter-spacing:0.02em; text-align:center;
     color:#1a1408; background:linear-gradient(135deg,#f0c988,#b48b56);
