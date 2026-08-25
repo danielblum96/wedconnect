@@ -27,6 +27,7 @@ export async function onRequestGet(context) {
         <input type="radio" name="stilus" value="${s.id}" required>
         <span class="swatch-mock"></span>
         <span class="swatch-name">${escapeHtml(getStyleName(s, "de"))}</span>
+        <button type="submit" class="swatch-confirm">✓ Seite erstellen</button>
       </label>`;
   }).join("");
 
@@ -47,8 +48,8 @@ export async function onRequestGet(context) {
           const g = gombok[i] || { label: "", url: "" };
           return `
             <div class="btn-row">
-              <input type="text" name="gomb_label" placeholder="Button-Beschriftung" value="${escapeHtml(g.label)}">
-              <input type="url" name="gomb_url" placeholder="https://..." value="${escapeHtml(g.url)}">
+              <input type="text" name="gomb_label" placeholder="Button-Beschriftung" value="${escapeHtml(g.label)}" autocomplete="off">
+              <input type="url" name="gomb_url" placeholder="https://..." value="${escapeHtml(g.url)}" autocomplete="off">
             </div>`;
         })
         .join("");
@@ -145,7 +146,10 @@ export async function onRequestGet(context) {
   .mock-buttons { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:6px; }
   .mock-btn { background:var(--accent); color:var(--btn-fg); font-family:"Poppins",sans-serif; font-size:0.62rem; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; padding:6px 14px; border-radius:999px; white-space:nowrap; max-width:150px; overflow:hidden; text-overflow:ellipsis; }
   .swatch-name { display:block; padding:9px 8px; font-size:0.78rem; font-weight:500; text-align:center; color:#4a4038; background:#fff; }
+  .style-picker .style-swatch button.swatch-confirm { display:none; width:100%; border:none; padding:10px 8px; font-size:0.78rem; font-weight:700; text-align:center; color:#1a1408; background:#b48b56; cursor:pointer; font-family:inherit; }
   .style-swatch:has(input:checked) { border-color:#b48b56; box-shadow:0 0 0 3px rgba(180,139,86,0.3); }
+  .style-swatch:has(input:checked) .swatch-name { display:none; }
+  .style-picker .style-swatch:has(input:checked) button.swatch-confirm { display:block; }
   .style-picker-hint { font-size:0.78rem; color:var(--muted); margin:-2px 0 16px; }
   .step-label { font-size:0.78rem; font-weight:600; letter-spacing:0.04em; color:var(--accent); text-transform:uppercase; margin:0 0 16px; }
   .hint-inline { font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted); font-size:0.78rem; }
@@ -200,8 +204,8 @@ export async function onRequestGet(context) {
         <label>Buttons <span class="hint-inline">(können jederzeit geändert werden)</span></label>
         <div id="button-rows">
           <div class="btn-row">
-            <input type="text" name="gomb_label" placeholder="Button-Beschriftung">
-            <input type="url" name="gomb_url" placeholder="https://...">
+            <input type="text" name="gomb_label" placeholder="Button-Beschriftung" autocomplete="off">
+            <input type="url" name="gomb_url" placeholder="https://..." autocomplete="off">
             <button type="button" class="btn-remove-row" aria-label="Button entfernen">×</button>
           </div>
         </div>
@@ -298,8 +302,8 @@ export async function onRequestGet(context) {
     var div = document.createElement("div");
     div.className = "btn-row";
     div.innerHTML =
-      '<input type="text" name="gomb_label" placeholder="Button-Beschriftung">' +
-      '<input type="url" name="gomb_url" placeholder="https://...">' +
+      '<input type="text" name="gomb_label" placeholder="Button-Beschriftung" autocomplete="off">' +
+      '<input type="url" name="gomb_url" placeholder="https://..." autocomplete="off">' +
       '<button type="button" class="btn-remove-row" aria-label="Button entfernen">×</button>';
     rowsContainer.appendChild(div);
     bindRemove(div.querySelector(".btn-remove-row"));
