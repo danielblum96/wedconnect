@@ -63,5 +63,5 @@ export async function onRequestPost(context) {
     )
     .run();
 
-  return Response.redirect(new URL("/partner/dashboard", request.url).href, 303);
+  return Response.redirect(`${new URL("/partner/dashboard", request.url).href}?created=${encodeURIComponent(slug)}`, 303);
 }

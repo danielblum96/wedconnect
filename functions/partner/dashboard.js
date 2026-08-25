@@ -18,6 +18,8 @@ export async function onRequestGet(context) {
   const saved = url.searchParams.get("saved");
   const error = url.searchParams.get("error");
   const deleted = url.searchParams.get("deleted");
+  const created = url.searchParams.get("created");
+  const createdCouple = created ? (parok || []).find((p) => p.slug === created) : null;
 
   const defaultMessage = getCopy(reseller.nyelv || "de").defaultMessage;
 
@@ -60,7 +62,7 @@ export async function onRequestGet(context) {
       const searchText = `${p.par_neve} ${p.eskuvo_datuma} ${styleName}`.toLowerCase();
 
       return `
-        <div class="couple" data-search="${escapeHtml(searchText)}">
+        <div class="couple${created === p.slug ? " just-created" : ""}" data-search="${escapeHtml(searchText)}">
           <div class="couple-head">
             <div>
               <div class="couple-name">${escapeHtml(p.par_neve)}</div>
@@ -146,10 +148,38 @@ export async function onRequestGet(context) {
   .mock-buttons { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:6px; }
   .mock-btn { background:var(--accent); color:var(--btn-fg); font-family:"Poppins",sans-serif; font-size:0.62rem; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; padding:6px 14px; border-radius:999px; white-space:nowrap; max-width:150px; overflow:hidden; text-overflow:ellipsis; }
   .swatch-name { display:block; padding:9px 8px; font-size:0.78rem; font-weight:500; text-align:center; color:#4a4038; background:#fff; }
-  .style-picker .style-swatch button.swatch-confirm { display:none; width:100%; border:none; padding:10px 8px; font-size:0.78rem; font-weight:700; text-align:center; color:#1a1408; background:#b48b56; cursor:pointer; font-family:inherit; }
-  .style-swatch:has(input:checked) { border-color:#b48b56; box-shadow:0 0 0 3px rgba(180,139,86,0.3); }
+  .style-picker .style-swatch button.swatch-confirm {
+    display:block; width:100%; border:none; margin:0; font-family:inherit; cursor:pointer;
+    max-height:0; opacity:0; padding:0 8px; overflow:hidden;
+    font-size:0.92rem; font-weight:800; letter-spacing:0.02em; text-align:center;
+    color:#1a1408; background:linear-gradient(135deg,#f0c988,#b48b56);
+    transition:max-height 0.28s ease, opacity 0.22s ease, padding 0.28s ease;
+  }
+  .style-swatch { transition:transform 0.15s ease, box-shadow 0.15s ease; }
+  .style-swatch:has(input:checked) { border-color:#b48b56; box-shadow:0 0 0 3px rgba(180,139,86,0.35), 0 10px 24px -10px rgba(180,139,86,0.6); transform:scale(1.02); z-index:1; }
   .style-swatch:has(input:checked) .swatch-name { display:none; }
-  .style-picker .style-swatch:has(input:checked) button.swatch-confirm { display:block; }
+  .style-picker .style-swatch:has(input:checked) button.swatch-confirm {
+    max-height:64px; opacity:1; padding:17px 8px;
+    animation: swatchConfirmPulse 1.4s ease-in-out infinite;
+  }
+  @keyframes swatchConfirmPulse {
+    0%, 100% { box-shadow:0 4px 14px -4px rgba(180,139,86,0.7); }
+    50% { box-shadow:0 6px 22px -2px rgba(180,139,86,1); }
+  }
+  .success-banner { display:flex; align-items:center; gap:16px; background:linear-gradient(135deg,#fff6e6,#ffe9c7); border:1px solid #e8c583; border-radius:14px; padding:18px 20px; margin-bottom:24px; box-shadow:0 10px 30px -14px rgba(180,139,86,0.5); flex-wrap:wrap; animation:successIn 0.5s cubic-bezier(.25,1,.5,1); }
+  @keyframes successIn { from { opacity:0; transform:translateY(-12px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+  .success-emoji { font-size:2.4rem; animation:successBounce 1.2s ease-in-out infinite; }
+  @keyframes successBounce { 0%, 100% { transform:translateY(0) rotate(0deg); } 50% { transform:translateY(-6px) rotate(-8deg); } }
+  .success-body { flex:1; min-width:180px; }
+  .success-title { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.3rem; color:#5c4321; }
+  .success-sub { font-size:0.82rem; color:#8a6d3f; margin-top:2px; word-break:break-word; }
+  .success-actions { display:flex; gap:8px; flex-wrap:wrap; }
+  .success-view { padding:9px 18px; border-radius:999px; background:#b48b56; color:#1a1408; font-weight:700; font-size:0.82rem; text-decoration:none; white-space:nowrap; }
+  .couple.just-created { animation:justCreatedGlow 2.6s ease-out 1; }
+  @keyframes justCreatedGlow {
+    0% { box-shadow:0 0 0 6px rgba(180,139,86,0.55), 0 6px 20px -16px rgba(0,0,0,0.15); }
+    100% { box-shadow:0 6px 20px -16px rgba(0,0,0,0.15); }
+  }
   .style-picker-hint { font-size:0.78rem; color:var(--muted); margin:-2px 0 16px; }
   .step-label { font-size:0.78rem; font-weight:600; letter-spacing:0.04em; color:var(--accent); text-transform:uppercase; margin:0 0 16px; }
   .hint-inline { font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted); font-size:0.78rem; }
@@ -180,6 +210,21 @@ export async function onRequestGet(context) {
 <main>
   ${error ? `<div class="error-box">Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</div>` : ""}
   ${deleted ? `<div class="info-box">Brautpaar gelöscht.</div>` : ""}
+  ${
+    createdCouple
+      ? `<div class="success-banner" id="success-banner">
+          <div class="success-emoji">🎉</div>
+          <div class="success-body">
+            <div class="success-title">Fertig! Die Seite ist online.</div>
+            <div class="success-sub">${escapeHtml(createdCouple.par_neve)} · ${escapeHtml(`https://wedconnect.eu/${createdCouple.slug}`)}</div>
+          </div>
+          <div class="success-actions">
+            <a class="success-view" href="${safeHref(`https://wedconnect.eu/${createdCouple.slug}`)}" target="_blank" rel="noopener">Seite ansehen</a>
+            <button type="button" class="btn-qr" data-url="${escapeHtml(`https://wedconnect.eu/${createdCouple.slug}`)}" data-filename="${escapeHtml(createdCouple.slug)}-qr.png">QR-Code</button>
+          </div>
+        </div>`
+      : ""
+  }
   <div class="new-couple">
     <h2>Neues Brautpaar hinzufügen</h2>
     <form method="POST" action="/api/couple-create" id="new-couple-form" novalidate>
@@ -406,6 +451,76 @@ export async function onRequestGet(context) {
       link.click();
     });
   });
+
+  if (document.getElementById("success-banner")) {
+    launchConfetti();
+    var cleanUrl = location.pathname;
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, "", cleanUrl);
+    }
+  }
+
+  function launchConfetti() {
+    var canvas = document.createElement("canvas");
+    canvas.style.position = "fixed";
+    canvas.style.top = "0";
+    canvas.style.left = "0";
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    canvas.style.pointerEvents = "none";
+    canvas.style.zIndex = "9999";
+    document.body.appendChild(canvas);
+    var ctx = canvas.getContext("2d");
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    var colors = ["#b48b56", "#f0c988", "#d98fa0", "#7fae6a", "#4a8fa8", "#cfa64b"];
+    var particles = [];
+    for (var i = 0; i < 140; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: -20 - Math.random() * canvas.height * 0.5,
+        w: 6 + Math.random() * 6,
+        h: 8 + Math.random() * 10,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        speedY: 2 + Math.random() * 3,
+        speedX: -1.5 + Math.random() * 3,
+        rotation: Math.random() * 360,
+        rotationSpeed: -8 + Math.random() * 16,
+      });
+    }
+
+    var start = Date.now();
+    var duration = 3000;
+
+    function frame() {
+      var elapsed = Date.now() - start;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(function (p) {
+        p.x += p.speedX;
+        p.y += p.speedY;
+        p.rotation += p.rotationSpeed;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      });
+      if (elapsed < duration) {
+        requestAnimationFrame(frame);
+      } else {
+        window.removeEventListener("resize", resize);
+        canvas.remove();
+      }
+    }
+    requestAnimationFrame(frame);
+  }
 })();
 </script>
 </body>
