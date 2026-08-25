@@ -1,5 +1,5 @@
 import { getSessionReseller } from "../_utils/auth.js";
-import { STYLES, getStyleName, resolveStyleByStoredValue } from "../_utils/styles.js";
+import { STYLES, FONT_RECIPES, getStyleName, resolveStyleByStoredValue } from "../_utils/styles.js";
 import { escapeHtml, safeHref } from "../_utils/html.js";
 
 export async function onRequestGet(context) {
@@ -17,7 +17,15 @@ export async function onRequestGet(context) {
   const saved = url.searchParams.get("saved");
   const error = url.searchParams.get("error");
 
-  const styleOptions = STYLES.map((s) => `<option value="${s.id}">${escapeHtml(getStyleName(s, "de"))}</option>`).join("");
+  const stylePicker = STYLES.map((s) => {
+    const previewFontSize = s.font === "script" || s.font === "hand" ? "1.35rem" : "0.95rem";
+    return `
+      <label class="style-swatch" style="--bg:${s.bg}; --fg:${s.fg};">
+        <input type="radio" name="stilus" value="${s.id}" required>
+        <span class="swatch-face"><span style="${FONT_RECIPES[s.font]} font-size:${previewFontSize};">A &amp; B</span></span>
+        <span class="swatch-name">${escapeHtml(getStyleName(s, "de"))}</span>
+      </label>`;
+  }).join("");
 
   const rows = (parok || [])
     .map((p) => {
@@ -109,6 +117,13 @@ export async function onRequestGet(context) {
   .saved-note { color:#3a7a4e; font-size:0.85rem; margin-left:10px; }
   .empty { color:var(--muted); font-size:0.9rem; }
   .error-box { background:#fdeee7; color:#b1451f; border:1px solid #f3c8b3; padding:10px 14px; border-radius:8px; font-size:0.85rem; margin-bottom:18px; }
+  .style-picker { display:grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap:10px; margin-bottom:6px; }
+  .style-swatch { position:relative; cursor:pointer; border-radius:10px; overflow:hidden; border:2px solid transparent; box-shadow:0 2px 8px rgba(0,0,0,0.08); display:block; }
+  .style-swatch input { position:absolute; opacity:0; width:0; height:0; margin:0; }
+  .swatch-face { background:var(--bg); color:var(--fg); height:60px; display:flex; align-items:center; justify-content:center; padding:4px; text-align:center; line-height:1.1; overflow:hidden; }
+  .swatch-name { display:block; padding:7px 6px; font-size:0.72rem; font-weight:500; text-align:center; color:#4a4038; background:#fff; }
+  .style-swatch:has(input:checked) { border-color:#b48b56; box-shadow:0 0 0 3px rgba(180,139,86,0.3); }
+  .style-picker-hint { font-size:0.78rem; color:var(--muted); margin:-2px 0 16px; }
 </style>
 </head>
 <body>
@@ -130,8 +145,10 @@ export async function onRequestGet(context) {
       </div>
       <div class="field-row">
         <div><label>Hochzeitsdatum</label><input type="date" name="eskuvo_datuma" required></div>
-        <div><label>Stil</label><select name="stilus" required>${styleOptions}</select></div>
       </div>
+      <label>Stil</label>
+      <p class="style-picker-hint">Klicken Sie auf den Stil, der am besten zur Hochzeit passt.</p>
+      <div class="style-picker">${stylePicker}</div>
       <button type="submit">Seite erstellen</button>
     </form>
   </div>

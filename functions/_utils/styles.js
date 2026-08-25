@@ -47,11 +47,11 @@ export function resolveStyleByStoredValue(value) {
 }
 
 export const FONT_RECIPES = {
-  sans: 'font-family:"Poppins",sans-serif; font-weight:600; letter-spacing:0.02em;',
-  caps: 'font-family:"Cinzel",serif; font-weight:600; letter-spacing:0.06em; text-transform:uppercase;',
-  script: 'font-family:"Great Vibes",cursive; font-weight:400;',
-  hand: 'font-family:"Caveat",cursive; font-weight:600;',
-  "serif-i": 'font-family:"Cormorant Garamond",serif; font-style:italic; font-weight:500;',
+  sans: "font-family:'Poppins',sans-serif; font-weight:600; letter-spacing:0.02em;",
+  caps: "font-family:'Cinzel',serif; font-weight:600; letter-spacing:0.06em; text-transform:uppercase;",
+  script: "font-family:'Great Vibes',cursive; font-weight:400;",
+  hand: "font-family:'Caveat',cursive; font-weight:600;",
+  "serif-i": "font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:500;",
 };
 
 export function namesFontSize(font) {
