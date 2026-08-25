@@ -47,3 +47,11 @@ CREATE TABLE IF NOT EXISTS sessions (
   letrehozva TEXT NOT NULL DEFAULT (datetime('now')),
   lejar TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS password_resets (
+  token TEXT PRIMARY KEY,
+  viszontelado_id INTEGER NOT NULL REFERENCES viszontelado(id),
+  letrehozva TEXT NOT NULL DEFAULT (datetime('now')),
+  lejar TEXT NOT NULL,
+  felhasznalva INTEGER NOT NULL DEFAULT 0
+);
