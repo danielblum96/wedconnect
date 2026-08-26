@@ -56,10 +56,25 @@ export function buildCalendar(year, month) {
   return weeks;
 }
 
-function heartTransform(heartRow, heartCol, belowDay) {
-  const baseline = ROW_Y[heartRow];
+function rowYPositions(calendarLength) {
+  // Normal esetben (max 5 het) a fix ROW_Y ertekeket hasznaljuk. Ha egy
+  // honapnak 6 hete van (pl. 2026 augusztus), a 6. sor nem kaphat sajat,
+  // ROW_Y[5]-nek megfelelo helyet, mert az mar atlogna a nevek feletti FIX
+  // pozicioju elvalaszto csikba es a keretbe (path138-1-2) - ezek a
+  // fizikai kartya kimozdithatatlan elemei, nem tolhatok el. Ehelyett a 6
+  // sort besuritjuk ugyanabba a fuggoleges savba, amit eredetileg az 5 sor
+  // foglalt el (ROW_Y[0]-tol ROW_Y[4]-ig), igy a 6. sor pontosan ott vegzodik,
+  // ahol korabban az 5. sor - a csik/nevek/keret pozicioja valtozatlan marad.
+  if (calendarLength < 6) return ROW_Y;
+  const top = ROW_Y[0], bottom = ROW_Y[4];
+  const step = (bottom - top) / 5;
+  return [0, 1, 2, 3, 4, 5].map(r => top + r * step);
+}
+
+function heartTransform(heartRow, heartCol, belowDay, rowY) {
+  const baseline = rowY[heartRow];
   const capH  = FONT_SIZE * CAP_RATIO;
-  const rowH  = ROW_Y[1] - ROW_Y[0];
+  const rowH  = rowY[1] - rowY[0];
   const colW  = COL_TENS_X[1] - COL_TENS_X[0];
   const scale = Math.min(rowH * 0.9 / HEART_RAW_H, colW * 0.85 / HEART_RAW_W);
   const targetCX = (belowDay !== null && belowDay >= 10) ? COL_UNITS_X[heartCol] : COL_SINGLE_X[heartCol];
@@ -82,11 +97,12 @@ export function generateSVG(name1, name2, year, month, day, lang) {
     if (ci !== -1) { heartRow = r; heartCol = ci; break; }
   }
   const belowDay = (heartRow+1 < calendar.length) ? calendar[heartRow+1][heartCol] : null;
-  const ht = heartTransform(heartRow, heartCol, belowDay);
+  const rowY = rowYPositions(calendar.length);
+  const ht = heartTransform(heartRow, heartCol, belowDay, rowY);
 
   let numElems = ''; let idc = 200;
   for (let r = 0; r < calendar.length; r++) {
-    const y = ROW_Y[r];
+    const y = rowY[r];
     for (let c = 0; c < 7; c++) {
       const d = calendar[r][c];
       if (d === null) continue;
@@ -118,23 +134,6 @@ export function generateSVG(name1, name2, year, month, day, lang) {
   // x=5.9813447, width=52.309971 -> kozepe = 32.136331.
   svg = svg.replace(/x="17\.559452"/g, 'x="32.136331" text-anchor="middle"');
 
-  // Ha a honapnak 6 hete van (pl. 2026 augusztus), a naptar 6. sora
-  // (ROW_Y[5] = 60.3185) egeszen a nevek elotti FIX pozicioju elvalaszto
-  // csikig (y=57.0127) er fel es AT IS LOGJA azt - az eredeti sablon csak
-  // 5 soros honapokra volt kiigazitva. 6 soros honapnal az elvalaszto
-  // csikot es a neveket egy teljes sor-magassaggal (ROW_Y[1]-ROW_Y[0])
-  // lejjebb toljuk, hogy legyen hely a 6. sornak.
-  if (calendar.length === 6) {
-    // Egy teljes sor-magassag + kis extra biztonsagi res (1.5 egyseg), hogy
-    // a diszkes/nagy hurkkal rendelkezo nagybetuk (pl. "V", "D" Great
-    // Vibes-ban) is kenyelmesen elferjenek az elvalaszto csik es a nevek
-    // kozott, ne csak a szamitott minimum tavolsag erejeig.
-    const shift = ROW_Y[1] - ROW_Y[0] + 1.5;
-    svg = svg
-      .replace("57.012719", (57.012719 + shift).toFixed(6))
-      .replace(/y="66\.666985"/g, `y="${(66.666985 + shift).toFixed(6)}"`);
-  }
-
   return svg;
 }
 
@@ -143,10 +142,12 @@ const WOOD_TEXTURE_B64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUEBAQEAwUEBAQGBQUGCA
 
 // A pontos generateSVG() kimenetet UTOLAGOSAN alakitja at latvanytervve:
 // 1) a kulso sziluett (lezervago, piros korvonal a forrasfajlban) fa-mintaval
-//    toltodik ki egy SVG <pattern>-en keresztul,
-// 2) a hajtasvonal (kek korvonal) egy diszkret, alig lathato vonalla valtozik,
-// mert a piros/kek szinek kizarolag a lezervago szoftvernek szolo technikai
-// jelolesek voltak, nem a vegleges design reszei.
+//    toltodik ki egy SVG <pattern>-en keresztul, a korvonala alig lathato
+//    marad (ez csak a lezervago gepnek szolo technikai jelzes volt eredetileg),
+// 2) a naptar-szamok korul futo diszkeret (path138-1-2, eredetileg kek
+//    korvonal = hajtas/score jelzes a lezerfajlban) sotetebb szurkere valtozik,
+//    mert ez a latvanytervben tenylegesen latszo diszito keret, nem technikai
+//    jelzes.
 export function generateMockupSVG(name1, name2, year, month, day, lang) {
   let svg = generateSVG(name1, name2, year, month, day, lang);
 
@@ -160,11 +161,11 @@ export function generateMockupSVG(name1, name2, year, month, day, lang) {
 
   svg = svg.replace(
     "fill:none;stroke:#ff0000;stroke-width:0.176389;stroke-opacity:1",
-    "fill:url(#woodGrain);stroke:#000000;stroke-width:0.35;stroke-opacity:1"
+    "fill:url(#woodGrain);stroke:#00000022;stroke-width:0.176389;stroke-opacity:1"
   );
   svg = svg.replace(
     "fill:none;fill-opacity:1;stroke:#0000ff;stroke-width:0.176389;stroke-opacity:1",
-    "fill:none;fill-opacity:1;stroke:#00000022;stroke-width:0.176389;stroke-opacity:1"
+    "fill:none;fill-opacity:1;stroke:#000000aa;stroke-width:0.352778;stroke-opacity:1"
   );
 
   return svg;
