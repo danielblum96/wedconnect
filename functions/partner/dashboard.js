@@ -117,26 +117,34 @@ export async function onRequestGet(context) {
             </form>
           </details>
           <details class="std-order">
-            <summary>Save the Date bestellen</summary>
+            <summary>🖼️ Save the Date bestellen</summary>
             <div class="std-panel">
-              <div
-                class="std-preview"
-                id="std-preview-${p.id}"
-                data-nev1="${escapeHtml(nev1)}"
-                data-nev2="${escapeHtml(nev2)}"
-                data-datum="${escapeHtml(p.eskuvo_datuma)}"
-                data-nyelv="${escapeHtml(p.nyelv || "hu")}"
-              ></div>
-              <form method="POST" action="/api/order-save-the-date" class="std-form">
-                <input type="hidden" name="par_id" value="${p.id}">
-                <label>Menge</label>
-                <input type="number" name="mennyiseg" min="1" max="9999" value="1" required>
-                <label>Lieferadresse</label>
-                <textarea name="szallitasi_cim" rows="3" placeholder="Name, Straße, PLZ, Ort, Land" required></textarea>
-                <label>Anmerkung <span class="hint-inline">(optional)</span></label>
-                <textarea name="megjegyzes" rows="2" placeholder="z. B. Sonderwünsche"></textarea>
-                <button type="submit" class="btn-save">Bestellung senden</button>
-              </form>
+              <h4 class="std-heading">Live-Vorschau</h4>
+              <div class="std-panel-body">
+                <div class="std-stage">
+                  <div class="std-stage-bg">
+                    <div
+                      class="std-preview"
+                      id="std-preview-${p.id}"
+                      data-nev1="${escapeHtml(nev1)}"
+                      data-nev2="${escapeHtml(nev2)}"
+                      data-datum="${escapeHtml(p.eskuvo_datuma)}"
+                      data-nyelv="${escapeHtml(p.nyelv || "hu")}"
+                    ></div>
+                  </div>
+                  <p class="std-stage-caption">Laserschnitt aus Holz · WedConnect-Chip auf der Rückseite verlinkt direkt zur Hochzeitsseite</p>
+                </div>
+                <form method="POST" action="/api/order-save-the-date" class="std-form">
+                  <input type="hidden" name="par_id" value="${p.id}">
+                  <label>Menge</label>
+                  <input type="number" name="mennyiseg" min="1" max="9999" value="1" required>
+                  <label>Lieferadresse</label>
+                  <textarea name="szallitasi_cim" rows="3" placeholder="Name, Straße, PLZ, Ort, Land" required></textarea>
+                  <label>Anmerkung <span class="hint-inline">(optional)</span></label>
+                  <textarea name="megjegyzes" rows="2" placeholder="z. B. Sonderwünsche"></textarea>
+                  <button type="submit" class="btn-save btn-std-submit">Bestellung senden</button>
+                </form>
+              </div>
             </div>
           </details>
         </div>`;
@@ -155,7 +163,7 @@ export async function onRequestGet(context) {
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Great+Vibes&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="/assets/qrcode.min.js"></script>
 <script type="module">
-  import { generateMockupSVG } from "/assets/save-the-date.js?v=5";
+  import { generateMockupSVG } from "/assets/save-the-date.js?v=7";
   window.STD = { generateMockupSVG };
 </script>
 <style>
@@ -260,10 +268,18 @@ export async function onRequestGet(context) {
   .empty-emoji { font-size:2.5rem; margin-bottom:12px; }
   .empty-title { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.3rem; margin-bottom:6px; }
   .empty-text { font-size:0.9rem; color:var(--muted); }
-  .std-panel { display:flex; gap:20px; flex-wrap:wrap; margin-top:14px; }
-  .std-preview { flex:none; width:180px; }
-  .std-preview svg { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 14px rgba(0,0,0,0.18)); }
-  .std-form { flex:1; min-width:220px; }
+  .std-order > summary { font-size:0.9rem; font-weight:700; color:#fff; background:linear-gradient(135deg,var(--accent),#8f6a3c); display:inline-block; padding:9px 18px; border-radius:999px; box-shadow:0 8px 18px -10px rgba(180,139,86,0.65); list-style:none; }
+  .std-order > summary::-webkit-details-marker { display:none; }
+  .std-order[open] > summary { margin-bottom:4px; }
+  .std-panel { margin-top:18px; background:linear-gradient(180deg,#fffefb,#faf6ee); border:1px solid #eee3d1; border-radius:18px; padding:26px; }
+  .std-heading { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.15rem; margin:0 0 18px; color:var(--fg); }
+  .std-panel-body { display:flex; gap:36px; flex-wrap:wrap; align-items:flex-start; }
+  .std-stage { flex:none; width:340px; max-width:100%; }
+  .std-stage-bg { background:radial-gradient(ellipse at 50% 38%, #ffffff 0%, #f2ead9 65%, #ece0c8 100%); border-radius:20px; padding:30px 26px; box-shadow:inset 0 0 0 1px rgba(180,139,86,0.14); }
+  .std-preview svg { width:100%; height:auto; display:block; filter:drop-shadow(0 20px 28px -14px rgba(90,65,30,0.4)); }
+  .std-stage-caption { margin:14px 4px 0; font-size:0.76rem; line-height:1.4; color:var(--muted); text-align:center; }
+  .std-form { flex:1; min-width:240px; padding-top:4px; }
+  .btn-std-submit { font-size:0.95rem; padding:11px 20px; }
 </style>
 </head>
 <body>
