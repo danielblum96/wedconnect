@@ -4,9 +4,12 @@
 // Pages secret tárolja - amíg ez nincs beállítva, a küldés csendben nem
 // történik meg (nem dob hibát), hogy a fejlesztés/tesztelés se akadjon el.
 export async function sendEmail(env, { to, subject, html }) {
-  if (!env.RESEND_API_KEY) return;
+  if (!env.RESEND_API_KEY) {
+    console.error("sendEmail: RESEND_API_KEY nincs beállítva, küldés kihagyva.");
+    return;
+  }
 
-  await fetch("https://api.resend.com/emails", {
+  const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${env.RESEND_API_KEY}`,
@@ -19,4 +22,10 @@ export async function sendEmail(env, { to, subject, html }) {
       html,
     }),
   });
+
+  if (!response.ok) {
+    const body = await response.text();
+    console.error(`sendEmail: Resend hiba ${response.status} - ${body}`);
+    throw new Error(`Resend send failed: ${response.status}`);
+  }
 }

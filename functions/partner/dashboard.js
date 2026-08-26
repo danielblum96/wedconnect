@@ -23,6 +23,24 @@ export async function onRequestGet(context) {
 
   const defaultMessage = getCopy(reseller.nyelv || "de").defaultMessage;
 
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const upcoming = (parok || [])
+    .filter((p) => p.eskuvo_datuma >= todayStr)
+    .sort((a, b) => a.eskuvo_datuma.localeCompare(b.eskuvo_datuma))[0];
+
+  function daysUntil(dateStr) {
+    const target = new Date(`${dateStr}T00:00:00Z`);
+    const now = new Date();
+    const todayUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    return Math.round((target.getTime() - todayUTC) / 86400000);
+  }
+
+  function daysUntilLabel(days) {
+    if (days === 0) return "Heute!";
+    if (days === 1) return "Morgen";
+    return `${days} Tage`;
+  }
+
   const stylePicker = STYLES.map((s) => {
     return `
       <label class="style-swatch" style="--bg:${s.bg}; --fg:${s.fg}; --accent:${s.accent}; --accent-text:${s.accentText}; --btn-fg:${s.btnFg};">
@@ -70,6 +88,7 @@ export async function onRequestGet(context) {
               <a class="couple-link" href="${safeHref(pageUrl)}" target="_blank" rel="noopener">${escapeHtml(pageUrl)}</a>
             </div>
             <div class="couple-actions">
+              <button type="button" class="btn-qr btn-copy" data-copy="${escapeHtml(pageUrl)}">Link kopieren</button>
               <button type="button" class="btn-qr" data-url="${escapeHtml(pageUrl)}" data-filename="${escapeHtml(p.slug)}-qr.png">QR-Code</button>
               <form method="POST" action="/api/couple-delete" class="delete-form" onsubmit="return confirm('Soll dieses Brautpaar wirklich endgültig gelöscht werden?')">
                 <input type="hidden" name="par_id" value="${p.id}">
@@ -198,6 +217,14 @@ export async function onRequestGet(context) {
   .btn-qr { border:1px solid #ddd6c9; background:none; color:var(--fg); }
   .btn-delete { border:1px solid #e0b8ac; background:none; color:#b1451f; }
   .pw-link { font-size:0.85rem; color:var(--muted); text-decoration:underline; }
+  .stats-bar { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:24px; }
+  .stat { flex:1; min-width:180px; background:var(--card); border-radius:14px; padding:20px 22px; box-shadow:0 6px 20px -16px rgba(0,0,0,0.15); }
+  .stat-value { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:2rem; color:var(--accent); line-height:1; }
+  .stat-label { font-size:0.82rem; color:var(--muted); margin-top:6px; }
+  .empty-state { text-align:center; padding:48px 24px; background:var(--card); border-radius:14px; box-shadow:0 6px 20px -16px rgba(0,0,0,0.15); }
+  .empty-emoji { font-size:2.5rem; margin-bottom:12px; }
+  .empty-title { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.3rem; margin-bottom:6px; }
+  .empty-text { font-size:0.9rem; color:var(--muted); }
 </style>
 </head>
 <body>
@@ -222,8 +249,27 @@ export async function onRequestGet(context) {
           </div>
           <div class="success-actions">
             <a class="success-view" href="${safeHref(`https://wedconnect.eu/${createdCouple.slug}`)}" target="_blank" rel="noopener">Seite ansehen</a>
+            <button type="button" class="btn-qr btn-copy" data-copy="${escapeHtml(`https://wedconnect.eu/${createdCouple.slug}`)}">Link kopieren</button>
             <button type="button" class="btn-qr" data-url="${escapeHtml(`https://wedconnect.eu/${createdCouple.slug}`)}" data-filename="${escapeHtml(createdCouple.slug)}-qr.png">QR-Code</button>
           </div>
+        </div>`
+      : ""
+  }
+  ${
+    parok && parok.length
+      ? `<div class="stats-bar">
+          <div class="stat">
+            <div class="stat-value">${parok.length}</div>
+            <div class="stat-label">${parok.length === 1 ? "Hochzeitsseite erstellt" : "Hochzeitsseiten erstellt"}</div>
+          </div>
+          ${
+            upcoming
+              ? `<div class="stat">
+                  <div class="stat-value">${daysUntilLabel(daysUntil(upcoming.eskuvo_datuma))}</div>
+                  <div class="stat-label">bis zur Hochzeit von ${escapeHtml(upcoming.par_neve)}</div>
+                </div>`
+              : ""
+          }
         </div>`
       : ""
   }
@@ -281,7 +327,14 @@ export async function onRequestGet(context) {
       ? `<div class="search-row"><input type="text" id="couple-search" placeholder="Suchen (Name, Datum, Stil)..."></div>`
       : ""
   }
-  ${rows || '<p class="empty">Noch kein Brautpaar angelegt. Fügen Sie oben das erste hinzu!</p>'}
+  ${
+    rows ||
+    `<div class="empty-state">
+      <div class="empty-emoji">💍</div>
+      <div class="empty-title">Noch keine Hochzeitsseite erstellt</div>
+      <div class="empty-text">Legen Sie oben Ihr erstes Brautpaar an — in unter 2 Minuten ist die Seite online.</div>
+    </div>`
+  }
   ${parok && parok.length ? `<p class="empty" id="no-results" hidden>Keine Treffer für diese Suche.</p>` : ""}
 </main>
 <script>
@@ -424,7 +477,46 @@ export async function onRequestGet(context) {
     });
   }
 
-  document.querySelectorAll(".btn-qr").forEach(function (btn) {
+  function legacyCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try {
+      document.execCommand("copy");
+    } catch (e) {
+      // legrégebbi böngészőknél sem dob hibát, csak nem másol - nem kritikus
+    }
+    document.body.removeChild(ta);
+  }
+
+  function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).catch(function () {
+        legacyCopy(text);
+      });
+    }
+    legacyCopy(text);
+    return Promise.resolve();
+  }
+
+  document.querySelectorAll(".btn-copy").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var url = btn.getAttribute("data-copy");
+      var original = btn.textContent;
+      copyToClipboard(url).then(function () {
+        btn.textContent = "Kopiert ✓";
+        setTimeout(function () {
+          btn.textContent = original;
+        }, 1500);
+      });
+    });
+  });
+
+  document.querySelectorAll(".btn-qr[data-url]").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var pageUrl = btn.getAttribute("data-url");
       var filename = btn.getAttribute("data-filename");

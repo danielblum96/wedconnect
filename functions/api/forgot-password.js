@@ -25,8 +25,10 @@ export async function onRequestPost(context) {
           html: `<p>Sie haben eine Passwort-Zurücksetzung für Ihr WedConnect-Partnerkonto angefordert.</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>Der Link ist 1 Stunde gültig. Falls Sie diese Anfrage nicht gestellt haben, ignorieren Sie diese E-Mail einfach.</p>`,
         });
       } catch (e) {
-        // szándékosan elnyelve - a válasz mindig ugyanaz, hogy ne lehessen
-        // kitalálni egy email-cím alapján, hogy létezik-e hozzá fiók.
+        // a KLIENSNEK adott válasz szándékosan mindig ugyanaz marad (anti-
+        // enumeráció), de a hibát szerveroldalon naplózzuk, hogy debug-olható
+        // legyen (ld. `wrangler pages deployment tail`).
+        console.error(`forgot-password: email küldése sikertelen (${email}): ${e.message}`);
       }
     }
   }
