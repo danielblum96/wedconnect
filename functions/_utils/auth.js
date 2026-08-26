@@ -57,7 +57,7 @@ export async function getSessionReseller(request, db) {
   if (!token) return null;
   const row = await db
     .prepare(
-      "SELECT s.viszontelado_id as id, s.lejar, v.ceg_nev, v.email, v.orszag, v.nyelv, v.szamlazasi_cim, v.alap_szallitasi_cim, v.szallitas_azonos FROM sessions s JOIN viszontelado v ON v.id = s.viszontelado_id WHERE s.token = ?"
+      "SELECT s.viszontelado_id as id, s.lejar, v.ceg_nev, v.email, v.orszag, v.nyelv, v.adoszam, v.szamlazasi_utca, v.szamlazasi_irsz, v.szamlazasi_varos, v.szamlazasi_orszag, v.szallitas_azonos, v.alap_szallitasi_utca, v.alap_szallitasi_irsz, v.alap_szallitasi_varos, v.alap_szallitasi_orszag FROM sessions s JOIN viszontelado v ON v.id = s.viszontelado_id WHERE s.token = ?"
     )
     .bind(token)
     .first();

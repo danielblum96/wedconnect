@@ -13,9 +13,16 @@ export async function onRequestPost(context) {
   const email = (formData.get("email") || "").toString().trim().toLowerCase();
   const jelszo = (formData.get("jelszo") || "").toString();
   const orszag = (formData.get("orszag") || "").toString().trim();
-  const szamlazasiCim = (formData.get("szamlazasi_cim") || "").toString().trim();
+  const adoszam = (formData.get("adoszam") || "").toString().trim();
+  const szamlazasiUtca = (formData.get("szamlazasi_utca") || "").toString().trim();
+  const szamlazasiIrsz = (formData.get("szamlazasi_irsz") || "").toString().trim();
+  const szamlazasiVaros = (formData.get("szamlazasi_varos") || "").toString().trim();
+  const szamlazasiOrszag = (formData.get("szamlazasi_orszag") || "").toString().trim();
   const szallitasAzonos = formData.get("szallitas_azonos") ? 1 : 0;
-  const alapSzallitasiCim = szallitasAzonos ? "" : (formData.get("alap_szallitasi_cim") || "").toString().trim();
+  const alapSzallitasiUtca = szallitasAzonos ? "" : (formData.get("alap_szallitasi_utca") || "").toString().trim();
+  const alapSzallitasiIrsz = szallitasAzonos ? "" : (formData.get("alap_szallitasi_irsz") || "").toString().trim();
+  const alapSzallitasiVaros = szallitasAzonos ? "" : (formData.get("alap_szallitasi_varos") || "").toString().trim();
+  const alapSzallitasiOrszag = szallitasAzonos ? "" : (formData.get("alap_szallitasi_orszag") || "").toString().trim();
   const redirectBase = (formData.get("redirect_back") || "/de/registrieren").toString();
 
   function backWithError(code) {
@@ -40,9 +47,29 @@ export async function onRequestPost(context) {
   const jelszoHash = await hashPassword(jelszo);
   const nyelv = countryToLang(orszag);
   const insert = await env.DB.prepare(
-    "INSERT INTO viszontelado (ceg_nev, email, jelszo_hash, orszag, nyelv, szamlazasi_cim, alap_szallitasi_cim, szallitas_azonos) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+    `INSERT INTO viszontelado (
+      ceg_nev, email, jelszo_hash, orszag, nyelv,
+      adoszam, szamlazasi_utca, szamlazasi_irsz, szamlazasi_varos, szamlazasi_orszag,
+      szallitas_azonos, alap_szallitasi_utca, alap_szallitasi_irsz, alap_szallitasi_varos, alap_szallitasi_orszag
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
-    .bind(cegNev, email, jelszoHash, orszag, nyelv, szamlazasiCim || null, alapSzallitasiCim || null, szallitasAzonos)
+    .bind(
+      cegNev,
+      email,
+      jelszoHash,
+      orszag,
+      nyelv,
+      adoszam || null,
+      szamlazasiUtca || null,
+      szamlazasiIrsz || null,
+      szamlazasiVaros || null,
+      szamlazasiOrszag || null,
+      szallitasAzonos,
+      alapSzallitasiUtca || null,
+      alapSzallitasiIrsz || null,
+      alapSzallitasiVaros || null,
+      alapSzallitasiOrszag || null
+    )
     .run();
 
   const viszonteladoId = insert.meta.last_row_id;

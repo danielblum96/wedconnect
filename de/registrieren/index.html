@@ -132,6 +132,13 @@
     display: none;
   }
   .hint { font-size: 0.78rem; color: var(--muted); margin: -12px 0 18px; }
+  .hint-inline { font-weight: 400; color: var(--muted); }
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 12px;
+  }
+  .field-row input { margin-bottom: 18px; }
   .foot {
     text-align: center;
     margin-top: 20px;
@@ -169,8 +176,29 @@
       <div class="section-label">Rechnungs- &amp; Lieferadresse</div>
       <div class="section-hint">Optional – kann auch später im Konto ergänzt werden. Wird für Save-the-Date-Bestellungen automatisch vorausgefüllt.</div>
 
-      <label for="szamlazasi_cim">Rechnungsadresse</label>
-      <textarea id="szamlazasi_cim" name="szamlazasi_cim" rows="3" placeholder="Name, Straße, PLZ, Ort, Land"></textarea>
+      <label for="adoszam">USt-IdNr. / Steuernummer <span class="hint-inline">(optional)</span></label>
+      <input type="text" id="adoszam" name="adoszam" placeholder="z. B. DE123456789">
+
+      <label for="szamlazasi_utca">Straße und Hausnummer</label>
+      <input type="text" id="szamlazasi_utca" name="szamlazasi_utca">
+
+      <div class="field-row">
+        <div>
+          <label for="szamlazasi_irsz">PLZ</label>
+          <input type="text" id="szamlazasi_irsz" name="szamlazasi_irsz">
+        </div>
+        <div>
+          <label for="szamlazasi_varos">Ort</label>
+          <input type="text" id="szamlazasi_varos" name="szamlazasi_varos">
+        </div>
+      </div>
+
+      <label for="szamlazasi_orszag">Land (Rechnungsadresse)</label>
+      <select id="szamlazasi_orszag" name="szamlazasi_orszag">
+        <option value="DE">Deutschland</option>
+        <option value="AT">Österreich</option>
+        <option value="CH">Schweiz</option>
+      </select>
 
       <label class="toggle-label">
         <input type="checkbox" id="szallitas_azonos" name="szallitas_azonos" value="1" checked>
@@ -178,8 +206,26 @@
       </label>
 
       <div id="shipping-group" hidden>
-        <label for="alap_szallitasi_cim">Lieferadresse</label>
-        <textarea id="alap_szallitasi_cim" name="alap_szallitasi_cim" rows="3" placeholder="Name, Straße, PLZ, Ort, Land"></textarea>
+        <label for="alap_szallitasi_utca">Straße und Hausnummer (Lieferadresse)</label>
+        <input type="text" id="alap_szallitasi_utca" name="alap_szallitasi_utca">
+
+        <div class="field-row">
+          <div>
+            <label for="alap_szallitasi_irsz">PLZ</label>
+            <input type="text" id="alap_szallitasi_irsz" name="alap_szallitasi_irsz">
+          </div>
+          <div>
+            <label for="alap_szallitasi_varos">Ort</label>
+            <input type="text" id="alap_szallitasi_varos" name="alap_szallitasi_varos">
+          </div>
+        </div>
+
+        <label for="alap_szallitasi_orszag">Land (Lieferadresse)</label>
+        <select id="alap_szallitasi_orszag" name="alap_szallitasi_orszag">
+          <option value="DE">Deutschland</option>
+          <option value="AT">Österreich</option>
+          <option value="CH">Schweiz</option>
+        </select>
       </div>
 
       <button type="submit">Kostenlos registrieren</button>

@@ -1,5 +1,6 @@
 import { getSessionReseller } from "../_utils/auth.js";
 import { escapeHtml } from "../_utils/html.js";
+import { countryOptions } from "../_utils/countries.js";
 
 const PW_ERROR_MESSAGES = {
   wrong_current: "Das aktuelle Passwort ist falsch.",
@@ -42,13 +43,15 @@ export async function onRequestGet(context) {
   h2 { font-family:"Cormorant Garamond",serif; font-size:1.5rem; margin:0 0 18px; }
   .card { background:var(--card); border-radius:14px; padding:26px 28px; box-shadow:0 10px 30px -20px rgba(0,0,0,0.15); }
   label { display:block; font-size:0.8rem; font-weight:500; margin-bottom:5px; }
-  input, textarea { width:100%; padding:9px 12px; border:1px solid #ddd6c9; border-radius:8px; font-family:inherit; font-size:0.9rem; margin-bottom:14px; }
+  input, textarea, select { width:100%; padding:9px 12px; border:1px solid #ddd6c9; border-radius:8px; font-family:inherit; font-size:0.9rem; margin-bottom:14px; background:#fff; }
   textarea { resize:vertical; min-height:60px; }
+  .field-row { display:grid; grid-template-columns:1fr 2fr; gap:12px; }
   button[type=submit] { padding:10px 24px; border:none; border-radius:999px; background:var(--accent); color:#1a1408; font-weight:600; font-size:0.85rem; cursor:pointer; }
   .error-box { background:#fdeee7; color:#b1451f; border:1px solid #f3c8b3; padding:10px 14px; border-radius:8px; font-size:0.85rem; margin-bottom:18px; }
   .info-box { background:#eaf5ee; color:#3a7a4e; border:1px solid #bfe0cb; padding:10px 14px; border-radius:8px; font-size:0.85rem; margin-bottom:18px; }
   .toggle-label { display:flex; align-items:flex-start; gap:9px; font-size:0.85rem; font-weight:500; color:var(--fg); background:#faf6ee; border:1px solid #ece1cc; border-radius:8px; padding:10px 13px; margin-bottom:14px; cursor:pointer; }
   .toggle-label input[type="checkbox"] { width:16px; height:16px; margin:2px 0 0; flex:none; accent-color:var(--accent); }
+  .hint-inline { font-weight:400; color:var(--muted); }
 </style>
 </head>
 <body>
@@ -78,19 +81,57 @@ export async function onRequestGet(context) {
 
   <h2 style="margin-top:36px;">Rechnungs- &amp; Lieferadresse</h2>
   <div class="card">
-    ${billingError ? `<div class="error-box">Bitte geben Sie eine Rechnungsadresse ein.</div>` : ""}
+    ${billingError ? `<div class="error-box">Bitte füllen Sie die Rechnungsadresse vollständig aus.</div>` : ""}
     ${billingSaved ? `<div class="info-box">Adresse gespeichert.</div>` : ""}
     <form method="POST" action="/api/reseller-update-billing">
-      <label>Rechnungsadresse</label>
-      <textarea name="szamlazasi_cim" rows="3" placeholder="Name, Straße, PLZ, Ort, Land">${escapeHtml(reseller.szamlazasi_cim || "")}</textarea>
+      <label>USt-IdNr. / Steuernummer <span class="hint-inline">(optional)</span></label>
+      <input type="text" name="adoszam" placeholder="z. B. DE123456789" value="${escapeHtml(reseller.adoszam || "")}">
+
+      <label>Straße und Hausnummer</label>
+      <input type="text" name="szamlazasi_utca" value="${escapeHtml(reseller.szamlazasi_utca || "")}">
+
+      <div class="field-row">
+        <div>
+          <label>PLZ</label>
+          <input type="text" name="szamlazasi_irsz" value="${escapeHtml(reseller.szamlazasi_irsz || "")}">
+        </div>
+        <div>
+          <label>Ort</label>
+          <input type="text" name="szamlazasi_varos" value="${escapeHtml(reseller.szamlazasi_varos || "")}">
+        </div>
+      </div>
+
+      <label>Land (Rechnungsadresse)</label>
+      <select name="szamlazasi_orszag">
+        ${countryOptions(reseller.szamlazasi_orszag || reseller.orszag)}
+      </select>
+
       <label class="toggle-label">
         <input type="checkbox" name="szallitas_azonos" value="1" id="acc-azonos" ${reseller.szallitas_azonos ? "checked" : ""}>
         Lieferadresse ist identisch mit der Rechnungsadresse
       </label>
+
       <div id="acc-shipping-group" ${reseller.szallitas_azonos ? "hidden" : ""}>
-        <label>Lieferadresse</label>
-        <textarea name="alap_szallitasi_cim" rows="3" placeholder="Name, Straße, PLZ, Ort, Land">${escapeHtml(reseller.alap_szallitasi_cim || "")}</textarea>
+        <label>Straße und Hausnummer (Lieferadresse)</label>
+        <input type="text" name="alap_szallitasi_utca" value="${escapeHtml(reseller.alap_szallitasi_utca || "")}">
+
+        <div class="field-row">
+          <div>
+            <label>PLZ</label>
+            <input type="text" name="alap_szallitasi_irsz" value="${escapeHtml(reseller.alap_szallitasi_irsz || "")}">
+          </div>
+          <div>
+            <label>Ort</label>
+            <input type="text" name="alap_szallitasi_varos" value="${escapeHtml(reseller.alap_szallitasi_varos || "")}">
+          </div>
+        </div>
+
+        <label>Land (Lieferadresse)</label>
+        <select name="alap_szallitasi_orszag">
+          ${countryOptions(reseller.alap_szallitasi_orszag || reseller.orszag)}
+        </select>
       </div>
+
       <button type="submit">Adresse speichern</button>
     </form>
   </div>

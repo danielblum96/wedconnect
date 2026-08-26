@@ -2,6 +2,7 @@ import { getSessionReseller } from "../_utils/auth.js";
 import { STYLES, FONT_RECIPES, getStyleName, resolveStyleByStoredValue } from "../_utils/styles.js";
 import { escapeHtml, safeHref } from "../_utils/html.js";
 import { getCopy, getStatusLabel } from "../_utils/i18n.js";
+import { countryOptions } from "../_utils/countries.js";
 
 const PAGE_PRICE_EUR = 50;
 const STD_PRICE_EUR = 4;
@@ -33,8 +34,21 @@ export async function onRequestGet(context) {
   };
 
   const defaultMessage = getCopy(reseller.nyelv || "de").defaultMessage;
-  const defaultBilling = reseller.szamlazasi_cim || "";
-  const defaultShipping = reseller.szallitas_azonos ? defaultBilling : reseller.alap_szallitasi_cim || "";
+  const defaultBilling = {
+    utca: reseller.szamlazasi_utca || "",
+    irsz: reseller.szamlazasi_irsz || "",
+    varos: reseller.szamlazasi_varos || "",
+    orszag: reseller.szamlazasi_orszag || reseller.orszag || "DE",
+  };
+  const defaultShipping = reseller.szallitas_azonos
+    ? defaultBilling
+    : {
+        utca: reseller.alap_szallitasi_utca || "",
+        irsz: reseller.alap_szallitasi_irsz || "",
+        varos: reseller.alap_szallitasi_varos || "",
+        orszag: reseller.alap_szallitasi_orszag || reseller.orszag || "DE",
+      };
+  const defaultAdoszam = reseller.adoszam || "";
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const upcoming = (parok || [])
@@ -486,11 +500,43 @@ export async function onRequestGet(context) {
         <div class="std-price-row" id="std-price-std-row" hidden><span>Save the Date (<span id="std-price-qty">50</span> × ${STD_PRICE_EUR.toFixed(2).replace(".", ",")} €)</span><span id="std-price-sub">${STD_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
         <div class="std-price-row std-price-total"><span>Gesamt</span><span id="std-price-total">${PAGE_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
       </div>
-      <label>Rechnungsadresse</label>
-      <textarea name="szamlazasi_cim" id="std-modal-billing" rows="3" placeholder="Name, Straße, PLZ, Ort, Land" required>${escapeHtml(defaultBilling)}</textarea>
+      <label>USt-IdNr. / Steuernummer <span class="hint-inline">(optional)</span></label>
+      <input type="text" name="adoszam" id="std-modal-adoszam" placeholder="z. B. DE123456789" value="${escapeHtml(defaultAdoszam)}">
+
+      <label>Rechnungsadresse – Straße und Hausnummer</label>
+      <input type="text" name="szamlazasi_utca" id="std-modal-billing-utca" required value="${escapeHtml(defaultBilling.utca)}">
+      <div class="field-row">
+        <div>
+          <label>PLZ</label>
+          <input type="text" name="szamlazasi_irsz" id="std-modal-billing-irsz" required value="${escapeHtml(defaultBilling.irsz)}">
+        </div>
+        <div>
+          <label>Ort</label>
+          <input type="text" name="szamlazasi_varos" id="std-modal-billing-varos" required value="${escapeHtml(defaultBilling.varos)}">
+        </div>
+      </div>
+      <label>Land (Rechnungsadresse)</label>
+      <select name="szamlazasi_orszag" id="std-modal-billing-orszag">
+        ${countryOptions(defaultBilling.orszag)}
+      </select>
+
       <div id="std-address-group" hidden>
-        <label>Lieferadresse</label>
-        <textarea name="szallitasi_cim" id="std-modal-cim" rows="3" placeholder="Name, Straße, PLZ, Ort, Land">${escapeHtml(defaultShipping)}</textarea>
+        <label>Lieferadresse – Straße und Hausnummer</label>
+        <input type="text" name="szallitasi_utca" id="std-modal-cim-utca" value="${escapeHtml(defaultShipping.utca)}">
+        <div class="field-row">
+          <div>
+            <label>PLZ</label>
+            <input type="text" name="szallitasi_irsz" id="std-modal-cim-irsz" value="${escapeHtml(defaultShipping.irsz)}">
+          </div>
+          <div>
+            <label>Ort</label>
+            <input type="text" name="szallitasi_varos" id="std-modal-cim-varos" value="${escapeHtml(defaultShipping.varos)}">
+          </div>
+        </div>
+        <label>Land (Lieferadresse)</label>
+        <select name="szallitasi_orszag" id="std-modal-cim-orszag">
+          ${countryOptions(defaultShipping.orszag)}
+        </select>
       </div>
       <label>Anmerkung <span class="hint-inline">(optional)</span></label>
       <textarea name="megjegyzes" rows="2" placeholder="z. B. Sonderwünsche"></textarea>
@@ -507,6 +553,7 @@ export async function onRequestGet(context) {
   var CREATED_PAR_ID = ${createdCouple ? JSON.stringify(String(createdCouple.id)) : "null"};
   var DEFAULT_BILLING = ${JSON.stringify(defaultBilling)};
   var DEFAULT_SHIPPING = ${JSON.stringify(defaultShipping)};
+  var DEFAULT_ADOSZAM = ${JSON.stringify(defaultAdoszam)};
 
   var form = document.getElementById("new-couple-form");
   var steps = Array.prototype.slice.call(form.querySelectorAll(".wizard-step"));
@@ -721,8 +768,15 @@ export async function onRequestGet(context) {
   var stdWantStd = document.getElementById("std-modal-want-std");
   var stdQtyGroup = document.getElementById("std-qty-group");
   var stdAddressGroup = document.getElementById("std-address-group");
-  var stdModalCim = document.getElementById("std-modal-cim");
-  var stdModalBilling = document.getElementById("std-modal-billing");
+  var stdModalCimUtca = document.getElementById("std-modal-cim-utca");
+  var stdModalCimIrsz = document.getElementById("std-modal-cim-irsz");
+  var stdModalCimVaros = document.getElementById("std-modal-cim-varos");
+  var stdModalCimOrszag = document.getElementById("std-modal-cim-orszag");
+  var stdModalBillingUtca = document.getElementById("std-modal-billing-utca");
+  var stdModalBillingIrsz = document.getElementById("std-modal-billing-irsz");
+  var stdModalBillingVaros = document.getElementById("std-modal-billing-varos");
+  var stdModalBillingOrszag = document.getElementById("std-modal-billing-orszag");
+  var stdModalAdoszam = document.getElementById("std-modal-adoszam");
   var stdPriceQty = document.getElementById("std-price-qty");
   var stdPricePage = document.getElementById("std-price-page");
   var stdPricePageNote = document.getElementById("std-price-page-note");
@@ -793,7 +847,9 @@ export async function onRequestGet(context) {
     var wantStd = stdWantStd.checked;
     stdQtyGroup.hidden = !wantStd;
     stdAddressGroup.hidden = !wantStd;
-    if (stdModalCim) stdModalCim.required = wantStd;
+    if (stdModalCimUtca) stdModalCimUtca.required = wantStd;
+    if (stdModalCimIrsz) stdModalCimIrsz.required = wantStd;
+    if (stdModalCimVaros) stdModalCimVaros.required = wantStd;
     stdPriceStdRow.hidden = !wantStd;
     updateStdPreviewMode(wantStd);
 
@@ -856,8 +912,15 @@ export async function onRequestGet(context) {
       if (stdInfoPopover) stdInfoPopover.hidden = true;
       if (stdWantStd) stdWantStd.checked = true;
       if (stdModalMenge) stdModalMenge.value = "50";
-      if (stdModalBilling) stdModalBilling.value = DEFAULT_BILLING;
-      if (stdModalCim) stdModalCim.value = DEFAULT_SHIPPING;
+      if (stdModalAdoszam) stdModalAdoszam.value = DEFAULT_ADOSZAM;
+      if (stdModalBillingUtca) stdModalBillingUtca.value = DEFAULT_BILLING.utca;
+      if (stdModalBillingIrsz) stdModalBillingIrsz.value = DEFAULT_BILLING.irsz;
+      if (stdModalBillingVaros) stdModalBillingVaros.value = DEFAULT_BILLING.varos;
+      if (stdModalBillingOrszag) stdModalBillingOrszag.value = DEFAULT_BILLING.orszag;
+      if (stdModalCimUtca) stdModalCimUtca.value = DEFAULT_SHIPPING.utca;
+      if (stdModalCimIrsz) stdModalCimIrsz.value = DEFAULT_SHIPPING.irsz;
+      if (stdModalCimVaros) stdModalCimVaros.value = DEFAULT_SHIPPING.varos;
+      if (stdModalCimOrszag) stdModalCimOrszag.value = DEFAULT_SHIPPING.orszag;
       updateStdPricing();
       if (typeof stdModal.showModal === "function") {
         stdModal.showModal();
