@@ -1,12 +1,25 @@
 import { newSessionToken } from "../_utils/auth.js";
 import { sendEmail } from "../_utils/mailer.js";
+import { checkRateLimit, clientIp } from "../_utils/rateLimit.js";
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
 
 export async function onRequestPost(context) {
   const { request, env } = context;
   const formData = await request.formData();
   const email = (formData.get("email") || "").toString().trim().toLowerCase();
+
+  const allowed = await checkRateLimit(
+    env,
+    `forgot-password:${clientIp(request)}`,
+    RATE_LIMIT_MAX,
+    RATE_LIMIT_WINDOW_SECONDS
+  );
+  if (!allowed) {
+    return Response.redirect(`${new URL("/partner/forgot-password", request.url).href}?error=rate_limited`, 303);
+  }
 
   if (email) {
     const reseller = await env.DB.prepare("SELECT id FROM viszontelado WHERE email = ?").bind(email).first();

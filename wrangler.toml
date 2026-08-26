@@ -6,3 +6,7 @@ compatibility_date = "2026-07-14"
 binding = "DB"
 database_name = "wedconnect-parok"
 database_id = "eb5018c6-ed60-4337-80b6-774dc1c7ffd2"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "949651a7594349068a3d679b18ae1b12"

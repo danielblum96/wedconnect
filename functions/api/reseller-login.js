@@ -1,6 +1,9 @@
 import { verifyPassword, newSessionToken, sessionCookie } from "../_utils/auth.js";
+import { checkRateLimit, clientIp } from "../_utils/rateLimit.js";
 
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
+const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_WINDOW_SECONDS = 15 * 60;
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -11,6 +14,14 @@ export async function onRequestPost(context) {
   function backWithError(code) {
     return Response.redirect(`${new URL("/partner/login", request.url).href}?error=${code}`, 303);
   }
+
+  const allowed = await checkRateLimit(
+    env,
+    `login:${clientIp(request)}`,
+    RATE_LIMIT_MAX,
+    RATE_LIMIT_WINDOW_SECONDS
+  );
+  if (!allowed) return backWithError("rate_limited");
 
   if (!email || !jelszo) return backWithError("missing_fields");
 

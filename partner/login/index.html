@@ -143,7 +143,8 @@
       var messages = {
         missing_fields: "Bitte füllen Sie beide Felder aus.",
         invalid: "Email oder Passwort ist falsch.",
-        suspended: "Dieses Konto ist derzeit inaktiv. Bitte kontaktieren Sie uns."
+        suspended: "Dieses Konto ist derzeit inaktiv. Bitte kontaktieren Sie uns.",
+        rate_limited: "Zu viele Anmeldeversuche. Bitte versuchen Sie es in ein paar Minuten erneut."
       };
       var box = document.getElementById("err");
       box.textContent = messages[err] || "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.";

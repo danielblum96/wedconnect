@@ -140,7 +140,8 @@
     var err = params.get("error");
     if (err) {
       var messages = {
-        missing_fields: "Bitte geben Sie Ihre Email-Adresse ein."
+        missing_fields: "Bitte geben Sie Ihre Email-Adresse ein.",
+        rate_limited: "Zu viele Anfragen. Bitte versuchen Sie es in einer Stunde erneut."
       };
       var box = document.getElementById("err");
       box.textContent = messages[err] || "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.";

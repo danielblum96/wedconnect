@@ -1,7 +1,10 @@
 import { hashPassword, newSessionToken, sessionCookie } from "../_utils/auth.js";
 import { countryToLang } from "../_utils/i18n.js";
+import { checkRateLimit, clientIp } from "../_utils/rateLimit.js";
 
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -15,6 +18,14 @@ export async function onRequestPost(context) {
   function backWithError(code) {
     return Response.redirect(`${new URL(redirectBase, request.url).href}?error=${code}`, 303);
   }
+
+  const allowed = await checkRateLimit(
+    env,
+    `register:${clientIp(request)}`,
+    RATE_LIMIT_MAX,
+    RATE_LIMIT_WINDOW_SECONDS
+  );
+  if (!allowed) return backWithError("rate_limited");
 
   if (!cegNev || !email || !orszag) return backWithError("missing_fields");
   if (jelszo.length < 8) return backWithError("weak_password");
