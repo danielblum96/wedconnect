@@ -13,6 +13,9 @@ export async function onRequestPost(context) {
   const email = (formData.get("email") || "").toString().trim().toLowerCase();
   const jelszo = (formData.get("jelszo") || "").toString();
   const orszag = (formData.get("orszag") || "").toString().trim();
+  const szamlazasiCim = (formData.get("szamlazasi_cim") || "").toString().trim();
+  const szallitasAzonos = formData.get("szallitas_azonos") ? 1 : 0;
+  const alapSzallitasiCim = szallitasAzonos ? "" : (formData.get("alap_szallitasi_cim") || "").toString().trim();
   const redirectBase = (formData.get("redirect_back") || "/de/registrieren").toString();
 
   function backWithError(code) {
@@ -37,9 +40,9 @@ export async function onRequestPost(context) {
   const jelszoHash = await hashPassword(jelszo);
   const nyelv = countryToLang(orszag);
   const insert = await env.DB.prepare(
-    "INSERT INTO viszontelado (ceg_nev, email, jelszo_hash, orszag, nyelv) VALUES (?, ?, ?, ?, ?)"
+    "INSERT INTO viszontelado (ceg_nev, email, jelszo_hash, orszag, nyelv, szamlazasi_cim, alap_szallitasi_cim, szallitas_azonos) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
   )
-    .bind(cegNev, email, jelszoHash, orszag, nyelv)
+    .bind(cegNev, email, jelszoHash, orszag, nyelv, szamlazasiCim || null, alapSzallitasiCim || null, szallitasAzonos)
     .run();
 
   const viszonteladoId = insert.meta.last_row_id;

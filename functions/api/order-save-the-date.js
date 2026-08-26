@@ -23,6 +23,7 @@ export async function onRequestPost(context) {
   const mennyisegRaw = (formData.get("mennyiseg") || "").toString().trim();
   const mennyiseg = mennyisegRaw === "" ? 0 : parseInt(mennyisegRaw, 10);
   const szallitasiCim = (formData.get("szallitasi_cim") || "").toString().trim();
+  const szamlazasiCim = (formData.get("szamlazasi_cim") || "").toString().trim();
   const megjegyzes = (formData.get("megjegyzes") || "").toString().trim();
   const wantsStd = mennyiseg > 0;
 
@@ -32,6 +33,7 @@ export async function onRequestPost(context) {
 
   if (!parId || isNaN(mennyiseg) || mennyiseg < 0 || mennyiseg > 9999) return backWithError("invalid");
   if (wantsStd && mennyiseg < 50) return backWithError("min_quantity");
+  if (!szamlazasiCim) return backWithError("missing_billing");
   if (wantsStd && !szallitasiCim) return backWithError("missing_address");
 
   const par = await env.DB.prepare(
@@ -47,15 +49,15 @@ export async function onRequestPost(context) {
 
   if (wantsStd) {
     await env.DB.prepare(
-      "INSERT INTO rendelesek (viszontelado_id, par_id, csomag, mennyiseg, szallitasi_cim, megjegyzes) VALUES (?, ?, 'Save the Date naptár (Seite inklusive)', ?, ?, ?)"
+      "INSERT INTO rendelesek (viszontelado_id, par_id, csomag, mennyiseg, szallitasi_cim, szamlazasi_cim, megjegyzes) VALUES (?, ?, 'Save the Date naptár (Seite inklusive)', ?, ?, ?, ?)"
     )
-      .bind(reseller.id, par.id, mennyiseg, szallitasiCim, megjegyzes || null)
+      .bind(reseller.id, par.id, mennyiseg, szallitasiCim, szamlazasiCim, megjegyzes || null)
       .run();
   } else {
     await env.DB.prepare(
-      "INSERT INTO rendelesek (viszontelado_id, par_id, csomag, mennyiseg, szallitasi_cim, megjegyzes) VALUES (?, ?, 'Hochzeitsseite (ohne Save the Date)', 1, ?, ?)"
+      "INSERT INTO rendelesek (viszontelado_id, par_id, csomag, mennyiseg, szallitasi_cim, szamlazasi_cim, megjegyzes) VALUES (?, ?, 'Hochzeitsseite (ohne Save the Date)', 1, ?, ?, ?)"
     )
-      .bind(reseller.id, par.id, szallitasiCim || null, megjegyzes || null)
+      .bind(reseller.id, par.id, szallitasiCim || null, szamlazasiCim, megjegyzes || null)
       .run();
   }
 
@@ -75,6 +77,7 @@ export async function onRequestPost(context) {
               <p><strong>Hochzeitsseite:</strong> kostenlos (Save the Date-Bestellung ab 50 Stück)</p>
               <p><strong>Save the Date:</strong> ${mennyiseg} db × ${STD_PRICE_EUR.toFixed(2)} € = ${stdSubtotal.toFixed(2)} €</p>
               <p><strong>Összesen:</strong> ${total.toFixed(2)} € (fizetés még nincs beszedve – Stripe folyamatban)</p>
+              <p><strong>Számlázási cím:</strong><br>${escapeHtml(szamlazasiCim).replace(/\n/g, "<br>")}</p>
               <p><strong>Szállítási cím:</strong><br>${escapeHtml(szallitasiCim).replace(/\n/g, "<br>")}</p>
               ${megjegyzes ? `<p><strong>Megjegyzés:</strong><br>${escapeHtml(megjegyzes).replace(/\n/g, "<br>")}</p>` : ""}
               <p>A pontos, lézervágásra kész SVG-fájl csatolva.</p>
@@ -90,6 +93,7 @@ export async function onRequestPost(context) {
             <p><strong>Pár:</strong> ${escapeHtml(par.par_neve)} · ${escapeHtml(par.eskuvo_datuma)}</p>
             <p><strong>Hochzeitsseite (einmalig):</strong> ${PAGE_PRICE_EUR.toFixed(2)} €</p>
             <p><strong>Összesen:</strong> ${total.toFixed(2)} € (fizetés még nincs beszedve – Stripe folyamatban)</p>
+            <p><strong>Számlázási cím:</strong><br>${escapeHtml(szamlazasiCim).replace(/\n/g, "<br>")}</p>
             ${megjegyzes ? `<p><strong>Megjegyzés:</strong><br>${escapeHtml(megjegyzes).replace(/\n/g, "<br>")}</p>` : ""}
             <p><a href="https://wedconnect.eu/${escapeHtml(par.slug)}">A pár nyilvános oldala</a></p>
           `,

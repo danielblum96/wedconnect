@@ -29,7 +29,10 @@ CREATE TABLE IF NOT EXISTS viszontelado (
   orszag TEXT NOT NULL,
   nyelv TEXT NOT NULL DEFAULT 'de',
   allapot TEXT NOT NULL DEFAULT 'Aktív',
-  letrehozva TEXT NOT NULL DEFAULT (datetime('now'))
+  letrehozva TEXT NOT NULL DEFAULT (datetime('now')),
+  szamlazasi_cim TEXT,
+  alap_szallitasi_cim TEXT,
+  szallitas_azonos INTEGER NOT NULL DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS rendelesek (
@@ -41,6 +44,7 @@ CREATE TABLE IF NOT EXISTS rendelesek (
   ar_osszesen REAL,
   fizetesi_mod TEXT NOT NULL DEFAULT 'Számla',
   szallitasi_cim TEXT,
+  szamlazasi_cim TEXT,
   megjegyzes TEXT,
   allapot TEXT NOT NULL DEFAULT 'Új',
   letrehozva TEXT NOT NULL DEFAULT (datetime('now'))

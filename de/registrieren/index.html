@@ -57,7 +57,7 @@
     font-weight: 500;
     margin-bottom: 6px;
   }
-  input, select {
+  input, select, textarea {
     width: 100%;
     padding: 11px 14px;
     border: 1px solid #ddd6c9;
@@ -67,7 +67,47 @@
     margin-bottom: 18px;
     background: #fff;
   }
-  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  textarea { resize: vertical; min-height: 64px; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .section-divider {
+    border: none;
+    border-top: 1px solid #ece4d6;
+    margin: 4px 0 20px;
+  }
+  .section-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .section-hint {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin: -2px 0 14px;
+  }
+  .toggle-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--fg);
+    background: #faf6ee;
+    border: 1px solid #ece1cc;
+    border-radius: 8px;
+    padding: 11px 14px;
+    margin-bottom: 18px;
+    cursor: pointer;
+  }
+  .toggle-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 2px 0 0;
+    flex: none;
+    accent-color: var(--accent);
+  }
   button {
     width: 100%;
     padding: 13px;
@@ -125,6 +165,23 @@
       <input type="password" id="jelszo" name="jelszo" required autocomplete="new-password" minlength="8">
       <div class="hint">Mindestens 8 Zeichen.</div>
 
+      <hr class="section-divider">
+      <div class="section-label">Rechnungs- &amp; Lieferadresse</div>
+      <div class="section-hint">Optional – kann auch später im Konto ergänzt werden. Wird für Save-the-Date-Bestellungen automatisch vorausgefüllt.</div>
+
+      <label for="szamlazasi_cim">Rechnungsadresse</label>
+      <textarea id="szamlazasi_cim" name="szamlazasi_cim" rows="3" placeholder="Name, Straße, PLZ, Ort, Land"></textarea>
+
+      <label class="toggle-label">
+        <input type="checkbox" id="szallitas_azonos" name="szallitas_azonos" value="1" checked>
+        Lieferadresse ist identisch mit der Rechnungsadresse
+      </label>
+
+      <div id="shipping-group" hidden>
+        <label for="alap_szallitasi_cim">Lieferadresse</label>
+        <textarea id="alap_szallitasi_cim" name="alap_szallitasi_cim" rows="3" placeholder="Name, Straße, PLZ, Ort, Land"></textarea>
+      </div>
+
       <button type="submit">Kostenlos registrieren</button>
     </form>
     <div class="foot">Bereits Partner? <a href="/partner/login">Hier einloggen</a></div>
@@ -143,6 +200,14 @@
       var box = document.getElementById("err");
       box.textContent = messages[err] || "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.";
       box.style.display = "block";
+    }
+
+    var azonosCheckbox = document.getElementById("szallitas_azonos");
+    var shippingGroup = document.getElementById("shipping-group");
+    if (azonosCheckbox && shippingGroup) {
+      azonosCheckbox.addEventListener("change", function () {
+        shippingGroup.hidden = azonosCheckbox.checked;
+      });
     }
   </script>
 </body>

@@ -28,10 +28,13 @@ export async function onRequestGet(context) {
   const stdErrorMessages = {
     invalid: "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
     missing_address: "Bitte geben Sie eine Lieferadresse ein.",
+    missing_billing: "Bitte geben Sie eine Rechnungsadresse ein.",
     min_quantity: "Die Mindestbestellmenge für Save the Date-Karten beträgt 50 Stück.",
   };
 
   const defaultMessage = getCopy(reseller.nyelv || "de").defaultMessage;
+  const defaultBilling = reseller.szamlazasi_cim || "";
+  const defaultShipping = reseller.szallitas_azonos ? defaultBilling : reseller.alap_szallitasi_cim || "";
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const upcoming = (parok || [])
@@ -483,9 +486,11 @@ export async function onRequestGet(context) {
         <div class="std-price-row" id="std-price-std-row" hidden><span>Save the Date (<span id="std-price-qty">50</span> × ${STD_PRICE_EUR.toFixed(2).replace(".", ",")} €)</span><span id="std-price-sub">${STD_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
         <div class="std-price-row std-price-total"><span>Gesamt</span><span id="std-price-total">${PAGE_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
       </div>
+      <label>Rechnungsadresse</label>
+      <textarea name="szamlazasi_cim" id="std-modal-billing" rows="3" placeholder="Name, Straße, PLZ, Ort, Land" required>${escapeHtml(defaultBilling)}</textarea>
       <div id="std-address-group" hidden>
         <label>Lieferadresse</label>
-        <textarea name="szallitasi_cim" id="std-modal-cim" rows="3" placeholder="Name, Straße, PLZ, Ort, Land"></textarea>
+        <textarea name="szallitasi_cim" id="std-modal-cim" rows="3" placeholder="Name, Straße, PLZ, Ort, Land">${escapeHtml(defaultShipping)}</textarea>
       </div>
       <label>Anmerkung <span class="hint-inline">(optional)</span></label>
       <textarea name="megjegyzes" rows="2" placeholder="z. B. Sonderwünsche"></textarea>
@@ -500,6 +505,8 @@ export async function onRequestGet(context) {
   var FONT_RECIPES = ${fontRecipesForClient};
   var MAX_BUTTONS = 5;
   var CREATED_PAR_ID = ${createdCouple ? JSON.stringify(String(createdCouple.id)) : "null"};
+  var DEFAULT_BILLING = ${JSON.stringify(defaultBilling)};
+  var DEFAULT_SHIPPING = ${JSON.stringify(defaultShipping)};
 
   var form = document.getElementById("new-couple-form");
   var steps = Array.prototype.slice.call(form.querySelectorAll(".wizard-step"));
@@ -715,6 +722,7 @@ export async function onRequestGet(context) {
   var stdQtyGroup = document.getElementById("std-qty-group");
   var stdAddressGroup = document.getElementById("std-address-group");
   var stdModalCim = document.getElementById("std-modal-cim");
+  var stdModalBilling = document.getElementById("std-modal-billing");
   var stdPriceQty = document.getElementById("std-price-qty");
   var stdPricePage = document.getElementById("std-price-page");
   var stdPricePageNote = document.getElementById("std-price-page-note");
@@ -848,6 +856,8 @@ export async function onRequestGet(context) {
       if (stdInfoPopover) stdInfoPopover.hidden = true;
       if (stdWantStd) stdWantStd.checked = true;
       if (stdModalMenge) stdModalMenge.value = "50";
+      if (stdModalBilling) stdModalBilling.value = DEFAULT_BILLING;
+      if (stdModalCim) stdModalCim.value = DEFAULT_SHIPPING;
       updateStdPricing();
       if (typeof stdModal.showModal === "function") {
         stdModal.showModal();

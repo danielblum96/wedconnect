@@ -56,7 +56,9 @@ export async function getSessionReseller(request, db) {
   const token = cookies["wc_session"];
   if (!token) return null;
   const row = await db
-    .prepare("SELECT s.viszontelado_id as id, s.lejar, v.ceg_nev, v.email, v.orszag, v.nyelv FROM sessions s JOIN viszontelado v ON v.id = s.viszontelado_id WHERE s.token = ?")
+    .prepare(
+      "SELECT s.viszontelado_id as id, s.lejar, v.ceg_nev, v.email, v.orszag, v.nyelv, v.szamlazasi_cim, v.alap_szallitasi_cim, v.szallitas_azonos FROM sessions s JOIN viszontelado v ON v.id = s.viszontelado_id WHERE s.token = ?"
+    )
     .bind(token)
     .first();
   if (!row) return null;
