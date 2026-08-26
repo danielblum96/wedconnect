@@ -61,7 +61,9 @@ export async function onRequestGet(context) {
       </label>`;
   }).join("");
 
-  const stylesForClient = JSON.stringify(STYLES.map((s) => ({ id: s.id, font: s.font })));
+  const stylesForClient = JSON.stringify(
+    STYLES.map((s) => ({ id: s.id, font: s.font, bg: s.bg, fg: s.fg, accent: s.accent, accentText: s.accentText, btnFg: s.btnFg }))
+  );
   const fontRecipesForClient = JSON.stringify(FONT_RECIPES);
   const defaultMessageForClient = JSON.stringify(defaultMessage);
 
@@ -85,11 +87,16 @@ export async function onRequestGet(context) {
         .join("");
 
       const pageUrl = `https://wedconnect.eu/${p.slug}`;
-      const styleName = getStyleName(resolveStyleByStoredValue(p.valasztott_stilus), "de");
+      const resolvedStyle = resolveStyleByStoredValue(p.valasztott_stilus);
+      const styleName = getStyleName(resolvedStyle, "de");
       const statusLabel = getStatusLabel(p.allapot, "de");
       const searchText = `${p.par_neve} ${p.eskuvo_datuma} ${styleName}`.toLowerCase();
       const nev1 = p.nev1 || (p.par_neve || "").split(" & ")[0] || "";
       const nev2 = p.nev2 || (p.par_neve || "").split(" & ")[1] || "";
+      const mockGombok = gombok
+        .map((g) => (g && g.label ? g.label.trim() : ""))
+        .filter(Boolean)
+        .slice(0, 2);
 
       return `
         <div class="couple${created === p.slug ? " just-created" : ""}" data-search="${escapeHtml(searchText)}">
@@ -129,6 +136,9 @@ export async function onRequestGet(context) {
             data-datum="${escapeHtml(p.eskuvo_datuma)}"
             data-nyelv="${escapeHtml(p.nyelv || "hu")}"
             data-url="${escapeHtml(pageUrl)}"
+            data-stilus="${escapeHtml(resolvedStyle.id)}"
+            data-uzenet="${escapeHtml(p.egyedi_uzenet || defaultMessage)}"
+            data-gombok='${escapeHtml(JSON.stringify(mockGombok))}'
           >Save the Date gestalten</button>
           <div class="checkout-row">
             <button
@@ -140,6 +150,9 @@ export async function onRequestGet(context) {
               data-datum="${escapeHtml(p.eskuvo_datuma)}"
               data-nyelv="${escapeHtml(p.nyelv || "hu")}"
               data-url="${escapeHtml(pageUrl)}"
+              data-stilus="${escapeHtml(resolvedStyle.id)}"
+              data-uzenet="${escapeHtml(p.egyedi_uzenet || defaultMessage)}"
+              data-gombok='${escapeHtml(JSON.stringify(mockGombok))}'
             >Bestellung abschließen</button>
           </div>
         </div>`;
@@ -283,7 +296,9 @@ export async function onRequestGet(context) {
   .std-stage { flex:none; width:300px; max-width:100%; }
   .std-stage-bg { position:relative; background:radial-gradient(ellipse at 50% 38%, #ffffff 0%, #f2ead9 65%, #ece0c8 100%); border-radius:20px; padding:28px 24px; box-shadow:inset 0 0 0 1px rgba(180,139,86,0.14); }
   .std-preview svg { width:100%; height:auto; display:block; filter:drop-shadow(0 20px 28px -14px rgba(90,65,30,0.4)); }
+  .std-preview-page { border-radius:16px; box-shadow:0 20px 28px -14px rgba(30,20,10,0.35); }
   .std-nfc-badge { position:absolute; right:20px; bottom:8px; display:flex; align-items:center; gap:7px; background:var(--accent); color:#fff; padding:7px 14px 7px 9px; border-radius:999px; font-family:"Poppins",sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:0.02em; box-shadow:0 8px 16px -8px rgba(180,139,86,0.7); cursor:default; }
+  .std-nfc-badge[hidden] { display:none; }
   .std-nfc-badge svg { width:24px; height:24px; flex:none; }
   .std-nfc-badge::before { content:""; position:absolute; inset:-5px; border-radius:999px; border:1.5px solid var(--accent); opacity:0; animation:std-nfc-pulse 2.6s ease-out infinite; }
   @keyframes std-nfc-pulse { 0% { opacity:0.5; transform:scale(0.92); } 70% { opacity:0; transform:scale(1.28); } 100% { opacity:0; transform:scale(1.28); } }
@@ -431,7 +446,7 @@ export async function onRequestGet(context) {
     <div class="std-stage">
       <div class="std-stage-bg">
         <div class="std-preview" id="std-modal-preview"></div>
-        <div class="std-nfc-badge" title="WedConnect-Chip: Smartphone antippen öffnet automatisch die Hochzeitsseite">
+        <div class="std-nfc-badge" id="std-nfc-badge" title="WedConnect-Chip: Smartphone antippen öffnet automatisch die Hochzeitsseite">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <circle cx="7.2" cy="16.8" r="1.4" fill="currentColor"/>
             <path d="M10.6 13.4a5 5 0 0 1 0 7.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -441,7 +456,7 @@ export async function onRequestGet(context) {
           <span>+ WedConnect</span>
         </div>
       </div>
-      <p class="std-stage-caption">Laserschnitt aus Holz · WedConnect-Chip auf der Rückseite verlinkt direkt zur Hochzeitsseite</p>
+      <p class="std-stage-caption" id="std-stage-caption">Laserschnitt aus Holz · WedConnect-Chip auf der Rückseite verlinkt direkt zur Hochzeitsseite</p>
     </div>
     <form method="POST" action="/api/order-save-the-date" class="std-form">
       <input type="hidden" name="par_id" id="std-modal-par-id" value="">
@@ -706,11 +721,64 @@ export async function onRequestGet(context) {
   var stdPriceStdRow = document.getElementById("std-price-std-row");
   var stdPriceSub = document.getElementById("std-price-sub");
   var stdPriceTotal = document.getElementById("std-price-total");
+  var stdNfcBadge = document.getElementById("std-nfc-badge");
+  var stdStageCaption = document.getElementById("std-stage-caption");
   var PAGE_PRICE_EUR = ${PAGE_PRICE_EUR};
   var STD_PRICE_EUR = ${STD_PRICE_EUR};
+  var currentCouple = {};
 
   function formatEUR(n) {
     return n.toFixed(2).replace(".", ",") + " €";
+  }
+
+  function renderPageMock(nev1, nev2, datum, stilusId, uzenet, gombokJson) {
+    var style = STYLES.filter(function (s) {
+      return s.id === stilusId;
+    })[0] || STYLES[0];
+    if (!style) return;
+    var recipe = FONT_RECIPES[style.font] || FONT_RECIPES.sans;
+    var namesFontSize = style.font === "script" || style.font === "hand" ? "2rem" : "1.5rem";
+    var namesText = (nev1 || "") + " & " + (nev2 || "");
+    var dateText = "";
+    if (datum) {
+      var parts = datum.split("-");
+      if (parts.length === 3) dateText = parts[0] + "." + parts[1] + "." + parts[2] + ".";
+    }
+    var gombok = [];
+    try {
+      gombok = JSON.parse(gombokJson || "[]");
+    } catch (e) {
+      gombok = [];
+    }
+    var buttonsHtml = gombok.length
+      ? '<span class="mock-buttons">' +
+        gombok
+          .map(function (b) {
+            return '<span class="mock-btn">' + escapeHtml(b) + "</span>";
+          })
+          .join("") +
+        "</span>"
+      : "";
+    var varsStyle =
+      "--bg:" + style.bg + ";--fg:" + style.fg + ";--accent:" + style.accent + ";--accent-text:" + style.accentText + ";--btn-fg:" + style.btnFg + ";";
+    stdModalPreview.innerHTML =
+      '<div class="swatch-mock std-preview-page" style="' + varsStyle + '">' +
+      '<span class="mock-eyebrow">Hochzeit</span>' +
+      '<span class="mock-names" style="' + recipe + " font-size:" + namesFontSize + ';">' + escapeHtml(namesText) + "</span>" +
+      (dateText ? '<span class="mock-date">' + escapeHtml(dateText) + "</span>" : "") +
+      '<span class="mock-message">' + escapeHtml(uzenet || "") + "</span>" +
+      buttonsHtml +
+      "</div>";
+  }
+
+  function updateStdPreviewMode(wantStd) {
+    if (stdNfcBadge) stdNfcBadge.hidden = !wantStd;
+    if (stdStageCaption) stdStageCaption.hidden = !wantStd;
+    if (wantStd) {
+      renderStdPreview(currentCouple.nev1, currentCouple.nev2, currentCouple.datum, currentCouple.nyelv);
+    } else {
+      renderPageMock(currentCouple.nev1, currentCouple.nev2, currentCouple.datum, currentCouple.stilus, currentCouple.uzenet, currentCouple.gombok);
+    }
   }
 
   function updateStdPricing() {
@@ -719,6 +787,7 @@ export async function onRequestGet(context) {
     stdAddressGroup.hidden = !wantStd;
     if (stdModalCim) stdModalCim.required = wantStd;
     stdPriceStdRow.hidden = !wantStd;
+    updateStdPreviewMode(wantStd);
 
     if (!wantStd) {
       stdModalMenge.value = "0";
@@ -764,14 +833,22 @@ export async function onRequestGet(context) {
       var nev2 = btn.getAttribute("data-nev2");
       var datum = btn.getAttribute("data-datum");
       var nyelv = btn.getAttribute("data-nyelv");
+      currentCouple = {
+        nev1: nev1,
+        nev2: nev2,
+        datum: datum,
+        nyelv: nyelv,
+        stilus: btn.getAttribute("data-stilus"),
+        uzenet: btn.getAttribute("data-uzenet"),
+        gombok: btn.getAttribute("data-gombok"),
+      };
       stdModalParId.value = btn.getAttribute("data-par-id");
       stdModalSubtitle.textContent = nev1 + " & " + nev2;
       stdModalLink.textContent = btn.getAttribute("data-url");
       if (stdInfoPopover) stdInfoPopover.hidden = true;
-      if (stdWantStd) stdWantStd.checked = false;
+      if (stdWantStd) stdWantStd.checked = true;
       if (stdModalMenge) stdModalMenge.value = "50";
       updateStdPricing();
-      renderStdPreview(nev1, nev2, datum, nyelv);
       if (typeof stdModal.showModal === "function") {
         stdModal.showModal();
       } else {
