@@ -9,7 +9,7 @@ export async function onRequestGet(context) {
   if (!reseller) return Response.redirect(new URL("/partner/login", request.url).href, 303);
 
   const { results: parok } = await env.DB.prepare(
-    "SELECT id, par_neve, nev1, nev2, eskuvo_datuma, slug, allapot, valasztott_stilus, egyedi_uzenet, egyedi_gombok FROM parok WHERE viszontelado_id = ? ORDER BY eskuvo_datuma DESC"
+    "SELECT id, par_neve, nev1, nev2, eskuvo_datuma, slug, allapot, valasztott_stilus, egyedi_uzenet, egyedi_gombok, nyelv FROM parok WHERE viszontelado_id = ? ORDER BY eskuvo_datuma DESC"
   )
     .bind(reseller.id)
     .all();
@@ -125,6 +125,7 @@ export async function onRequestGet(context) {
                 data-nev1="${escapeHtml(nev1)}"
                 data-nev2="${escapeHtml(nev2)}"
                 data-datum="${escapeHtml(p.eskuvo_datuma)}"
+                data-nyelv="${escapeHtml(p.nyelv || "hu")}"
               ></div>
               <form method="POST" action="/api/order-save-the-date" class="std-form">
                 <input type="hidden" name="par_id" value="${p.id}">
@@ -154,7 +155,7 @@ export async function onRequestGet(context) {
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Great+Vibes&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="/assets/qrcode.min.js"></script>
 <script type="module">
-  import { generateMockupSVG } from "/assets/save-the-date.js";
+  import { generateMockupSVG } from "/assets/save-the-date.js?v=2";
   window.STD = { generateMockupSVG };
 </script>
 <style>
@@ -600,8 +601,9 @@ export async function onRequestGet(context) {
       var nev1 = preview.getAttribute("data-nev1");
       var nev2 = preview.getAttribute("data-nev2");
       var datum = preview.getAttribute("data-datum");
+      var nyelv = preview.getAttribute("data-nyelv");
       var parts = datum.split("-").map(Number);
-      preview.innerHTML = window.STD.generateMockupSVG(nev1, nev2, parts[0], parts[1], parts[2]);
+      preview.innerHTML = window.STD.generateMockupSVG(nev1, nev2, parts[0], parts[1], parts[2], nyelv);
       preview.dataset.rendered = "1";
     });
   });

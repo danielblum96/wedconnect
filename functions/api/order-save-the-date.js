@@ -1,7 +1,7 @@
 import { getSessionReseller } from "../_utils/auth.js";
 import { escapeHtml } from "../_utils/html.js";
 import { sendEmail } from "../_utils/mailer.js";
-import { generateMockupSVG } from "../_utils/saveTheDate.js";
+import { generateSVG } from "../_utils/saveTheDate.js";
 
 function utf8ToBase64(str) {
   const bytes = new TextEncoder().encode(str);
@@ -29,7 +29,7 @@ export async function onRequestPost(context) {
   if (!szallitasiCim) return backWithError("missing_address");
 
   const par = await env.DB.prepare(
-    "SELECT id, par_neve, nev1, nev2, eskuvo_datuma, slug FROM parok WHERE id = ? AND viszontelado_id = ?"
+    "SELECT id, par_neve, nev1, nev2, eskuvo_datuma, slug, nyelv FROM parok WHERE id = ? AND viszontelado_id = ?"
   )
     .bind(parId, reseller.id)
     .first();
@@ -45,7 +45,7 @@ export async function onRequestPost(context) {
     const [year, month, day] = (par.eskuvo_datuma || "").split("-").map(Number);
     const nev1 = par.nev1 || (par.par_neve || "").split(" & ")[0] || "";
     const nev2 = par.nev2 || (par.par_neve || "").split(" & ")[1] || "";
-    const svg = generateMockupSVG(nev1, nev2, year, month, day);
+    const svg = generateSVG(nev1, nev2, year, month, day, par.nyelv || "hu");
     const filename = `${par.slug}-save-the-date.svg`;
 
     const html = `

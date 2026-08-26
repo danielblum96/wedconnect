@@ -33,7 +33,10 @@ const HEART_RAW_H  = 3.9013;
 const FONT_SIZE    = 4.06638;
 const CAP_RATIO    = 0.716;
 const STYLE_NUM    = 'font-size:4.06638px;font-family:Arial;-inkscape-font-specification:Arial;stroke-width:0.169433';
-const HU_MONTHS    = ['Január','Február','Március','Április','Május','Június','Július','Augusztus','Szeptember','Október','November','December'];
+const MONTHS_BY_LANG = {
+  hu: ['Január','Február','Március','Április','Május','Június','Július','Augusztus','Szeptember','Október','November','December'],
+  de: ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
+};
 const NAMES_X          = 9.6479845;
 const NAMES_RIGHT      = 51.8637;
 const NAMES_BASE_FS    = 8.06015;
@@ -71,7 +74,7 @@ function namesFontSize(name1, name2) {
   return estW > maxW ? NAMES_BASE_FS * (maxW / estW) : NAMES_BASE_FS;
 }
 
-export function generateSVG(name1, name2, year, month, day) {
+export function generateSVG(name1, name2, year, month, day, lang) {
   const calendar = buildCalendar(year, month);
   let heartRow = -1, heartCol = -1;
   for (let r = 0; r < calendar.length; r++) {
@@ -101,10 +104,21 @@ export function generateSVG(name1, name2, year, month, day) {
   const fs  = namesFontSize(name1, name2);
   const maxW = (NAMES_RIGHT - NAMES_X).toFixed(4);
   const p3  = P3.replace(/font-size:8\.06015px/g, `font-size:${fs.toFixed(5)}px`);
-  const monthLabel = `>${HU_MONTHS[month-1]} ${year}<`;
+  const months = MONTHS_BY_LANG[lang] || MONTHS_BY_LANG.hu;
+  const monthLabel = `>${months[month-1]} ${year}<`;
   const namesStr   = ` textLength="${maxW}" lengthAdjust="spacingAndGlyphs">${name1} &amp; ${name2}<`;
 
-  return P1 + monthLabel + P2 + ht + p3 + namesStr + P4 + numElems + '\n' + P5;
+  let svg = P1 + monthLabel + P2 + ht + p3 + namesStr + P4 + numElems + '\n' + P5;
+
+  // A honap/ev felirat eredeti sablonja egy FIX, bal-igazitott x-koordinatan
+  // allt, ami csak a "Szeptember"-nel (az eredeti tervezes soran hasznalt
+  // pelda-honapnal) nezett ki kozepre igazitottnak - minden mas honapnevre
+  // (pl. "Augusztus") a szoveg eltero szelessege miatt LATHATOAN elcsuszott a
+  // fekete sav kozepehez kepest. Kozepre igazitas: a fekete sav (rect927-5-7)
+  // x=5.9813447, width=52.309971 -> kozepe = 32.136331.
+  svg = svg.replace(/x="17\.559452"/g, 'x="32.136331" text-anchor="middle"');
+
+  return svg;
 }
 
 
@@ -116,8 +130,8 @@ const WOOD_TEXTURE_B64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUEBAQEAwUEBAQGBQUGCA
 // 2) a hajtasvonal (kek korvonal) egy diszkret, alig lathato vonalla valtozik,
 // mert a piros/kek szinek kizarolag a lezervago szoftvernek szolo technikai
 // jelolesek voltak, nem a vegleges design reszei.
-export function generateMockupSVG(name1, name2, year, month, day) {
-  let svg = generateSVG(name1, name2, year, month, day);
+export function generateMockupSVG(name1, name2, year, month, day, lang) {
+  let svg = generateSVG(name1, name2, year, month, day, lang);
 
   const defs =
     '<defs><pattern id="woodGrain" patternUnits="userSpaceOnUse" ' +
