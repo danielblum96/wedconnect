@@ -3,6 +3,9 @@ import { STYLES, FONT_RECIPES, getStyleName, resolveStyleByStoredValue } from ".
 import { escapeHtml, safeHref } from "../_utils/html.js";
 import { getCopy, getStatusLabel } from "../_utils/i18n.js";
 
+const PAGE_PRICE_EUR = 50;
+const STD_PRICE_EUR = 4;
+
 export async function onRequestGet(context) {
   const { request, env } = context;
   const reseller = await getSessionReseller(request, env.DB);
@@ -126,6 +129,18 @@ export async function onRequestGet(context) {
             data-nyelv="${escapeHtml(p.nyelv || "hu")}"
             data-url="${escapeHtml(pageUrl)}"
           >Save the Date gestalten</button>
+          <div class="checkout-row">
+            <button
+              type="button"
+              class="btn-std-open btn-checkout"
+              data-par-id="${p.id}"
+              data-nev1="${escapeHtml(nev1)}"
+              data-nev2="${escapeHtml(nev2)}"
+              data-datum="${escapeHtml(p.eskuvo_datuma)}"
+              data-nyelv="${escapeHtml(p.nyelv || "hu")}"
+              data-url="${escapeHtml(pageUrl)}"
+            >Bestellung abschließen</button>
+          </div>
         </div>`;
     })
     .join("");
@@ -166,6 +181,9 @@ export async function onRequestGet(context) {
     font-weight:600; font-size:0.85rem; cursor:pointer;
   }
   .couple { background:var(--card); border-radius:12px; padding:18px 22px; margin-bottom:14px; box-shadow:0 6px 20px -16px rgba(0,0,0,0.15); }
+  .checkout-row { display:flex; justify-content:flex-end; margin-top:18px; }
+  .btn-std-open.btn-checkout { background:linear-gradient(135deg,var(--accent),#8f6a3c); color:#fff; text-transform:none; font-weight:700; font-size:1rem; letter-spacing:0.01em; padding:15px 34px; border:none; box-shadow:0 12px 26px -8px rgba(180,139,86,0.65); transition:transform 0.15s ease, box-shadow 0.15s ease; }
+  .btn-std-open.btn-checkout:hover { background:linear-gradient(135deg,var(--accent),#8f6a3c); color:#fff; transform:translateY(-1px); box-shadow:0 16px 32px -8px rgba(180,139,86,0.75); }
   .couple-name { font-weight:600; font-size:1.05rem; }
   .couple-meta { font-size:0.82rem; color:var(--muted); margin:2px 0 4px; }
   .status { color:var(--accent); font-weight:600; }
@@ -222,6 +240,7 @@ export async function onRequestGet(context) {
     100% { box-shadow:0 6px 20px -16px rgba(0,0,0,0.15); }
   }
   .style-picker-hint { font-size:0.78rem; color:var(--muted); margin:-2px 0 16px; }
+  .price-note { display:inline-block; font-size:0.78rem; font-weight:600; color:var(--accent); background:#fbf2e2; border:1px solid #ecd9b6; border-radius:999px; padding:5px 14px; margin:-6px 0 16px; }
   .step-label { font-size:0.78rem; font-weight:600; letter-spacing:0.04em; color:var(--accent); text-transform:uppercase; margin:0 0 16px; }
   .hint-inline { font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted); font-size:0.78rem; }
   .wizard-nav { display:flex; gap:12px; margin-top:8px; }
@@ -276,6 +295,9 @@ export async function onRequestGet(context) {
   .std-info-btn { width:16px; height:16px; border-radius:50%; border:1px solid var(--muted); background:none; color:var(--muted); font-size:0.65rem; font-weight:700; font-style:italic; font-family:Georgia,serif; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; padding:0; flex:none; }
   .std-info-btn:hover, .std-info-btn:focus-visible { border-color:var(--accent); color:var(--accent); outline:none; }
   .std-link-value { font-size:0.85rem; color:var(--fg); background:#f7f3ea; border:1px solid #ece1cc; border-radius:8px; padding:9px 12px; word-break:break-all; }
+  .std-pricing { background:#faf6ee; border:1px solid #ece1cc; border-radius:10px; padding:12px 14px; margin:2px 0 16px; }
+  .std-price-row { display:flex; justify-content:space-between; gap:12px; font-size:0.82rem; color:var(--muted); padding:3px 0; }
+  .std-price-total { border-top:1px solid #e3d5b8; margin-top:5px; padding-top:8px; font-size:0.95rem; font-weight:700; color:var(--fg); }
   .std-info-popover { position:absolute; z-index:5; top:calc(100% + 8px); left:-6px; width:230px; max-width:60vw; background:#2b2620; color:#fff; font-size:0.76rem; font-weight:400; line-height:1.45; letter-spacing:normal; text-transform:none; padding:11px 13px; border-radius:10px; box-shadow:0 12px 28px -10px rgba(0,0,0,0.4); }
   .std-info-popover::before { content:""; position:absolute; top:-5px; left:10px; width:10px; height:10px; background:#2b2620; transform:rotate(45deg); }
 </style>
@@ -292,7 +314,7 @@ export async function onRequestGet(context) {
 <main>
   ${error ? `<div class="error-box">Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</div>` : ""}
   ${deleted ? `<div class="info-box">Brautpaar gelöscht.</div>` : ""}
-  ${stdOrdered ? `<div class="info-box">Save the Date-Bestellung gesendet. Wir melden uns bei Ihnen.</div>` : ""}
+  ${stdOrdered ? `<div class="info-box">Bestellung erhalten. Die Zahlungsabwicklung folgt in Kürze – wir senden Ihnen den Zahlungslink.</div>` : ""}
   ${stdError ? `<div class="error-box">${escapeHtml(stdErrorMessages[stdError] || "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.")}</div>` : ""}
   ${
     createdCouple
@@ -367,6 +389,7 @@ export async function onRequestGet(context) {
       <div class="wizard-step" data-step="3" hidden>
         <p class="step-label">Schritt 3 von 3 · Stil wählen</p>
         <p class="style-picker-hint">Klicken Sie auf den Stil, der am besten zur Hochzeit passt – Namen, Datum, Nachricht und Buttons werden direkt in der Vorschau angezeigt.</p>
+        <p class="price-note">Preis: ${PAGE_PRICE_EUR} € einmalig pro Hochzeitsseite</p>
         <div class="style-picker" id="style-picker">${stylePicker}</div>
         <div class="wizard-nav">
           <button type="button" class="btn-back" data-back="2">Zurück</button>
@@ -427,13 +450,18 @@ export async function onRequestGet(context) {
         </label>
         <div class="std-link-value" id="std-modal-link"></div>
       </div>
-      <label>Menge</label>
-      <input type="number" name="mennyiseg" min="1" max="9999" value="1" required>
+      <label>Menge <span class="hint-inline">(${STD_PRICE_EUR.toFixed(2).replace(".", ",")} € / Stück)</span></label>
+      <input type="number" name="mennyiseg" id="std-modal-menge" min="1" max="9999" value="1" required>
+      <div class="std-pricing">
+        <div class="std-price-row"><span>Hochzeitsseite (einmalig)</span><span>${PAGE_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
+        <div class="std-price-row"><span>Save the Date (<span id="std-price-qty">1</span> × ${STD_PRICE_EUR.toFixed(2).replace(".", ",")} €)</span><span id="std-price-sub">${STD_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
+        <div class="std-price-row std-price-total"><span>Gesamt</span><span id="std-price-total">${(PAGE_PRICE_EUR + STD_PRICE_EUR).toFixed(2).replace(".", ",")} €</span></div>
+      </div>
       <label>Lieferadresse</label>
       <textarea name="szallitasi_cim" rows="3" placeholder="Name, Straße, PLZ, Ort, Land" required></textarea>
       <label>Anmerkung <span class="hint-inline">(optional)</span></label>
       <textarea name="megjegyzes" rows="2" placeholder="z. B. Sonderwünsche"></textarea>
-      <button type="submit" class="btn-save btn-std-submit">Bestellung senden</button>
+      <button type="submit" class="btn-save btn-std-submit">Bestellung abschließen</button>
     </form>
   </div>
 </dialog>
@@ -653,6 +681,27 @@ export async function onRequestGet(context) {
   var stdModalLink = document.getElementById("std-modal-link");
   var stdInfoBtn = document.getElementById("std-info-btn");
   var stdInfoPopover = document.getElementById("std-info-popover");
+  var stdModalMenge = document.getElementById("std-modal-menge");
+  var stdPriceQty = document.getElementById("std-price-qty");
+  var stdPriceSub = document.getElementById("std-price-sub");
+  var stdPriceTotal = document.getElementById("std-price-total");
+  var PAGE_PRICE_EUR = ${PAGE_PRICE_EUR};
+  var STD_PRICE_EUR = ${STD_PRICE_EUR};
+
+  function formatEUR(n) {
+    return n.toFixed(2).replace(".", ",") + " €";
+  }
+
+  function updateStdPricing() {
+    var qty = parseInt(stdModalMenge.value, 10);
+    if (!qty || qty < 1) qty = 0;
+    var sub = qty * STD_PRICE_EUR;
+    stdPriceQty.textContent = qty;
+    stdPriceSub.textContent = formatEUR(sub);
+    stdPriceTotal.textContent = formatEUR(PAGE_PRICE_EUR + sub);
+  }
+
+  if (stdModalMenge) stdModalMenge.addEventListener("input", updateStdPricing);
 
   function renderStdPreview(nev1, nev2, datum, nyelv) {
     if (!window.STD || !window.STD.generateMockupSVG) {
@@ -675,6 +724,8 @@ export async function onRequestGet(context) {
       stdModalSubtitle.textContent = nev1 + " & " + nev2;
       stdModalLink.textContent = btn.getAttribute("data-url");
       if (stdInfoPopover) stdInfoPopover.hidden = true;
+      if (stdModalMenge) stdModalMenge.value = "1";
+      updateStdPricing();
       renderStdPreview(nev1, nev2, datum, nyelv);
       if (typeof stdModal.showModal === "function") {
         stdModal.showModal();

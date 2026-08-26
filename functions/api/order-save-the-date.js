@@ -3,6 +3,9 @@ import { escapeHtml } from "../_utils/html.js";
 import { sendEmail } from "../_utils/mailer.js";
 import { generateSVG } from "../_utils/saveTheDate.js";
 
+const PAGE_PRICE_EUR = 50;
+const STD_PRICE_EUR = 4;
+
 function utf8ToBase64(str) {
   const bytes = new TextEncoder().encode(str);
   let binary = "";
@@ -48,11 +51,16 @@ export async function onRequestPost(context) {
     const svg = generateSVG(nev1, nev2, year, month, day, par.nyelv || "hu");
     const filename = `${par.slug}-save-the-date.svg`;
 
+    const stdSubtotal = mennyiseg * STD_PRICE_EUR;
+    const total = PAGE_PRICE_EUR + stdSubtotal;
+
     const html = `
-      <h2>Új Save the Date rendelés</h2>
+      <h2>Új rendelés (Bestellung abschließen)</h2>
       <p><strong>Viszonteladó:</strong> ${escapeHtml(reseller.ceg_nev)} (${escapeHtml(reseller.email)})</p>
       <p><strong>Pár:</strong> ${escapeHtml(par.par_neve)} · ${escapeHtml(par.eskuvo_datuma)}</p>
-      <p><strong>Mennyiség:</strong> ${mennyiseg} db</p>
+      <p><strong>Hochzeitsseite (einmalig):</strong> ${PAGE_PRICE_EUR.toFixed(2)} €</p>
+      <p><strong>Save the Date:</strong> ${mennyiseg} db × ${STD_PRICE_EUR.toFixed(2)} € = ${stdSubtotal.toFixed(2)} €</p>
+      <p><strong>Összesen:</strong> ${total.toFixed(2)} € (fizetés még nincs beszedve – Stripe folyamatban)</p>
       <p><strong>Szállítási cím:</strong><br>${escapeHtml(szallitasiCim).replace(/\n/g, "<br>")}</p>
       ${megjegyzes ? `<p><strong>Megjegyzés:</strong><br>${escapeHtml(megjegyzes).replace(/\n/g, "<br>")}</p>` : ""}
       <p>A pontos, lézervágásra kész SVG-fájl csatolva.</p>
@@ -61,7 +69,7 @@ export async function onRequestPost(context) {
 
     await sendEmail(env, {
       to: env.ADMIN_EMAIL,
-      subject: `Save the Date rendelés – ${par.par_neve}`,
+      subject: `Bestellung abschließen (${total.toFixed(2)} €) – ${par.par_neve}`,
       html,
       attachments: [{ filename, content: utf8ToBase64(svg) }],
     });
