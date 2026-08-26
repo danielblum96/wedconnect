@@ -124,6 +124,7 @@ export async function onRequestGet(context) {
             data-nev2="${escapeHtml(nev2)}"
             data-datum="${escapeHtml(p.eskuvo_datuma)}"
             data-nyelv="${escapeHtml(p.nyelv || "hu")}"
+            data-url="${escapeHtml(pageUrl)}"
           >Save the Date gestalten</button>
         </div>`;
     })
@@ -262,13 +263,21 @@ export async function onRequestGet(context) {
   .std-stage { flex:none; width:300px; max-width:100%; }
   .std-stage-bg { position:relative; background:radial-gradient(ellipse at 50% 38%, #ffffff 0%, #f2ead9 65%, #ece0c8 100%); border-radius:20px; padding:28px 24px; box-shadow:inset 0 0 0 1px rgba(180,139,86,0.14); }
   .std-preview svg { width:100%; height:auto; display:block; filter:drop-shadow(0 20px 28px -14px rgba(90,65,30,0.4)); }
-  .std-nfc-badge { position:absolute; right:20px; bottom:20px; display:flex; align-items:center; gap:7px; background:var(--accent); color:#fff; padding:7px 14px 7px 9px; border-radius:999px; font-family:"Poppins",sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:0.02em; box-shadow:0 8px 16px -8px rgba(180,139,86,0.7); cursor:default; }
+  .std-nfc-badge { position:absolute; right:20px; bottom:8px; display:flex; align-items:center; gap:7px; background:var(--accent); color:#fff; padding:7px 14px 7px 9px; border-radius:999px; font-family:"Poppins",sans-serif; font-size:0.72rem; font-weight:700; letter-spacing:0.02em; box-shadow:0 8px 16px -8px rgba(180,139,86,0.7); cursor:default; }
   .std-nfc-badge svg { width:24px; height:24px; flex:none; }
   .std-nfc-badge::before { content:""; position:absolute; inset:-5px; border-radius:999px; border:1.5px solid var(--accent); opacity:0; animation:std-nfc-pulse 2.6s ease-out infinite; }
   @keyframes std-nfc-pulse { 0% { opacity:0.5; transform:scale(0.92); } 70% { opacity:0; transform:scale(1.28); } 100% { opacity:0; transform:scale(1.28); } }
   .std-stage-caption { margin:14px 4px 0; font-size:0.76rem; line-height:1.4; color:var(--muted); text-align:center; }
   .std-form { flex:1; min-width:240px; padding-top:4px; }
   .btn-std-submit { font-size:0.95rem; padding:11px 20px; }
+  .std-link-row { margin-bottom:16px; }
+  .std-link-label { display:inline-flex; align-items:center; gap:6px; margin-bottom:5px; }
+  .std-info-wrap { position:relative; display:inline-flex; }
+  .std-info-btn { width:16px; height:16px; border-radius:50%; border:1px solid var(--muted); background:none; color:var(--muted); font-size:0.65rem; font-weight:700; font-style:italic; font-family:Georgia,serif; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; padding:0; flex:none; }
+  .std-info-btn:hover, .std-info-btn:focus-visible { border-color:var(--accent); color:var(--accent); outline:none; }
+  .std-link-value { font-size:0.85rem; color:var(--fg); background:#f7f3ea; border:1px solid #ece1cc; border-radius:8px; padding:9px 12px; word-break:break-all; }
+  .std-info-popover { position:absolute; z-index:5; top:calc(100% + 8px); left:-6px; width:230px; max-width:60vw; background:#2b2620; color:#fff; font-size:0.76rem; font-weight:400; line-height:1.45; letter-spacing:normal; text-transform:none; padding:11px 13px; border-radius:10px; box-shadow:0 12px 28px -10px rgba(0,0,0,0.4); }
+  .std-info-popover::before { content:""; position:absolute; top:-5px; left:10px; width:10px; height:10px; background:#2b2620; transform:rotate(45deg); }
 </style>
 </head>
 <body>
@@ -408,6 +417,16 @@ export async function onRequestGet(context) {
     </div>
     <form method="POST" action="/api/order-save-the-date" class="std-form">
       <input type="hidden" name="par_id" id="std-modal-par-id" value="">
+      <div class="std-link-row">
+        <label class="std-link-label">
+          WedConnect-Link
+          <span class="std-info-wrap">
+            <button type="button" class="std-info-btn" id="std-info-btn" aria-label="Mehr erfahren">i</button>
+            <div class="std-info-popover" id="std-info-popover" hidden>WedConnect ist eine NFC-basierte Lösung: Beim Antippen mit dem Smartphone öffnet sich automatisch die individuelle Seite des Brautpaars.</div>
+          </span>
+        </label>
+        <div class="std-link-value" id="std-modal-link"></div>
+      </div>
       <label>Menge</label>
       <input type="number" name="mennyiseg" min="1" max="9999" value="1" required>
       <label>Lieferadresse</label>
@@ -631,6 +650,9 @@ export async function onRequestGet(context) {
   var stdModalPreview = document.getElementById("std-modal-preview");
   var stdModalParId = document.getElementById("std-modal-par-id");
   var stdModalSubtitle = document.getElementById("std-modal-subtitle");
+  var stdModalLink = document.getElementById("std-modal-link");
+  var stdInfoBtn = document.getElementById("std-info-btn");
+  var stdInfoPopover = document.getElementById("std-info-popover");
 
   function renderStdPreview(nev1, nev2, datum, nyelv) {
     if (!window.STD || !window.STD.generateMockupSVG) {
@@ -651,6 +673,8 @@ export async function onRequestGet(context) {
       var nyelv = btn.getAttribute("data-nyelv");
       stdModalParId.value = btn.getAttribute("data-par-id");
       stdModalSubtitle.textContent = nev1 + " & " + nev2;
+      stdModalLink.textContent = btn.getAttribute("data-url");
+      if (stdInfoPopover) stdInfoPopover.hidden = true;
       renderStdPreview(nev1, nev2, datum, nyelv);
       if (typeof stdModal.showModal === "function") {
         stdModal.showModal();
@@ -666,6 +690,18 @@ export async function onRequestGet(context) {
     });
     stdModal.addEventListener("click", function (e) {
       if (e.target === stdModal) stdModal.close();
+    });
+  }
+
+  if (stdInfoBtn && stdInfoPopover) {
+    stdInfoBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      stdInfoPopover.hidden = !stdInfoPopover.hidden;
+    });
+    document.addEventListener("click", function (e) {
+      if (!stdInfoPopover.hidden && e.target !== stdInfoBtn && !stdInfoPopover.contains(e.target)) {
+        stdInfoPopover.hidden = true;
+      }
     });
   }
 
