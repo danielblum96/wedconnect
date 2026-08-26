@@ -116,37 +116,15 @@ export async function onRequestGet(context) {
               ${saved === String(p.id) ? '<span class="saved-note">Gespeichert ✓</span>' : ""}
             </form>
           </details>
-          <details class="std-order">
-            <summary>🖼️ Save the Date bestellen</summary>
-            <div class="std-panel">
-              <h4 class="std-heading">Live-Vorschau</h4>
-              <div class="std-panel-body">
-                <div class="std-stage">
-                  <div class="std-stage-bg">
-                    <div
-                      class="std-preview"
-                      id="std-preview-${p.id}"
-                      data-nev1="${escapeHtml(nev1)}"
-                      data-nev2="${escapeHtml(nev2)}"
-                      data-datum="${escapeHtml(p.eskuvo_datuma)}"
-                      data-nyelv="${escapeHtml(p.nyelv || "hu")}"
-                    ></div>
-                  </div>
-                  <p class="std-stage-caption">Laserschnitt aus Holz · WedConnect-Chip auf der Rückseite verlinkt direkt zur Hochzeitsseite</p>
-                </div>
-                <form method="POST" action="/api/order-save-the-date" class="std-form">
-                  <input type="hidden" name="par_id" value="${p.id}">
-                  <label>Menge</label>
-                  <input type="number" name="mennyiseg" min="1" max="9999" value="1" required>
-                  <label>Lieferadresse</label>
-                  <textarea name="szallitasi_cim" rows="3" placeholder="Name, Straße, PLZ, Ort, Land" required></textarea>
-                  <label>Anmerkung <span class="hint-inline">(optional)</span></label>
-                  <textarea name="megjegyzes" rows="2" placeholder="z. B. Sonderwünsche"></textarea>
-                  <button type="submit" class="btn-save btn-std-submit">Bestellung senden</button>
-                </form>
-              </div>
-            </div>
-          </details>
+          <button
+            type="button"
+            class="btn-std-open"
+            data-par-id="${p.id}"
+            data-nev1="${escapeHtml(nev1)}"
+            data-nev2="${escapeHtml(nev2)}"
+            data-datum="${escapeHtml(p.eskuvo_datuma)}"
+            data-nyelv="${escapeHtml(p.nyelv || "hu")}"
+          >Save the Date gestalten</button>
         </div>`;
     })
     .join("");
@@ -268,14 +246,21 @@ export async function onRequestGet(context) {
   .empty-emoji { font-size:2.5rem; margin-bottom:12px; }
   .empty-title { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.3rem; margin-bottom:6px; }
   .empty-text { font-size:0.9rem; color:var(--muted); }
-  .std-order > summary { font-size:0.9rem; font-weight:700; color:#fff; background:linear-gradient(135deg,var(--accent),#8f6a3c); display:inline-block; padding:9px 18px; border-radius:999px; box-shadow:0 8px 18px -10px rgba(180,139,86,0.65); list-style:none; }
-  .std-order > summary::-webkit-details-marker { display:none; }
-  .std-order[open] > summary { margin-bottom:4px; }
-  .std-panel { margin-top:18px; background:linear-gradient(180deg,#fffefb,#faf6ee); border:1px solid #eee3d1; border-radius:18px; padding:26px; }
-  .std-heading { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.15rem; margin:0 0 18px; color:var(--fg); }
+  .btn-std-open { font-family:"Poppins",sans-serif; font-size:0.76rem; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:var(--accent); background:#fff; border:1.5px solid var(--accent); padding:10px 22px; border-radius:999px; cursor:pointer; transition:background 0.18s ease, color 0.18s ease; }
+  .btn-std-open:hover { background:var(--accent); color:#fff; }
+  .std-modal { border:none; border-radius:22px; padding:0; max-width:760px; width:92vw; box-shadow:0 40px 90px -24px rgba(30,20,8,0.4); position:relative; }
+  .std-modal::backdrop { background:rgba(20,14,6,0.55); backdrop-filter:blur(3px); }
+  .std-modal[open] { animation:std-modal-in 0.22s ease; }
+  @keyframes std-modal-in { from { opacity:0; transform:translateY(10px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+  .std-modal-close { position:absolute; top:14px; right:14px; width:34px; height:34px; border-radius:50%; border:none; background:#f4efe2; color:var(--fg); font-size:1.3rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .std-modal-close:hover { background:#eadfc4; }
+  .std-modal-head { padding:34px 44px 0; text-align:center; }
+  .std-modal-title { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.7rem; margin:0; color:var(--fg); }
+  .std-modal-subtitle { font-size:0.85rem; color:var(--muted); margin-top:5px; min-height:1.2em; }
+  .std-modal .std-panel-body { padding:26px 44px 40px; }
   .std-panel-body { display:flex; gap:36px; flex-wrap:wrap; align-items:flex-start; }
-  .std-stage { flex:none; width:340px; max-width:100%; }
-  .std-stage-bg { background:radial-gradient(ellipse at 50% 38%, #ffffff 0%, #f2ead9 65%, #ece0c8 100%); border-radius:20px; padding:30px 26px; box-shadow:inset 0 0 0 1px rgba(180,139,86,0.14); }
+  .std-stage { flex:none; width:300px; max-width:100%; }
+  .std-stage-bg { background:radial-gradient(ellipse at 50% 38%, #ffffff 0%, #f2ead9 65%, #ece0c8 100%); border-radius:20px; padding:28px 24px; box-shadow:inset 0 0 0 1px rgba(180,139,86,0.14); }
   .std-preview svg { width:100%; height:auto; display:block; filter:drop-shadow(0 20px 28px -14px rgba(90,65,30,0.4)); }
   .std-stage-caption { margin:14px 4px 0; font-size:0.76rem; line-height:1.4; color:var(--muted); text-align:center; }
   .std-form { flex:1; min-width:240px; padding-top:4px; }
@@ -394,6 +379,32 @@ export async function onRequestGet(context) {
   }
   ${parok && parok.length ? `<p class="empty" id="no-results" hidden>Keine Treffer für diese Suche.</p>` : ""}
 </main>
+
+<dialog id="std-modal" class="std-modal">
+  <button type="button" class="std-modal-close" aria-label="Schließen">&times;</button>
+  <div class="std-modal-head">
+    <h3 class="std-modal-title">Save the Date gestalten</h3>
+    <p class="std-modal-subtitle" id="std-modal-subtitle"></p>
+  </div>
+  <div class="std-panel-body">
+    <div class="std-stage">
+      <div class="std-stage-bg">
+        <div class="std-preview" id="std-modal-preview"></div>
+      </div>
+      <p class="std-stage-caption">Laserschnitt aus Holz · WedConnect-Chip auf der Rückseite verlinkt direkt zur Hochzeitsseite</p>
+    </div>
+    <form method="POST" action="/api/order-save-the-date" class="std-form">
+      <input type="hidden" name="par_id" id="std-modal-par-id" value="">
+      <label>Menge</label>
+      <input type="number" name="mennyiseg" min="1" max="9999" value="1" required>
+      <label>Lieferadresse</label>
+      <textarea name="szallitasi_cim" rows="3" placeholder="Name, Straße, PLZ, Ort, Land" required></textarea>
+      <label>Anmerkung <span class="hint-inline">(optional)</span></label>
+      <textarea name="megjegyzes" rows="2" placeholder="z. B. Sonderwünsche"></textarea>
+      <button type="submit" class="btn-save btn-std-submit">Bestellung senden</button>
+    </form>
+  </div>
+</dialog>
 <script>
 (function () {
   var DEFAULT_MESSAGE = ${defaultMessageForClient};
@@ -603,26 +614,47 @@ export async function onRequestGet(context) {
     });
   });
 
-  document.querySelectorAll(".std-order").forEach(function (details) {
-    details.addEventListener("toggle", function () {
-      if (!details.open) return;
-      var preview = details.querySelector(".std-preview");
-      if (!preview || preview.dataset.rendered) return;
-      if (!window.STD || !window.STD.generateMockupSVG) {
-        setTimeout(function () {
-          details.dispatchEvent(new Event("toggle"));
-        }, 150);
-        return;
+  var stdModal = document.getElementById("std-modal");
+  var stdModalPreview = document.getElementById("std-modal-preview");
+  var stdModalParId = document.getElementById("std-modal-par-id");
+  var stdModalSubtitle = document.getElementById("std-modal-subtitle");
+
+  function renderStdPreview(nev1, nev2, datum, nyelv) {
+    if (!window.STD || !window.STD.generateMockupSVG) {
+      setTimeout(function () {
+        renderStdPreview(nev1, nev2, datum, nyelv);
+      }, 150);
+      return;
+    }
+    var parts = datum.split("-").map(Number);
+    stdModalPreview.innerHTML = window.STD.generateMockupSVG(nev1, nev2, parts[0], parts[1], parts[2], nyelv);
+  }
+
+  document.querySelectorAll(".btn-std-open").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var nev1 = btn.getAttribute("data-nev1");
+      var nev2 = btn.getAttribute("data-nev2");
+      var datum = btn.getAttribute("data-datum");
+      var nyelv = btn.getAttribute("data-nyelv");
+      stdModalParId.value = btn.getAttribute("data-par-id");
+      stdModalSubtitle.textContent = nev1 + " & " + nev2;
+      renderStdPreview(nev1, nev2, datum, nyelv);
+      if (typeof stdModal.showModal === "function") {
+        stdModal.showModal();
+      } else {
+        stdModal.setAttribute("open", "");
       }
-      var nev1 = preview.getAttribute("data-nev1");
-      var nev2 = preview.getAttribute("data-nev2");
-      var datum = preview.getAttribute("data-datum");
-      var nyelv = preview.getAttribute("data-nyelv");
-      var parts = datum.split("-").map(Number);
-      preview.innerHTML = window.STD.generateMockupSVG(nev1, nev2, parts[0], parts[1], parts[2], nyelv);
-      preview.dataset.rendered = "1";
     });
   });
+
+  if (stdModal) {
+    stdModal.querySelector(".std-modal-close").addEventListener("click", function () {
+      stdModal.close();
+    });
+    stdModal.addEventListener("click", function (e) {
+      if (e.target === stdModal) stdModal.close();
+    });
+  }
 
   if (document.getElementById("success-banner")) {
     launchConfetti();
