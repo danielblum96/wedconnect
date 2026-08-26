@@ -28,6 +28,7 @@ export async function onRequestGet(context) {
   const stdErrorMessages = {
     invalid: "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
     missing_address: "Bitte geben Sie eine Lieferadresse ein.",
+    min_quantity: "Die Mindestbestellmenge für Save the Date-Karten beträgt 50 Stück.",
   };
 
   const defaultMessage = getCopy(reseller.nyelv || "de").defaultMessage;
@@ -295,8 +296,12 @@ export async function onRequestGet(context) {
   .std-info-btn { width:16px; height:16px; border-radius:50%; border:1px solid var(--muted); background:none; color:var(--muted); font-size:0.65rem; font-weight:700; font-style:italic; font-family:Georgia,serif; line-height:1; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; padding:0; flex:none; }
   .std-info-btn:hover, .std-info-btn:focus-visible { border-color:var(--accent); color:var(--accent); outline:none; }
   .std-link-value { font-size:0.85rem; color:var(--fg); background:#f7f3ea; border:1px solid #ece1cc; border-radius:8px; padding:9px 12px; word-break:break-all; }
+  .std-toggle-label { display:flex; align-items:flex-start; gap:9px; font-size:0.85rem; font-weight:600; color:var(--fg); background:#fbf2e2; border:1px solid #ecd9b6; border-radius:10px; padding:11px 14px; margin-bottom:14px; cursor:pointer; }
+  .std-toggle-label input[type="checkbox"] { width:16px; height:16px; margin:2px 0 0; flex:none; accent-color:var(--accent); }
   .std-pricing { background:#faf6ee; border:1px solid #ece1cc; border-radius:10px; padding:12px 14px; margin:2px 0 16px; }
+  .std-price-page-free { color:#4a7a4a; font-weight:600; }
   .std-price-row { display:flex; justify-content:space-between; gap:12px; font-size:0.82rem; color:var(--muted); padding:3px 0; }
+  .std-price-row[hidden] { display:none; }
   .std-price-total { border-top:1px solid #e3d5b8; margin-top:5px; padding-top:8px; font-size:0.95rem; font-weight:700; color:var(--fg); }
   .std-info-popover { position:absolute; z-index:5; top:calc(100% + 8px); left:-6px; width:230px; max-width:60vw; background:#2b2620; color:#fff; font-size:0.76rem; font-weight:400; line-height:1.45; letter-spacing:normal; text-transform:none; padding:11px 13px; border-radius:10px; box-shadow:0 12px 28px -10px rgba(0,0,0,0.4); }
   .std-info-popover::before { content:""; position:absolute; top:-5px; left:10px; width:10px; height:10px; background:#2b2620; transform:rotate(45deg); }
@@ -450,15 +455,23 @@ export async function onRequestGet(context) {
         </label>
         <div class="std-link-value" id="std-modal-link"></div>
       </div>
-      <label>Menge <span class="hint-inline">(${STD_PRICE_EUR.toFixed(2).replace(".", ",")} € / Stück)</span></label>
-      <input type="number" name="mennyiseg" id="std-modal-menge" min="1" max="9999" value="1" required>
-      <div class="std-pricing">
-        <div class="std-price-row"><span>Hochzeitsseite (einmalig)</span><span>${PAGE_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
-        <div class="std-price-row"><span>Save the Date (<span id="std-price-qty">1</span> × ${STD_PRICE_EUR.toFixed(2).replace(".", ",")} €)</span><span id="std-price-sub">${STD_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
-        <div class="std-price-row std-price-total"><span>Gesamt</span><span id="std-price-total">${(PAGE_PRICE_EUR + STD_PRICE_EUR).toFixed(2).replace(".", ",")} €</span></div>
+      <label class="std-toggle-label">
+        <input type="checkbox" id="std-modal-want-std">
+        Save the Date-Karten bestellen <span class="hint-inline">(mind. 50 Stück – dann ist die Hochzeitsseite kostenlos!)</span>
+      </label>
+      <div id="std-qty-group" hidden>
+        <label>Menge <span class="hint-inline">(${STD_PRICE_EUR.toFixed(2).replace(".", ",")} € / Stück, mind. 50 Stück)</span></label>
+        <input type="number" name="mennyiseg" id="std-modal-menge" min="50" max="9999" value="50">
       </div>
-      <label>Lieferadresse</label>
-      <textarea name="szallitasi_cim" rows="3" placeholder="Name, Straße, PLZ, Ort, Land" required></textarea>
+      <div class="std-pricing">
+        <div class="std-price-row"><span>Hochzeitsseite<span id="std-price-page-note"> (einmalig)</span></span><span id="std-price-page">${PAGE_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
+        <div class="std-price-row" id="std-price-std-row" hidden><span>Save the Date (<span id="std-price-qty">50</span> × ${STD_PRICE_EUR.toFixed(2).replace(".", ",")} €)</span><span id="std-price-sub">${STD_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
+        <div class="std-price-row std-price-total"><span>Gesamt</span><span id="std-price-total">${PAGE_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
+      </div>
+      <div id="std-address-group" hidden>
+        <label>Lieferadresse</label>
+        <textarea name="szallitasi_cim" id="std-modal-cim" rows="3" placeholder="Name, Straße, PLZ, Ort, Land"></textarea>
+      </div>
       <label>Anmerkung <span class="hint-inline">(optional)</span></label>
       <textarea name="megjegyzes" rows="2" placeholder="z. B. Sonderwünsche"></textarea>
       <button type="submit" class="btn-save btn-std-submit">Bestellung abschließen</button>
@@ -471,6 +484,7 @@ export async function onRequestGet(context) {
   var STYLES = ${stylesForClient};
   var FONT_RECIPES = ${fontRecipesForClient};
   var MAX_BUTTONS = 5;
+  var CREATED_PAR_ID = ${createdCouple ? JSON.stringify(String(createdCouple.id)) : "null"};
 
   var form = document.getElementById("new-couple-form");
   var steps = Array.prototype.slice.call(form.querySelectorAll(".wizard-step"));
@@ -682,7 +696,14 @@ export async function onRequestGet(context) {
   var stdInfoBtn = document.getElementById("std-info-btn");
   var stdInfoPopover = document.getElementById("std-info-popover");
   var stdModalMenge = document.getElementById("std-modal-menge");
+  var stdWantStd = document.getElementById("std-modal-want-std");
+  var stdQtyGroup = document.getElementById("std-qty-group");
+  var stdAddressGroup = document.getElementById("std-address-group");
+  var stdModalCim = document.getElementById("std-modal-cim");
   var stdPriceQty = document.getElementById("std-price-qty");
+  var stdPricePage = document.getElementById("std-price-page");
+  var stdPricePageNote = document.getElementById("std-price-page-note");
+  var stdPriceStdRow = document.getElementById("std-price-std-row");
   var stdPriceSub = document.getElementById("std-price-sub");
   var stdPriceTotal = document.getElementById("std-price-total");
   var PAGE_PRICE_EUR = ${PAGE_PRICE_EUR};
@@ -693,15 +714,38 @@ export async function onRequestGet(context) {
   }
 
   function updateStdPricing() {
+    var wantStd = stdWantStd.checked;
+    stdQtyGroup.hidden = !wantStd;
+    stdAddressGroup.hidden = !wantStd;
+    if (stdModalCim) stdModalCim.required = wantStd;
+    stdPriceStdRow.hidden = !wantStd;
+
+    if (!wantStd) {
+      stdModalMenge.value = "0";
+      stdPricePage.textContent = formatEUR(PAGE_PRICE_EUR);
+      stdPricePage.className = "";
+      stdPricePageNote.textContent = " (einmalig)";
+      stdPriceTotal.textContent = formatEUR(PAGE_PRICE_EUR);
+      return;
+    }
+
     var qty = parseInt(stdModalMenge.value, 10);
-    if (!qty || qty < 1) qty = 0;
+    if (!qty || qty < 1) {
+      qty = 50;
+      stdModalMenge.value = "50";
+    }
     var sub = qty * STD_PRICE_EUR;
+    var pageFree = qty >= 50;
     stdPriceQty.textContent = qty;
     stdPriceSub.textContent = formatEUR(sub);
-    stdPriceTotal.textContent = formatEUR(PAGE_PRICE_EUR + sub);
+    stdPricePage.textContent = pageFree ? "0,00 €" : formatEUR(PAGE_PRICE_EUR);
+    stdPricePage.className = pageFree ? "std-price-page-free" : "";
+    stdPricePageNote.textContent = pageFree ? " (kostenlos ab 50 Stück)" : " (einmalig, unter 50 Stück)";
+    stdPriceTotal.textContent = formatEUR((pageFree ? 0 : PAGE_PRICE_EUR) + sub);
   }
 
   if (stdModalMenge) stdModalMenge.addEventListener("input", updateStdPricing);
+  if (stdWantStd) stdWantStd.addEventListener("change", updateStdPricing);
 
   function renderStdPreview(nev1, nev2, datum, nyelv) {
     if (!window.STD || !window.STD.generateMockupSVG) {
@@ -724,7 +768,8 @@ export async function onRequestGet(context) {
       stdModalSubtitle.textContent = nev1 + " & " + nev2;
       stdModalLink.textContent = btn.getAttribute("data-url");
       if (stdInfoPopover) stdInfoPopover.hidden = true;
-      if (stdModalMenge) stdModalMenge.value = "1";
+      if (stdWantStd) stdWantStd.checked = false;
+      if (stdModalMenge) stdModalMenge.value = "50";
       updateStdPricing();
       renderStdPreview(nev1, nev2, datum, nyelv);
       if (typeof stdModal.showModal === "function") {
@@ -761,6 +806,12 @@ export async function onRequestGet(context) {
     var cleanUrl = location.pathname;
     if (window.history && window.history.replaceState) {
       window.history.replaceState(null, "", cleanUrl);
+    }
+    if (CREATED_PAR_ID) {
+      setTimeout(function () {
+        var btn = document.querySelector('.btn-std-open[data-par-id="' + CREATED_PAR_ID + '"]');
+        if (btn) btn.click();
+      }, 900);
     }
   }
 
