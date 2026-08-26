@@ -3,11 +3,19 @@
 // szolgáltatásra van szükség. Az API-kulcsot a `RESEND_API_KEY` Cloudflare
 // Pages secret tárolja - amíg ez nincs beállítva, a küldés csendben nem
 // történik meg (nem dob hibát), hogy a fejlesztés/tesztelés se akadjon el.
-export async function sendEmail(env, { to, subject, html }) {
+export async function sendEmail(env, { to, subject, html, attachments }) {
   if (!env.RESEND_API_KEY) {
     console.error("sendEmail: RESEND_API_KEY nincs beállítva, küldés kihagyva.");
     return;
   }
+
+  const payload = {
+    from: "WedConnect <no-reply@wedconnect.eu>",
+    to,
+    subject,
+    html,
+  };
+  if (attachments && attachments.length) payload.attachments = attachments;
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -15,12 +23,7 @@ export async function sendEmail(env, { to, subject, html }) {
       Authorization: `Bearer ${env.RESEND_API_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      from: "WedConnect <no-reply@wedconnect.eu>",
-      to,
-      subject,
-      html,
-    }),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {

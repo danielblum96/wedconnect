@@ -49,10 +49,12 @@ export async function onRequestPost(context) {
   }
 
   await env.DB.prepare(
-    "INSERT INTO parok (par_neve, eskuvo_datuma, slug, allapot, valasztott_stilus, viszontelado_id, nyelv, egyedi_uzenet, egyedi_gombok) VALUES (?, ?, ?, 'Aktív', ?, ?, ?, ?, ?)"
+    "INSERT INTO parok (par_neve, nev1, nev2, eskuvo_datuma, slug, allapot, valasztott_stilus, viszontelado_id, nyelv, egyedi_uzenet, egyedi_gombok) VALUES (?, ?, ?, ?, ?, 'Aktív', ?, ?, ?, ?, ?)"
   )
     .bind(
       `${nev1} & ${nev2}`,
+      nev1,
+      nev2,
       datum,
       slug,
       style.id,

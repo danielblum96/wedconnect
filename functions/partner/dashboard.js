@@ -9,7 +9,7 @@ export async function onRequestGet(context) {
   if (!reseller) return Response.redirect(new URL("/partner/login", request.url).href, 303);
 
   const { results: parok } = await env.DB.prepare(
-    "SELECT id, par_neve, eskuvo_datuma, slug, allapot, valasztott_stilus, egyedi_uzenet, egyedi_gombok FROM parok WHERE viszontelado_id = ? ORDER BY eskuvo_datuma DESC"
+    "SELECT id, par_neve, nev1, nev2, eskuvo_datuma, slug, allapot, valasztott_stilus, egyedi_uzenet, egyedi_gombok FROM parok WHERE viszontelado_id = ? ORDER BY eskuvo_datuma DESC"
   )
     .bind(reseller.id)
     .all();
@@ -20,6 +20,12 @@ export async function onRequestGet(context) {
   const deleted = url.searchParams.get("deleted");
   const created = url.searchParams.get("created");
   const createdCouple = created ? (parok || []).find((p) => p.slug === created) : null;
+  const stdOrdered = url.searchParams.get("stdordered");
+  const stdError = url.searchParams.get("stderror");
+  const stdErrorMessages = {
+    invalid: "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+    missing_address: "Bitte geben Sie eine Lieferadresse ein.",
+  };
 
   const defaultMessage = getCopy(reseller.nyelv || "de").defaultMessage;
 
@@ -78,6 +84,8 @@ export async function onRequestGet(context) {
       const styleName = getStyleName(resolveStyleByStoredValue(p.valasztott_stilus), "de");
       const statusLabel = getStatusLabel(p.allapot, "de");
       const searchText = `${p.par_neve} ${p.eskuvo_datuma} ${styleName}`.toLowerCase();
+      const nev1 = p.nev1 || (p.par_neve || "").split(" & ")[0] || "";
+      const nev2 = p.nev2 || (p.par_neve || "").split(" & ")[1] || "";
 
       return `
         <div class="couple${created === p.slug ? " just-created" : ""}" data-search="${escapeHtml(searchText)}">
@@ -108,6 +116,28 @@ export async function onRequestGet(context) {
               ${saved === String(p.id) ? '<span class="saved-note">Gespeichert ✓</span>' : ""}
             </form>
           </details>
+          <details class="std-order">
+            <summary>Save the Date bestellen</summary>
+            <div class="std-panel">
+              <div
+                class="std-preview"
+                id="std-preview-${p.id}"
+                data-nev1="${escapeHtml(nev1)}"
+                data-nev2="${escapeHtml(nev2)}"
+                data-datum="${escapeHtml(p.eskuvo_datuma)}"
+              ></div>
+              <form method="POST" action="/api/order-save-the-date" class="std-form">
+                <input type="hidden" name="par_id" value="${p.id}">
+                <label>Menge</label>
+                <input type="number" name="mennyiseg" min="1" max="9999" value="1" required>
+                <label>Lieferadresse</label>
+                <textarea name="szallitasi_cim" rows="3" placeholder="Name, Straße, PLZ, Ort, Land" required></textarea>
+                <label>Anmerkung <span class="hint-inline">(optional)</span></label>
+                <textarea name="megjegyzes" rows="2" placeholder="z. B. Sonderwünsche"></textarea>
+                <button type="submit" class="btn-save">Bestellung senden</button>
+              </form>
+            </div>
+          </details>
         </div>`;
     })
     .join("");
@@ -121,8 +151,12 @@ export async function onRequestGet(context) {
 <title>Partner Dashboard — WedConnect</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Great+Vibes&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="/assets/qrcode.min.js"></script>
+<script type="module">
+  import { generateMockupSVG } from "/assets/save-the-date.js";
+  window.STD = { generateMockupSVG };
+</script>
 <style>
   :root { --bg:#faf7f2; --fg:#2b2620; --muted:#7a7266; --accent:#b48b56; --card:#ffffff; }
   * { box-sizing: border-box; }
@@ -225,6 +259,10 @@ export async function onRequestGet(context) {
   .empty-emoji { font-size:2.5rem; margin-bottom:12px; }
   .empty-title { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.3rem; margin-bottom:6px; }
   .empty-text { font-size:0.9rem; color:var(--muted); }
+  .std-panel { display:flex; gap:20px; flex-wrap:wrap; margin-top:14px; }
+  .std-preview { flex:none; width:180px; }
+  .std-preview svg { width:100%; height:auto; display:block; filter:drop-shadow(0 6px 14px rgba(0,0,0,0.18)); }
+  .std-form { flex:1; min-width:220px; }
 </style>
 </head>
 <body>
@@ -239,6 +277,8 @@ export async function onRequestGet(context) {
 <main>
   ${error ? `<div class="error-box">Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</div>` : ""}
   ${deleted ? `<div class="info-box">Brautpaar gelöscht.</div>` : ""}
+  ${stdOrdered ? `<div class="info-box">Save the Date-Bestellung gesendet. Wir melden uns bei Ihnen.</div>` : ""}
+  ${stdError ? `<div class="error-box">${escapeHtml(stdErrorMessages[stdError] || "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.")}</div>` : ""}
   ${
     createdCouple
       ? `<div class="success-banner" id="success-banner">
@@ -543,6 +583,26 @@ export async function onRequestGet(context) {
       link.download = filename;
       link.href = canvas.toDataURL("image/png");
       link.click();
+    });
+  });
+
+  document.querySelectorAll(".std-order").forEach(function (details) {
+    details.addEventListener("toggle", function () {
+      if (!details.open) return;
+      var preview = details.querySelector(".std-preview");
+      if (!preview || preview.dataset.rendered) return;
+      if (!window.STD || !window.STD.generateMockupSVG) {
+        setTimeout(function () {
+          details.dispatchEvent(new Event("toggle"));
+        }, 150);
+        return;
+      }
+      var nev1 = preview.getAttribute("data-nev1");
+      var nev2 = preview.getAttribute("data-nev2");
+      var datum = preview.getAttribute("data-datum");
+      var parts = datum.split("-").map(Number);
+      preview.innerHTML = window.STD.generateMockupSVG(nev1, nev2, parts[0], parts[1], parts[2]);
+      preview.dataset.rendered = "1";
     });
   });
 

@@ -1,6 +1,8 @@
 CREATE TABLE IF NOT EXISTS parok (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   par_neve TEXT NOT NULL,
+  nev1 TEXT,
+  nev2 TEXT,
   eskuvo_datuma TEXT NOT NULL,
   slug TEXT NOT NULL UNIQUE,
   vendegszam INTEGER,
@@ -33,10 +35,13 @@ CREATE TABLE IF NOT EXISTS viszontelado (
 CREATE TABLE IF NOT EXISTS rendelesek (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   viszontelado_id INTEGER NOT NULL REFERENCES viszontelado(id),
+  par_id INTEGER REFERENCES parok(id),
   csomag TEXT NOT NULL,
   mennyiseg INTEGER NOT NULL DEFAULT 1,
   ar_osszesen REAL,
   fizetesi_mod TEXT NOT NULL DEFAULT 'Számla',
+  szallitasi_cim TEXT,
+  megjegyzes TEXT,
   allapot TEXT NOT NULL DEFAULT 'Új',
   letrehozva TEXT NOT NULL DEFAULT (datetime('now'))
 );
