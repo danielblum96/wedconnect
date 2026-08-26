@@ -125,10 +125,14 @@ export function generateSVG(name1, name2, year, month, day, lang) {
   // csikot es a neveket egy teljes sor-magassaggal (ROW_Y[1]-ROW_Y[0])
   // lejjebb toljuk, hogy legyen hely a 6. sornak.
   if (calendar.length === 6) {
-    const rowH = ROW_Y[1] - ROW_Y[0];
+    // Egy teljes sor-magassag + kis extra biztonsagi res (1.5 egyseg), hogy
+    // a diszkes/nagy hurkkal rendelkezo nagybetuk (pl. "V", "D" Great
+    // Vibes-ban) is kenyelmesen elferjenek az elvalaszto csik es a nevek
+    // kozott, ne csak a szamitott minimum tavolsag erejeig.
+    const shift = ROW_Y[1] - ROW_Y[0] + 1.5;
     svg = svg
-      .replace("57.012719", (57.012719 + rowH).toFixed(6))
-      .replace(/y="66\.666985"/g, `y="${(66.666985 + rowH).toFixed(6)}"`);
+      .replace("57.012719", (57.012719 + shift).toFixed(6))
+      .replace(/y="66\.666985"/g, `y="${(66.666985 + shift).toFixed(6)}"`);
   }
 
   return svg;
@@ -156,7 +160,7 @@ export function generateMockupSVG(name1, name2, year, month, day, lang) {
 
   svg = svg.replace(
     "fill:none;stroke:#ff0000;stroke-width:0.176389;stroke-opacity:1",
-    "fill:url(#woodGrain);stroke:#00000022;stroke-width:0.176389;stroke-opacity:1"
+    "fill:url(#woodGrain);stroke:#000000;stroke-width:0.35;stroke-opacity:1"
   );
   svg = svg.replace(
     "fill:none;fill-opacity:1;stroke:#0000ff;stroke-width:0.176389;stroke-opacity:1",

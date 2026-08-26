@@ -155,7 +155,7 @@ export async function onRequestGet(context) {
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Great+Vibes&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="/assets/qrcode.min.js"></script>
 <script type="module">
-  import { generateMockupSVG } from "/assets/save-the-date.js?v=3";
+  import { generateMockupSVG } from "/assets/save-the-date.js?v=4";
   window.STD = { generateMockupSVG };
 </script>
 <style>
