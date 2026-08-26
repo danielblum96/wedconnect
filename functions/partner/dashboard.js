@@ -869,8 +869,7 @@ export async function onRequestGet(context) {
 
     var qty = parseInt(stdModalMenge.value, 10);
     if (!qty || qty < 1) {
-      qty = 50;
-      stdModalMenge.value = "50";
+      qty = 1;
     }
     var sub = qty * STD_PRICE;
     var pageFree = qty >= 50;
@@ -882,8 +881,26 @@ export async function onRequestGet(context) {
     stdPriceTotal.textContent = formatPrice((pageFree ? 0 : PAGE_PRICE) + sub);
   }
 
-  if (stdModalMenge) stdModalMenge.addEventListener("input", updateStdPricing);
+  function clampStdQty() {
+    var qty = parseInt(stdModalMenge.value, 10);
+    if (!qty || qty < 50) qty = 50;
+    if (qty > 9999) qty = 9999;
+    stdModalMenge.value = qty;
+    updateStdPricing();
+  }
+
+  if (stdModalMenge) {
+    stdModalMenge.addEventListener("input", updateStdPricing);
+    stdModalMenge.addEventListener("blur", clampStdQty);
+  }
   if (stdWantStd) stdWantStd.addEventListener("change", updateStdPricing);
+
+  var stdOrderForm = stdModal ? stdModal.querySelector(".std-form") : null;
+  if (stdOrderForm) {
+    stdOrderForm.addEventListener("submit", function () {
+      if (stdWantStd && stdWantStd.checked) clampStdQty();
+    });
+  }
 
   function renderStdPreview(nev1, nev2, datum, nyelv) {
     if (!window.STD || !window.STD.generateMockupSVG) {
