@@ -401,7 +401,7 @@ export async function onRequestGet(context) {
             <path d="M13.4 10.6a9 9 0 0 1 0 12.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
             <path d="M16.2 7.8a13 13 0 0 1 0 18.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
           </svg>
-          <span>NFC</span>
+          <span>WedConnect</span>
         </div>
       </div>
       <p class="std-stage-caption">Laserschnitt aus Holz · WedConnect-Chip auf der Rückseite verlinkt direkt zur Hochzeitsseite</p>
