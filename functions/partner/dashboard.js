@@ -260,8 +260,12 @@ export async function onRequestGet(context) {
   .std-modal .std-panel-body { padding:26px 44px 40px; }
   .std-panel-body { display:flex; gap:36px; flex-wrap:wrap; align-items:flex-start; }
   .std-stage { flex:none; width:300px; max-width:100%; }
-  .std-stage-bg { background:radial-gradient(ellipse at 50% 38%, #ffffff 0%, #f2ead9 65%, #ece0c8 100%); border-radius:20px; padding:28px 24px; box-shadow:inset 0 0 0 1px rgba(180,139,86,0.14); }
+  .std-stage-bg { position:relative; background:radial-gradient(ellipse at 50% 38%, #ffffff 0%, #f2ead9 65%, #ece0c8 100%); border-radius:20px; padding:28px 24px; box-shadow:inset 0 0 0 1px rgba(180,139,86,0.14); }
   .std-preview svg { width:100%; height:auto; display:block; filter:drop-shadow(0 20px 28px -14px rgba(90,65,30,0.4)); }
+  .std-nfc-badge { position:absolute; right:14px; bottom:14px; display:flex; align-items:center; gap:5px; background:var(--accent); color:#fff; padding:6px 12px 6px 8px; border-radius:999px; font-family:"Poppins",sans-serif; font-size:0.68rem; font-weight:700; letter-spacing:0.03em; box-shadow:0 8px 16px -8px rgba(180,139,86,0.7); cursor:default; }
+  .std-nfc-badge svg { width:15px; height:15px; flex:none; }
+  .std-nfc-badge::before { content:""; position:absolute; inset:-5px; border-radius:999px; border:1.5px solid var(--accent); opacity:0; animation:std-nfc-pulse 2.6s ease-out infinite; }
+  @keyframes std-nfc-pulse { 0% { opacity:0.5; transform:scale(0.92); } 70% { opacity:0; transform:scale(1.28); } 100% { opacity:0; transform:scale(1.28); } }
   .std-stage-caption { margin:14px 4px 0; font-size:0.76rem; line-height:1.4; color:var(--muted); text-align:center; }
   .std-form { flex:1; min-width:240px; padding-top:4px; }
   .btn-std-submit { font-size:0.95rem; padding:11px 20px; }
@@ -390,6 +394,15 @@ export async function onRequestGet(context) {
     <div class="std-stage">
       <div class="std-stage-bg">
         <div class="std-preview" id="std-modal-preview"></div>
+        <div class="std-nfc-badge" title="WedConnect-Chip: Smartphone antippen öffnet automatisch die Hochzeitsseite">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="7.2" cy="16.8" r="1.4" fill="currentColor"/>
+            <path d="M10.6 13.4a5 5 0 0 1 0 7.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M13.4 10.6a9 9 0 0 1 0 12.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M16.2 7.8a13 13 0 0 1 0 18.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <span>NFC</span>
+        </div>
       </div>
       <p class="std-stage-caption">Laserschnitt aus Holz · WedConnect-Chip auf der Rückseite verlinkt direkt zur Hochzeitsseite</p>
     </div>
