@@ -36,6 +36,7 @@ const STYLE_NUM    = 'font-size:4.06638px;font-family:Arial;-inkscape-font-speci
 const MONTHS_BY_LANG = {
   hu: ['Január','Február','Március','Április','Május','Június','Július','Augusztus','Szeptember','Október','November','December'],
   de: ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
+  en: ['January','February','March','April','May','June','July','August','September','October','November','December'],
 };
 const NAMES_X          = 9.6479845;
 const NAMES_RIGHT      = 51.8637;

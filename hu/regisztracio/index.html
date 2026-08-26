@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="hu">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Partner werden — WedConnect</title>
+<title>Legyél partner — WedConnect</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
@@ -151,106 +151,106 @@
 <body>
   <div class="card">
     <div class="brand">Wed<span>Connect</span></div>
-    <h1>Werden Sie Partner</h1>
+    <h1>Legyél viszonteladó partnerünk</h1>
     <div class="error" id="err"></div>
     <form method="POST" action="/api/reseller-register">
-      <input type="hidden" name="redirect_back" value="/de/registrieren">
-      <label for="ceg_nev">Unternehmensname</label>
+      <input type="hidden" name="redirect_back" value="/hu/regisztracio">
+      <label for="ceg_nev">Cégnév</label>
       <input type="text" id="ceg_nev" name="ceg_nev" required>
 
-      <label for="orszag">Land</label>
+      <label for="orszag">Ország</label>
       <select id="orszag" name="orszag" required>
-        <option value="DE">Deutschland</option>
-        <option value="AT">Österreich</option>
-        <option value="CH">Schweiz</option>
-        <option value="HU">Ungarn</option>
-        <option value="OTHER">Sonstiges Land</option>
+        <option value="HU" selected>Magyarország</option>
+        <option value="DE">Németország</option>
+        <option value="AT">Ausztria</option>
+        <option value="CH">Svájc</option>
+        <option value="OTHER">Egyéb ország</option>
       </select>
 
       <label for="email">Email</label>
       <input type="email" id="email" name="email" required autocomplete="username">
 
-      <label for="jelszo">Passwort</label>
+      <label for="jelszo">Jelszó</label>
       <input type="password" id="jelszo" name="jelszo" required autocomplete="new-password" minlength="8">
-      <div class="hint">Mindestens 8 Zeichen.</div>
+      <div class="hint">Legalább 8 karakter.</div>
 
       <hr class="section-divider">
-      <div class="section-label">Rechnungs- &amp; Lieferadresse</div>
-      <div class="section-hint">Optional – kann auch später im Konto ergänzt werden. Wird für Save-the-Date-Bestellungen automatisch vorausgefüllt.</div>
+      <div class="section-label">Számlázási és szállítási cím</div>
+      <div class="section-hint">Opcionális – később a Fiókban is kiegészíthető. A Save the Date-rendeléseknél automatikusan kitöltésre kerül.</div>
 
-      <label for="adoszam">USt-IdNr. / Steuernummer <span class="hint-inline">(optional)</span></label>
-      <input type="text" id="adoszam" name="adoszam" placeholder="z. B. DE123456789">
+      <label for="adoszam">Adószám <span class="hint-inline">(opcionális)</span></label>
+      <input type="text" id="adoszam" name="adoszam" placeholder="pl. 12345678-1-42">
 
-      <label for="szamlazasi_utca">Straße und Hausnummer</label>
+      <label for="szamlazasi_utca">Utca és házszám</label>
       <input type="text" id="szamlazasi_utca" name="szamlazasi_utca">
 
       <div class="field-row">
         <div>
-          <label for="szamlazasi_irsz">PLZ</label>
+          <label for="szamlazasi_irsz">Irányítószám</label>
           <input type="text" id="szamlazasi_irsz" name="szamlazasi_irsz">
         </div>
         <div>
-          <label for="szamlazasi_varos">Ort</label>
+          <label for="szamlazasi_varos">Város</label>
           <input type="text" id="szamlazasi_varos" name="szamlazasi_varos">
         </div>
       </div>
 
-      <label for="szamlazasi_orszag">Land (Rechnungsadresse)</label>
+      <label for="szamlazasi_orszag">Ország (számlázási cím)</label>
       <select id="szamlazasi_orszag" name="szamlazasi_orszag">
-        <option value="DE">Deutschland</option>
-        <option value="AT">Österreich</option>
-        <option value="CH">Schweiz</option>
-        <option value="HU">Ungarn</option>
-        <option value="OTHER">Sonstiges Land</option>
+        <option value="HU" selected>Magyarország</option>
+        <option value="DE">Németország</option>
+        <option value="AT">Ausztria</option>
+        <option value="CH">Svájc</option>
+        <option value="OTHER">Egyéb ország</option>
       </select>
 
       <label class="toggle-label">
         <input type="checkbox" id="szallitas_azonos" name="szallitas_azonos" value="1" checked>
-        Lieferadresse ist identisch mit der Rechnungsadresse
+        A szállítási cím megegyezik a számlázási címmel
       </label>
 
       <div id="shipping-group" hidden>
-        <label for="alap_szallitasi_utca">Straße und Hausnummer (Lieferadresse)</label>
+        <label for="alap_szallitasi_utca">Utca és házszám (szállítási cím)</label>
         <input type="text" id="alap_szallitasi_utca" name="alap_szallitasi_utca">
 
         <div class="field-row">
           <div>
-            <label for="alap_szallitasi_irsz">PLZ</label>
+            <label for="alap_szallitasi_irsz">Irányítószám</label>
             <input type="text" id="alap_szallitasi_irsz" name="alap_szallitasi_irsz">
           </div>
           <div>
-            <label for="alap_szallitasi_varos">Ort</label>
+            <label for="alap_szallitasi_varos">Város</label>
             <input type="text" id="alap_szallitasi_varos" name="alap_szallitasi_varos">
           </div>
         </div>
 
-        <label for="alap_szallitasi_orszag">Land (Lieferadresse)</label>
+        <label for="alap_szallitasi_orszag">Ország (szállítási cím)</label>
         <select id="alap_szallitasi_orszag" name="alap_szallitasi_orszag">
-          <option value="DE">Deutschland</option>
-          <option value="AT">Österreich</option>
-          <option value="CH">Schweiz</option>
-          <option value="HU">Ungarn</option>
-          <option value="OTHER">Sonstiges Land</option>
+          <option value="HU" selected>Magyarország</option>
+          <option value="DE">Németország</option>
+          <option value="AT">Ausztria</option>
+          <option value="CH">Svájc</option>
+          <option value="OTHER">Egyéb ország</option>
         </select>
       </div>
 
-      <button type="submit">Kostenlos registrieren</button>
+      <button type="submit">Ingyenes regisztráció</button>
     </form>
-    <div class="foot">Bereits Partner? <a href="/partner/login">Hier einloggen</a></div>
+    <div class="foot">Már van fiókod? <a href="/partner/login">Jelentkezz be itt</a></div>
   </div>
   <script>
     var params = new URLSearchParams(location.search);
     var err = params.get("error");
     if (err) {
       var messages = {
-        missing_fields: "Bitte füllen Sie alle Felder aus.",
-        weak_password: "Das Passwort muss mindestens 8 Zeichen haben.",
-        invalid_email: "Bitte geben Sie eine gültige Email-Adresse ein.",
-        email_exists: "Diese Email-Adresse ist bereits registriert.",
-        rate_limited: "Zu viele Registrierungsversuche. Bitte versuchen Sie es später erneut."
+        missing_fields: "Kérjük, töltsön ki minden mezőt.",
+        weak_password: "A jelszónak legalább 8 karakter hosszúnak kell lennie.",
+        invalid_email: "Kérjük, adjon meg egy érvényes email-címet.",
+        email_exists: "Ez az email-cím már regisztrálva van.",
+        rate_limited: "Túl sok regisztrációs kísérlet. Kérjük, próbálja meg később."
       };
       var box = document.getElementById("err");
-      box.textContent = messages[err] || "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.";
+      box.textContent = messages[err] || "Valami hiba történt. Kérjük, próbálja meg újra.";
       box.style.display = "block";
     }
 

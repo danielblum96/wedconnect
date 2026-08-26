@@ -2,7 +2,7 @@ import { getSessionReseller } from "../_utils/auth.js";
 import { escapeHtml } from "../_utils/html.js";
 import { sendEmail } from "../_utils/mailer.js";
 import { generateSVG } from "../_utils/saveTheDate.js";
-import { COUNTRIES } from "../_utils/countries.js";
+import { countryLabel } from "../_utils/countries.js";
 
 const PAGE_PRICE_EUR = 50;
 const STD_PRICE_EUR = 4;
@@ -14,12 +14,8 @@ function utf8ToBase64(str) {
   return btoa(binary);
 }
 
-function countryLabel(code) {
-  return (COUNTRIES.find((c) => c.value === code) || {}).label || code || "";
-}
-
 function formatAddressHtml({ utca, irsz, varos, orszag }) {
-  return `${escapeHtml(utca)}<br>${escapeHtml(irsz)} ${escapeHtml(varos)}<br>${escapeHtml(countryLabel(orszag))}`;
+  return `${escapeHtml(utca)}<br>${escapeHtml(irsz)} ${escapeHtml(varos)}<br>${escapeHtml(countryLabel(orszag, "hu"))}`;
 }
 
 export async function onRequestPost(context) {

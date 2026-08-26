@@ -115,39 +115,107 @@
     color: var(--muted);
   }
   .foot a { color: var(--accent); text-decoration: none; }
+  .lang-switch { display: flex; justify-content: center; gap: 6px; margin-bottom: 22px; }
+  .lang-switch button {
+    width: auto; padding: 5px 12px; border-radius: 999px; background: none; border: 1px solid #ddd6c9;
+    color: var(--muted); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; cursor: pointer;
+  }
+  .lang-switch button.active { background: var(--accent); border-color: var(--accent); color: #1a1408; }
 </style>
 </head>
 <body>
   <div class="card">
     <div class="brand">Wed<span>Connect</span></div>
-    <h1>Partner-Login</h1>
+    <div class="lang-switch" id="lang-switch">
+      <button type="button" data-lang="de">DE</button>
+      <button type="button" data-lang="hu">HU</button>
+      <button type="button" data-lang="en">EN</button>
+    </div>
+    <h1 id="t-heading">Partner-Login</h1>
     <div class="error" id="err"></div>
     <div class="success" id="ok">Ihr Passwort wurde geändert. Bitte loggen Sie sich mit dem neuen Passwort ein.</div>
     <form method="POST" action="/api/reseller-login">
       <label for="email">Email</label>
       <input type="email" id="email" name="email" required autocomplete="username">
-      <label for="jelszo">Passwort</label>
+      <label for="jelszo" id="t-pwlabel">Passwort</label>
       <input type="password" id="jelszo" name="jelszo" required autocomplete="current-password">
-      <a class="forgot-link" href="/partner/forgot-password">Passwort vergessen?</a>
-      <button type="submit">Einloggen</button>
+      <a class="forgot-link" href="/partner/forgot-password" id="t-forgot">Passwort vergessen?</a>
+      <button type="submit" id="t-submit">Einloggen</button>
     </form>
-    <div class="foot">Noch kein Konto? <a href="/de/registrieren">Partner werden</a></div>
+    <div class="foot"><span id="t-foot-q">Noch kein Konto?</span> <a href="/de/registrieren" id="t-foot-link">Partner werden</a></div>
   </div>
   <script>
+    var COPY = {
+      de: {
+        heading: "Partner-Login", pwLabel: "Passwort", forgot: "Passwort vergessen?", submit: "Einloggen",
+        footQ: "Noch kein Konto?", footLink: "Partner werden", registerHref: "/de/registrieren",
+        success: "Ihr Passwort wurde geändert. Bitte loggen Sie sich mit dem neuen Passwort ein.",
+        errors: {
+          missing_fields: "Bitte füllen Sie beide Felder aus.",
+          invalid: "Email oder Passwort ist falsch.",
+          suspended: "Dieses Konto ist derzeit inaktiv. Bitte kontaktieren Sie uns.",
+          rate_limited: "Zu viele Anmeldeversuche. Bitte versuchen Sie es in ein paar Minuten erneut.",
+          generic: "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+        }
+      },
+      hu: {
+        heading: "Partner bejelentkezés", pwLabel: "Jelszó", forgot: "Elfelejtett jelszó?", submit: "Bejelentkezés",
+        footQ: "Még nincs fiókod?", footLink: "Legyél partner", registerHref: "/hu/regisztracio",
+        success: "A jelszava megváltozott. Kérjük, jelentkezzen be az új jelszóval.",
+        errors: {
+          missing_fields: "Kérjük, töltse ki mindkét mezőt.",
+          invalid: "Az email cím vagy a jelszó helytelen.",
+          suspended: "Ez a fiók jelenleg inaktív. Kérjük, vegye fel velünk a kapcsolatot.",
+          rate_limited: "Túl sok bejelentkezési kísérlet. Kérjük, próbálja meg néhány perc múlva újra.",
+          generic: "Valami hiba történt. Kérjük, próbálja meg újra."
+        }
+      },
+      en: {
+        heading: "Partner login", pwLabel: "Password", forgot: "Forgot password?", submit: "Log in",
+        footQ: "Don't have an account yet?", footLink: "Become a partner", registerHref: "/en/register",
+        success: "Your password has been changed. Please log in with the new password.",
+        errors: {
+          missing_fields: "Please fill in both fields.",
+          invalid: "Email or password is incorrect.",
+          suspended: "This account is currently inactive. Please contact us.",
+          rate_limited: "Too many login attempts. Please try again in a few minutes.",
+          generic: "Something went wrong. Please try again."
+        }
+      }
+    };
+
     var params = new URLSearchParams(location.search);
+    var lang = params.get("lang");
+    if (!COPY[lang]) lang = "de";
+    var t = COPY[lang];
+
+    document.documentElement.lang = lang;
+    document.title = t.heading + " — WedConnect";
+    document.getElementById("t-heading").textContent = t.heading;
+    document.getElementById("t-pwlabel").textContent = t.pwLabel;
+    document.getElementById("t-forgot").textContent = t.forgot;
+    document.getElementById("t-submit").textContent = t.submit;
+    document.getElementById("t-foot-q").textContent = t.footQ;
+    document.getElementById("t-foot-link").textContent = t.footLink;
+    document.getElementById("t-foot-link").href = t.registerHref;
+    document.getElementById("ok").textContent = t.success;
+
+    document.querySelectorAll("#lang-switch button").forEach(function (btn) {
+      if (btn.getAttribute("data-lang") === lang) btn.classList.add("active");
+      btn.addEventListener("click", function () {
+        var p = new URLSearchParams(location.search);
+        p.set("lang", btn.getAttribute("data-lang"));
+        location.search = p.toString();
+      });
+    });
+
     if (params.get("reset")) {
       document.getElementById("ok").style.display = "block";
     }
     var err = params.get("error");
     if (err) {
-      var messages = {
-        missing_fields: "Bitte füllen Sie beide Felder aus.",
-        invalid: "Email oder Passwort ist falsch.",
-        suspended: "Dieses Konto ist derzeit inaktiv. Bitte kontaktieren Sie uns.",
-        rate_limited: "Zu viele Anmeldeversuche. Bitte versuchen Sie es in ein paar Minuten erneut."
-      };
       var box = document.getElementById("err");
-      box.textContent = messages[err] || "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.";
+      box.textContent = t.errors[err] || t.errors.generic;
       box.style.display = "block";
     }
   </script>

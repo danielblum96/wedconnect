@@ -1,36 +1,38 @@
 import { hashPassword } from "../_utils/auth.js";
 import { escapeHtml } from "../_utils/html.js";
+import { getResellerCopy } from "../_utils/i18n.js";
 
-function page({ valid, token, error }) {
+function page({ valid, token, error, lang }) {
+  const t = getResellerCopy(lang).resetPassword;
   const errorMessages = {
-    weak_password: "Das Passwort muss mindestens 8 Zeichen lang sein.",
-    mismatch: "Die beiden Passwörter stimmen nicht überein.",
+    weak_password: t.weakPassword,
+    mismatch: t.mismatch,
   };
 
   const body = valid
     ? `
-      <h1>Neues Passwort festlegen</h1>
-      ${error ? `<div class="error">${escapeHtml(errorMessages[error] || "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.")}</div>` : ""}
+      <h1>${t.heading}</h1>
+      ${error ? `<div class="error">${escapeHtml(errorMessages[error] || t.genericError)}</div>` : ""}
       <form method="POST" action="/partner/reset-password">
         <input type="hidden" name="token" value="${escapeHtml(token)}">
-        <label for="jelszo">Neues Passwort</label>
+        <label for="jelszo">${t.newPassword}</label>
         <input type="password" id="jelszo" name="jelszo" required autocomplete="new-password" minlength="8">
-        <label for="jelszo2">Neues Passwort bestätigen</label>
+        <label for="jelszo2">${t.newPasswordConfirm}</label>
         <input type="password" id="jelszo2" name="jelszo2" required autocomplete="new-password" minlength="8">
-        <button type="submit">Passwort speichern</button>
+        <button type="submit">${t.save}</button>
       </form>`
     : `
-      <h1>Link ungültig oder abgelaufen</h1>
-      <p class="hint">Dieser Link zum Zurücksetzen des Passworts ist ungültig oder abgelaufen. Bitte fordern Sie einen neuen an.</p>
-      <a class="btn-link" href="/partner/forgot-password">Neuen Link anfordern</a>`;
+      <h1>${t.invalidHeading}</h1>
+      <p class="hint">${t.invalidHint}</p>
+      <a class="btn-link" href="/partner/forgot-password">${t.requestNew}</a>`;
 
   return `<!DOCTYPE html>
-<html lang="de">
+<html lang="${lang}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Passwort zurücksetzen — WedConnect</title>
+<title>${t.title}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
@@ -67,11 +69,18 @@ export async function onRequestGet(context) {
   const error = url.searchParams.get("error") || "";
 
   const reset = token
-    ? await env.DB.prepare("SELECT lejar, felhasznalva FROM password_resets WHERE token = ?").bind(token).first()
+    ? await env.DB.prepare(
+        `SELECT pr.lejar, pr.felhasznalva, v.nyelv
+         FROM password_resets pr JOIN viszontelado v ON v.id = pr.viszontelado_id
+         WHERE pr.token = ?`
+      )
+        .bind(token)
+        .first()
     : null;
   const valid = !!(reset && !reset.felhasznalva && new Date(reset.lejar).getTime() > Date.now());
+  const lang = (reset && reset.nyelv) || "de";
 
-  return new Response(page({ valid, token, error }), { headers: { "Content-Type": "text/html; charset=utf-8" } });
+  return new Response(page({ valid, token, error, lang }), { headers: { "Content-Type": "text/html; charset=utf-8" } });
 }
 
 export async function onRequestPost(context) {

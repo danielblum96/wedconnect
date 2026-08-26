@@ -1,7 +1,7 @@
 import { getSessionReseller } from "../_utils/auth.js";
 import { STYLES, FONT_RECIPES, getStyleName, resolveStyleByStoredValue } from "../_utils/styles.js";
 import { escapeHtml, safeHref } from "../_utils/html.js";
-import { getCopy, getStatusLabel } from "../_utils/i18n.js";
+import { getCopy, getStatusLabel, getResellerCopy } from "../_utils/i18n.js";
 import { countryOptions } from "../_utils/countries.js";
 
 const PAGE_PRICE_EUR = 50;
@@ -26,14 +26,12 @@ export async function onRequestGet(context) {
   const createdCouple = created ? (parok || []).find((p) => p.slug === created) : null;
   const stdOrdered = url.searchParams.get("stdordered");
   const stdError = url.searchParams.get("stderror");
-  const stdErrorMessages = {
-    invalid: "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
-    missing_address: "Bitte geben Sie eine Lieferadresse ein.",
-    missing_billing: "Bitte geben Sie eine Rechnungsadresse ein.",
-    min_quantity: "Die Mindestbestellmenge für Save the Date-Karten beträgt 50 Stück.",
-  };
 
-  const defaultMessage = getCopy(reseller.nyelv || "de").defaultMessage;
+  const lang = reseller.nyelv || "de";
+  const t = getResellerCopy(lang).dashboard;
+  const stdErrorMessages = t.stdError;
+
+  const defaultMessage = getCopy(lang).defaultMessage;
   const defaultBilling = {
     utca: reseller.szamlazasi_utca || "",
     irsz: reseller.szamlazasi_irsz || "",
@@ -62,19 +60,13 @@ export async function onRequestGet(context) {
     return Math.round((target.getTime() - todayUTC) / 86400000);
   }
 
-  function daysUntilLabel(days) {
-    if (days === 0) return "Heute!";
-    if (days === 1) return "Morgen";
-    return `${days} Tage`;
-  }
-
   const stylePicker = STYLES.map((s) => {
     return `
       <label class="style-swatch" style="--bg:${s.bg}; --fg:${s.fg}; --accent:${s.accent}; --accent-text:${s.accentText}; --btn-fg:${s.btnFg};">
         <input type="radio" name="stilus" value="${s.id}" required>
         <span class="swatch-mock"></span>
-        <span class="swatch-name">${escapeHtml(getStyleName(s, "de"))}</span>
-        <button type="submit" class="swatch-confirm">✓ Seite erstellen</button>
+        <span class="swatch-name">${escapeHtml(getStyleName(s, lang))}</span>
+        <button type="submit" class="swatch-confirm">${t.styleConfirm}</button>
       </label>`;
   }).join("");
 
@@ -97,7 +89,7 @@ export async function onRequestGet(context) {
           const g = gombok[i] || { label: "", url: "" };
           return `
             <div class="btn-row">
-              <input type="text" name="gomb_label" placeholder="Button-Beschriftung" value="${escapeHtml(g.label)}" autocomplete="off">
+              <input type="text" name="gomb_label" placeholder="${t.buttonLabelPlaceholder}" value="${escapeHtml(g.label)}" autocomplete="off">
               <input type="url" name="gomb_url" placeholder="https://..." value="${escapeHtml(g.url)}" autocomplete="off">
             </div>`;
         })
@@ -105,8 +97,8 @@ export async function onRequestGet(context) {
 
       const pageUrl = `https://wedconnect.eu/${p.slug}`;
       const resolvedStyle = resolveStyleByStoredValue(p.valasztott_stilus);
-      const styleName = getStyleName(resolvedStyle, "de");
-      const statusLabel = getStatusLabel(p.allapot, "de");
+      const styleName = getStyleName(resolvedStyle, lang);
+      const statusLabel = getStatusLabel(p.allapot, lang);
       const searchText = `${p.par_neve} ${p.eskuvo_datuma} ${styleName}`.toLowerCase();
       const nev1 = p.nev1 || (p.par_neve || "").split(" & ")[0] || "";
       const nev2 = p.nev2 || (p.par_neve || "").split(" & ")[1] || "";
@@ -124,24 +116,24 @@ export async function onRequestGet(context) {
               <a class="couple-link" href="${safeHref(pageUrl)}" target="_blank" rel="noopener">${escapeHtml(pageUrl)}</a>
             </div>
             <div class="couple-actions">
-              <button type="button" class="btn-qr btn-copy" data-copy="${escapeHtml(pageUrl)}">Link kopieren</button>
-              <button type="button" class="btn-qr" data-url="${escapeHtml(pageUrl)}" data-filename="${escapeHtml(p.slug)}-qr.png">QR-Code</button>
-              <form method="POST" action="/api/couple-delete" class="delete-form" onsubmit="return confirm('Soll dieses Brautpaar wirklich endgültig gelöscht werden?')">
+              <button type="button" class="btn-qr btn-copy" data-copy="${escapeHtml(pageUrl)}">${t.copyLink}</button>
+              <button type="button" class="btn-qr" data-url="${escapeHtml(pageUrl)}" data-filename="${escapeHtml(p.slug)}-qr.png">${t.qrCode}</button>
+              <form method="POST" action="/api/couple-delete" class="delete-form" onsubmit="return confirm('${t.confirmDelete.replace(/'/g, "\\'")}')">
                 <input type="hidden" name="par_id" value="${p.id}">
-                <button type="submit" class="btn-delete">Löschen</button>
+                <button type="submit" class="btn-delete">${t.delete}</button>
               </form>
             </div>
           </div>
           <details>
-            <summary>Bearbeiten</summary>
+            <summary>${t.edit}</summary>
             <form method="POST" action="/api/couple-update" class="edit-form">
               <input type="hidden" name="par_id" value="${p.id}">
-              <label>Eigene Nachricht (leer lassen für den Standardtext)</label>
-              <textarea name="egyedi_uzenet" rows="2" placeholder="Vielen Dank, dass du diesen Tag mit uns feierst...">${escapeHtml(p.egyedi_uzenet || "")}</textarea>
-              <label>Buttons (Beschriftung + Link, max. 5)</label>
+              <label>${t.ownMessageEditHint}</label>
+              <textarea name="egyedi_uzenet" rows="2" placeholder="${t.ownMessagePlaceholder}">${escapeHtml(p.egyedi_uzenet || "")}</textarea>
+              <label>${t.buttonsEditHint}</label>
               ${gombRows}
-              <button type="submit" class="btn-save">Speichern</button>
-              ${saved === String(p.id) ? '<span class="saved-note">Gespeichert ✓</span>' : ""}
+              <button type="submit" class="btn-save">${t.save}</button>
+              ${saved === String(p.id) ? `<span class="saved-note">${t.saved}</span>` : ""}
             </form>
           </details>
           <button
@@ -156,7 +148,7 @@ export async function onRequestGet(context) {
             data-stilus="${escapeHtml(resolvedStyle.id)}"
             data-uzenet="${escapeHtml(p.egyedi_uzenet || defaultMessage)}"
             data-gombok='${escapeHtml(JSON.stringify(mockGombok))}'
-          >Save the Date gestalten</button>
+          >${t.createStd}</button>
           <div class="checkout-row">
             <button
               type="button"
@@ -170,25 +162,25 @@ export async function onRequestGet(context) {
               data-stilus="${escapeHtml(resolvedStyle.id)}"
               data-uzenet="${escapeHtml(p.egyedi_uzenet || defaultMessage)}"
               data-gombok='${escapeHtml(JSON.stringify(mockGombok))}'
-            >Bestellung abschließen</button>
+            >${t.checkout}</button>
           </div>
         </div>`;
     })
     .join("");
 
   const html = `<!DOCTYPE html>
-<html lang="de">
+<html lang="${lang}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Partner Dashboard — WedConnect</title>
+<title>${t.pageTitle}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Great+Vibes&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="/assets/qrcode.min.js"></script>
 <script type="module">
-  import { generateMockupSVG } from "/assets/save-the-date.js?v=7";
+  import { generateMockupSVG } from "/assets/save-the-date.js?v=8";
   window.STD = { generateMockupSVG };
 </script>
 <style>
@@ -344,27 +336,27 @@ export async function onRequestGet(context) {
   <div class="brand">Wed<span>Connect</span> Partner</div>
   <div style="display:flex; align-items:center; gap:16px;">
     <span class="who">${escapeHtml(reseller.ceg_nev)} (${escapeHtml(reseller.email)})</span>
-    <a class="account-link" href="/partner/account">Konto</a>
-    <form class="logout-form" method="POST" action="/api/reseller-logout"><button type="submit">Abmelden</button></form>
+    <a class="account-link" href="/partner/account">${t.account}</a>
+    <form class="logout-form" method="POST" action="/api/reseller-logout"><button type="submit">${t.logout}</button></form>
   </div>
 </header>
 <main>
-  ${error ? `<div class="error-box">Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.</div>` : ""}
-  ${deleted ? `<div class="info-box">Brautpaar gelöscht.</div>` : ""}
-  ${stdOrdered ? `<div class="info-box">Bestellung erhalten. Die Zahlungsabwicklung folgt in Kürze – wir senden Ihnen den Zahlungslink.</div>` : ""}
-  ${stdError ? `<div class="error-box">${escapeHtml(stdErrorMessages[stdError] || "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.")}</div>` : ""}
+  ${error ? `<div class="error-box">${t.genericError}</div>` : ""}
+  ${deleted ? `<div class="info-box">${t.coupleDeleted}</div>` : ""}
+  ${stdOrdered ? `<div class="info-box">${t.stdOrdered}</div>` : ""}
+  ${stdError ? `<div class="error-box">${escapeHtml(stdErrorMessages[stdError] || t.genericError)}</div>` : ""}
   ${
     createdCouple
       ? `<div class="success-banner" id="success-banner">
           <div class="success-emoji">🎉</div>
           <div class="success-body">
-            <div class="success-title">Fertig! Die Seite ist online.</div>
+            <div class="success-title">${t.successTitle}</div>
             <div class="success-sub">${escapeHtml(createdCouple.par_neve)} · ${escapeHtml(`https://wedconnect.eu/${createdCouple.slug}`)}</div>
           </div>
           <div class="success-actions">
-            <a class="success-view" href="${safeHref(`https://wedconnect.eu/${createdCouple.slug}`)}" target="_blank" rel="noopener">Seite ansehen</a>
-            <button type="button" class="btn-qr btn-copy" data-copy="${escapeHtml(`https://wedconnect.eu/${createdCouple.slug}`)}">Link kopieren</button>
-            <button type="button" class="btn-qr" data-url="${escapeHtml(`https://wedconnect.eu/${createdCouple.slug}`)}" data-filename="${escapeHtml(createdCouple.slug)}-qr.png">QR-Code</button>
+            <a class="success-view" href="${safeHref(`https://wedconnect.eu/${createdCouple.slug}`)}" target="_blank" rel="noopener">${t.viewPage}</a>
+            <button type="button" class="btn-qr btn-copy" data-copy="${escapeHtml(`https://wedconnect.eu/${createdCouple.slug}`)}">${t.copyLink}</button>
+            <button type="button" class="btn-qr" data-url="${escapeHtml(`https://wedconnect.eu/${createdCouple.slug}`)}" data-filename="${escapeHtml(createdCouple.slug)}-qr.png">${t.qrCode}</button>
           </div>
         </div>`
       : ""
@@ -374,13 +366,13 @@ export async function onRequestGet(context) {
       ? `<div class="stats-bar">
           <div class="stat">
             <div class="stat-value">${parok.length}</div>
-            <div class="stat-label">${parok.length === 1 ? "Hochzeitsseite erstellt" : "Hochzeitsseiten erstellt"}</div>
+            <div class="stat-label">${parok.length === 1 ? t.statPageSingular : t.statPagePlural}</div>
           </div>
           ${
             upcoming
               ? `<div class="stat">
-                  <div class="stat-value">${daysUntilLabel(daysUntil(upcoming.eskuvo_datuma))}</div>
-                  <div class="stat-label">bis zur Hochzeit von ${escapeHtml(upcoming.par_neve)}</div>
+                  <div class="stat-value">${t.daysUntilLabel(daysUntil(upcoming.eskuvo_datuma))}</div>
+                  <div class="stat-label">${t.untilWeddingOf(escapeHtml(upcoming.par_neve))}</div>
                 </div>`
               : ""
           }
@@ -388,82 +380,82 @@ export async function onRequestGet(context) {
       : ""
   }
   <div class="new-couple">
-    <h2>Neues Brautpaar hinzufügen</h2>
+    <h2>${t.newCoupleHeading}</h2>
     <form method="POST" action="/api/couple-create" id="new-couple-form" novalidate>
       <div class="wizard-step" data-step="1">
-        <p class="step-label">Schritt 1 von 3 · Namen &amp; Datum</p>
+        <p class="step-label">${t.step1Label}</p>
         <div class="field-row">
-          <div><label>Name der Braut</label><input type="text" name="nev1" id="f-nev1" required></div>
-          <div><label>Name des Bräutigams</label><input type="text" name="nev2" id="f-nev2" required></div>
+          <div><label>${t.brideName}</label><input type="text" name="nev1" id="f-nev1" required></div>
+          <div><label>${t.groomName}</label><input type="text" name="nev2" id="f-nev2" required></div>
         </div>
         <div class="field-row">
-          <div><label>Hochzeitsdatum</label><input type="date" name="eskuvo_datuma" id="f-datum" required></div>
+          <div><label>${t.weddingDate}</label><input type="date" name="eskuvo_datuma" id="f-datum" required></div>
         </div>
         <div class="wizard-nav">
-          <button type="button" class="btn-next" data-next="2">Weiter</button>
+          <button type="button" class="btn-next" data-next="2">${t.next}</button>
         </div>
       </div>
 
       <div class="wizard-step" data-step="2" hidden>
-        <p class="step-label">Schritt 2 von 3 · Nachricht &amp; Buttons</p>
-        <label>Eigene Nachricht <span class="hint-inline">(kann jederzeit geändert werden)</span></label>
+        <p class="step-label">${t.step2Label}</p>
+        <label>${t.ownMessage} <span class="hint-inline">${t.ownMessageHint}</span></label>
         <textarea name="egyedi_uzenet" id="f-uzenet" rows="3">${escapeHtml(defaultMessage)}</textarea>
-        <label>Buttons <span class="hint-inline">(können jederzeit geändert werden)</span></label>
+        <label>${t.buttons} <span class="hint-inline">${t.buttonsHint}</span></label>
         <div id="button-rows">
           <div class="btn-row">
-            <input type="text" name="gomb_label" placeholder="Button-Beschriftung" autocomplete="off">
+            <input type="text" name="gomb_label" placeholder="${t.buttonLabelPlaceholder}" autocomplete="off">
             <input type="url" name="gomb_url" placeholder="https://..." autocomplete="off">
-            <button type="button" class="btn-remove-row" aria-label="Button entfernen">×</button>
+            <button type="button" class="btn-remove-row" aria-label="${t.buttonRemoveAria}">×</button>
           </div>
         </div>
-        <button type="button" class="btn-add-row" id="add-button-row">+ Button hinzufügen</button>
+        <button type="button" class="btn-add-row" id="add-button-row">${t.addButton}</button>
         <div class="wizard-nav">
-          <button type="button" class="btn-back" data-back="1">Zurück</button>
-          <button type="button" class="btn-next" data-next="3">Weiter</button>
+          <button type="button" class="btn-back" data-back="1">${t.back}</button>
+          <button type="button" class="btn-next" data-next="3">${t.next}</button>
         </div>
       </div>
 
       <div class="wizard-step" data-step="3" hidden>
-        <p class="step-label">Schritt 3 von 3 · Stil wählen</p>
-        <p class="style-picker-hint">Klicken Sie auf den Stil, der am besten zur Hochzeit passt – Namen, Datum, Nachricht und Buttons werden direkt in der Vorschau angezeigt.</p>
-        <p class="price-note">Preis: ${PAGE_PRICE_EUR} € einmalig pro Hochzeitsseite</p>
+        <p class="step-label">${t.step3Label}</p>
+        <p class="style-picker-hint">${t.stylePickerHint}</p>
+        <p class="price-note">${t.priceNote(PAGE_PRICE_EUR)}</p>
         <div class="style-picker" id="style-picker">${stylePicker}</div>
         <div class="wizard-nav">
-          <button type="button" class="btn-back" data-back="2">Zurück</button>
-          <button type="submit">Seite erstellen</button>
+          <button type="button" class="btn-back" data-back="2">${t.back}</button>
+          <button type="submit">${t.createPage}</button>
         </div>
       </div>
     </form>
   </div>
 
-  <h2>Ihre Brautpaare</h2>
+  <h2>${t.yourCouples}</h2>
   ${
     parok && parok.length
-      ? `<div class="search-row"><input type="text" id="couple-search" placeholder="Suchen (Name, Datum, Stil)..."></div>`
+      ? `<div class="search-row"><input type="text" id="couple-search" placeholder="${t.searchPlaceholder}"></div>`
       : ""
   }
   ${
     rows ||
     `<div class="empty-state">
       <div class="empty-emoji">💍</div>
-      <div class="empty-title">Noch keine Hochzeitsseite erstellt</div>
-      <div class="empty-text">Legen Sie oben Ihr erstes Brautpaar an — in unter 2 Minuten ist die Seite online.</div>
+      <div class="empty-title">${t.emptyTitle}</div>
+      <div class="empty-text">${t.emptyText}</div>
     </div>`
   }
-  ${parok && parok.length ? `<p class="empty" id="no-results" hidden>Keine Treffer für diese Suche.</p>` : ""}
+  ${parok && parok.length ? `<p class="empty" id="no-results" hidden>${t.noResults}</p>` : ""}
 </main>
 
 <dialog id="std-modal" class="std-modal">
-  <button type="button" class="std-modal-close" aria-label="Schließen">&times;</button>
+  <button type="button" class="std-modal-close" aria-label="${t.modalClose}">&times;</button>
   <div class="std-modal-head">
-    <h3 class="std-modal-title">Save the Date gestalten</h3>
+    <h3 class="std-modal-title">${t.modalTitle}</h3>
     <p class="std-modal-subtitle" id="std-modal-subtitle"></p>
   </div>
   <div class="std-panel-body">
     <div class="std-stage">
       <div class="std-stage-bg">
         <div class="std-preview" id="std-modal-preview"></div>
-        <div class="std-nfc-badge" id="std-nfc-badge" title="WedConnect-Chip: Smartphone antippen öffnet automatisch die Hochzeitsseite">
+        <div class="std-nfc-badge" id="std-nfc-badge" title="${t.infoPopover}">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <circle cx="7.2" cy="16.8" r="1.4" fill="currentColor"/>
             <path d="M10.6 13.4a5 5 0 0 1 0 7.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -473,74 +465,74 @@ export async function onRequestGet(context) {
           <span>+ WedConnect</span>
         </div>
       </div>
-      <p class="std-stage-caption" id="std-stage-caption">Laserschnitt aus Holz · WedConnect-Chip auf der Rückseite verlinkt direkt zur Hochzeitsseite</p>
+      <p class="std-stage-caption" id="std-stage-caption">${t.stageCaption}</p>
     </div>
     <form method="POST" action="/api/order-save-the-date" class="std-form">
       <input type="hidden" name="par_id" id="std-modal-par-id" value="">
       <div class="std-link-row">
         <label class="std-link-label">
-          WedConnect-Link
+          ${t.wedconnectLink}
           <span class="std-info-wrap">
-            <button type="button" class="std-info-btn" id="std-info-btn" aria-label="Mehr erfahren">i</button>
-            <div class="std-info-popover" id="std-info-popover" hidden>WedConnect ist eine NFC-basierte Lösung: Beim Antippen mit dem Smartphone öffnet sich automatisch die individuelle Seite des Brautpaars.</div>
+            <button type="button" class="std-info-btn" id="std-info-btn" aria-label="${t.moreInfoAria}">i</button>
+            <div class="std-info-popover" id="std-info-popover" hidden>${t.infoPopover}</div>
           </span>
         </label>
         <div class="std-link-value" id="std-modal-link"></div>
       </div>
       <label class="std-toggle-label">
         <input type="checkbox" id="std-modal-want-std">
-        Save the Date-Karten bestellen <span class="hint-inline">(mind. 50 Stück – dann ist die Hochzeitsseite kostenlos!)</span>
+        ${t.wantStdToggle} <span class="hint-inline">${t.wantStdHint()}</span>
       </label>
       <div id="std-qty-group" hidden>
-        <label>Menge <span class="hint-inline">(${STD_PRICE_EUR.toFixed(2).replace(".", ",")} € / Stück, mind. 50 Stück)</span></label>
+        <label>${t.qtyLabel} <span class="hint-inline">${t.qtyHint(STD_PRICE_EUR.toFixed(2).replace(".", ","))}</span></label>
         <input type="number" name="mennyiseg" id="std-modal-menge" min="50" max="9999" value="50">
       </div>
       <div class="std-pricing">
-        <div class="std-price-row"><span>Hochzeitsseite<span id="std-price-page-note"> (einmalig)</span></span><span id="std-price-page">${PAGE_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
-        <div class="std-price-row" id="std-price-std-row" hidden><span>Save the Date (<span id="std-price-qty">50</span> × ${STD_PRICE_EUR.toFixed(2).replace(".", ",")} €)</span><span id="std-price-sub">${STD_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
-        <div class="std-price-row std-price-total"><span>Gesamt</span><span id="std-price-total">${PAGE_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
+        <div class="std-price-row"><span>${t.pageLine}<span id="std-price-page-note">${t.priceOnce}</span></span><span id="std-price-page">${PAGE_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
+        <div class="std-price-row" id="std-price-std-row" hidden><span>${t.stdLine(`<span id="std-price-qty">50</span>`, STD_PRICE_EUR.toFixed(2).replace(".", ","))}</span><span id="std-price-sub">${STD_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
+        <div class="std-price-row std-price-total"><span>${t.total}</span><span id="std-price-total">${PAGE_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
       </div>
-      <label>USt-IdNr. / Steuernummer <span class="hint-inline">(optional)</span></label>
-      <input type="text" name="adoszam" id="std-modal-adoszam" placeholder="z. B. DE123456789" value="${escapeHtml(defaultAdoszam)}">
+      <label>${t.vatLabel} <span class="hint-inline">${t.optional}</span></label>
+      <input type="text" name="adoszam" id="std-modal-adoszam" placeholder="${t.vatPlaceholder}" value="${escapeHtml(defaultAdoszam)}">
 
-      <label>Rechnungsadresse – Straße und Hausnummer</label>
+      <label>${t.billingStreet}</label>
       <input type="text" name="szamlazasi_utca" id="std-modal-billing-utca" required value="${escapeHtml(defaultBilling.utca)}">
       <div class="field-row">
         <div>
-          <label>PLZ</label>
+          <label>${t.postalCode}</label>
           <input type="text" name="szamlazasi_irsz" id="std-modal-billing-irsz" required value="${escapeHtml(defaultBilling.irsz)}">
         </div>
         <div>
-          <label>Ort</label>
+          <label>${t.city}</label>
           <input type="text" name="szamlazasi_varos" id="std-modal-billing-varos" required value="${escapeHtml(defaultBilling.varos)}">
         </div>
       </div>
-      <label>Land (Rechnungsadresse)</label>
+      <label>${t.countryBilling}</label>
       <select name="szamlazasi_orszag" id="std-modal-billing-orszag">
-        ${countryOptions(defaultBilling.orszag)}
+        ${countryOptions(defaultBilling.orszag, lang)}
       </select>
 
       <div id="std-address-group" hidden>
-        <label>Lieferadresse – Straße und Hausnummer</label>
+        <label>${t.shippingStreet}</label>
         <input type="text" name="szallitasi_utca" id="std-modal-cim-utca" value="${escapeHtml(defaultShipping.utca)}">
         <div class="field-row">
           <div>
-            <label>PLZ</label>
+            <label>${t.postalCode}</label>
             <input type="text" name="szallitasi_irsz" id="std-modal-cim-irsz" value="${escapeHtml(defaultShipping.irsz)}">
           </div>
           <div>
-            <label>Ort</label>
+            <label>${t.city}</label>
             <input type="text" name="szallitasi_varos" id="std-modal-cim-varos" value="${escapeHtml(defaultShipping.varos)}">
           </div>
         </div>
-        <label>Land (Lieferadresse)</label>
+        <label>${t.countryShipping}</label>
         <select name="szallitasi_orszag" id="std-modal-cim-orszag">
-          ${countryOptions(defaultShipping.orszag)}
+          ${countryOptions(defaultShipping.orszag, lang)}
         </select>
       </div>
-      <label>Anmerkung <span class="hint-inline">(optional)</span></label>
-      <textarea name="megjegyzes" rows="2" placeholder="z. B. Sonderwünsche"></textarea>
-      <button type="submit" class="btn-save btn-std-submit">Bestellung abschließen</button>
+      <label>${t.note} <span class="hint-inline">${t.optional}</span></label>
+      <textarea name="megjegyzes" rows="2" placeholder="${t.notePlaceholder}"></textarea>
+      <button type="submit" class="btn-save btn-std-submit">${t.checkout}</button>
     </form>
   </div>
 </dialog>
@@ -554,6 +546,15 @@ export async function onRequestGet(context) {
   var DEFAULT_BILLING = ${JSON.stringify(defaultBilling)};
   var DEFAULT_SHIPPING = ${JSON.stringify(defaultShipping)};
   var DEFAULT_ADOSZAM = ${JSON.stringify(defaultAdoszam)};
+  var COPY = {
+    mockEyebrow: ${JSON.stringify(t.mockEyebrow)},
+    copied: ${JSON.stringify(t.copied)},
+    buttonLabelPlaceholder: ${JSON.stringify(t.buttonLabelPlaceholder)},
+    buttonRemoveAria: ${JSON.stringify(t.buttonRemoveAria)},
+    priceOnce: ${JSON.stringify(t.priceOnce)},
+    priceFreeFrom50: ${JSON.stringify(t.priceFreeFrom50)},
+    priceOnceUnder50: ${JSON.stringify(t.priceOnceUnder50)},
+  };
 
   var form = document.getElementById("new-couple-form");
   var steps = Array.prototype.slice.call(form.querySelectorAll(".wizard-step"));
@@ -613,9 +614,9 @@ export async function onRequestGet(context) {
     var div = document.createElement("div");
     div.className = "btn-row";
     div.innerHTML =
-      '<input type="text" name="gomb_label" placeholder="Button-Beschriftung" autocomplete="off">' +
+      '<input type="text" name="gomb_label" placeholder="' + escapeHtml(COPY.buttonLabelPlaceholder) + '" autocomplete="off">' +
       '<input type="url" name="gomb_url" placeholder="https://..." autocomplete="off">' +
-      '<button type="button" class="btn-remove-row" aria-label="Button entfernen">×</button>';
+      '<button type="button" class="btn-remove-row" aria-label="' + escapeHtml(COPY.buttonRemoveAria) + '">×</button>';
     rowsContainer.appendChild(div);
     bindRemove(div.querySelector(".btn-remove-row"));
   });
@@ -661,7 +662,7 @@ export async function onRequestGet(context) {
           "</span>"
         : "";
       mock.innerHTML =
-        '<span class="mock-eyebrow">Hochzeit</span>' +
+        '<span class="mock-eyebrow">' + escapeHtml(COPY.mockEyebrow) + '</span>' +
         '<span class="mock-names" style="' + recipe + " font-size:" + namesFontSize + ';">' + escapeHtml(namesText) + "</span>" +
         (dateText ? '<span class="mock-date">' + escapeHtml(dateText) + "</span>" : "") +
         '<span class="mock-message">' + escapeHtml(message) + "</span>" +
@@ -719,7 +720,7 @@ export async function onRequestGet(context) {
       var url = btn.getAttribute("data-copy");
       var original = btn.textContent;
       copyToClipboard(url).then(function () {
-        btn.textContent = "Kopiert ✓";
+        btn.textContent = COPY.copied;
         setTimeout(function () {
           btn.textContent = original;
         }, 1500);
@@ -825,7 +826,7 @@ export async function onRequestGet(context) {
       "--bg:" + style.bg + ";--fg:" + style.fg + ";--accent:" + style.accent + ";--accent-text:" + style.accentText + ";--btn-fg:" + style.btnFg + ";";
     stdModalPreview.innerHTML =
       '<div class="swatch-mock std-preview-page" style="' + varsStyle + '">' +
-      '<span class="mock-eyebrow">Hochzeit</span>' +
+      '<span class="mock-eyebrow">' + escapeHtml(COPY.mockEyebrow) + '</span>' +
       '<span class="mock-names" style="' + recipe + " font-size:" + namesFontSize + ';">' + escapeHtml(namesText) + "</span>" +
       (dateText ? '<span class="mock-date">' + escapeHtml(dateText) + "</span>" : "") +
       '<span class="mock-message">' + escapeHtml(uzenet || "") + "</span>" +
@@ -857,7 +858,7 @@ export async function onRequestGet(context) {
       stdModalMenge.value = "0";
       stdPricePage.textContent = formatEUR(PAGE_PRICE_EUR);
       stdPricePage.className = "";
-      stdPricePageNote.textContent = " (einmalig)";
+      stdPricePageNote.textContent = COPY.priceOnce;
       stdPriceTotal.textContent = formatEUR(PAGE_PRICE_EUR);
       return;
     }
@@ -873,7 +874,7 @@ export async function onRequestGet(context) {
     stdPriceSub.textContent = formatEUR(sub);
     stdPricePage.textContent = pageFree ? "0,00 €" : formatEUR(PAGE_PRICE_EUR);
     stdPricePage.className = pageFree ? "std-price-page-free" : "";
-    stdPricePageNote.textContent = pageFree ? " (kostenlos ab 50 Stück)" : " (einmalig, unter 50 Stück)";
+    stdPricePageNote.textContent = pageFree ? COPY.priceFreeFrom50 : COPY.priceOnceUnder50;
     stdPriceTotal.textContent = formatEUR((pageFree ? 0 : PAGE_PRICE_EUR) + sub);
   }
 

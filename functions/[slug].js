@@ -78,13 +78,15 @@ export async function onRequestGet(context) {
         .join("")}</div>`
     : "";
 
+  const lang = ["de", "en", "hu"].includes(par.nyelv) ? par.nyelv : "hu";
+
   const html = `<!DOCTYPE html>
-<html lang="${par.nyelv === "de" ? "de" : "hu"}">
+<html lang="${lang}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>${escapeHtml(par.par_neve)} esküvője</title>
+<title>${escapeHtml(copy.pageTitle(par.par_neve))}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Great+Vibes&family=Cinzel:wght@500;600&family=Poppins:wght@400;500;600&family=Caveat:wght@500;600&display=swap" rel="stylesheet">

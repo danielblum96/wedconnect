@@ -1,17 +1,34 @@
 import { getSessionReseller } from "../_utils/auth.js";
 import { escapeHtml } from "../_utils/html.js";
 import { countryOptions } from "../_utils/countries.js";
+import { getResellerCopy } from "../_utils/i18n.js";
 
 const PW_ERROR_MESSAGES = {
-  wrong_current: "Das aktuelle Passwort ist falsch.",
-  weak_password: "Das neue Passwort muss mindestens 8 Zeichen lang sein.",
-  mismatch: "Die beiden neuen Passwörter stimmen nicht überein.",
+  de: {
+    wrong_current: "Das aktuelle Passwort ist falsch.",
+    weak_password: "Das neue Passwort muss mindestens 8 Zeichen lang sein.",
+    mismatch: "Die beiden neuen Passwörter stimmen nicht überein.",
+  },
+  hu: {
+    wrong_current: "A jelenlegi jelszó helytelen.",
+    weak_password: "Az új jelszónak legalább 8 karakter hosszúnak kell lennie.",
+    mismatch: "A két új jelszó nem egyezik.",
+  },
+  en: {
+    wrong_current: "The current password is incorrect.",
+    weak_password: "The new password must be at least 8 characters long.",
+    mismatch: "The two new passwords do not match.",
+  },
 };
 
 export async function onRequestGet(context) {
   const { request, env } = context;
   const reseller = await getSessionReseller(request, env.DB);
   if (!reseller) return Response.redirect(new URL("/partner/login", request.url).href, 303);
+
+  const lang = reseller.nyelv || "de";
+  const t = getResellerCopy(lang).account;
+  const pwErrorMessages = PW_ERROR_MESSAGES[lang] || PW_ERROR_MESSAGES.de;
 
   const url = new URL(request.url);
   const pwChanged = url.searchParams.get("pwchanged");
@@ -20,12 +37,12 @@ export async function onRequestGet(context) {
   const billingError = url.searchParams.get("billingerror");
 
   const html = `<!DOCTYPE html>
-<html lang="de">
+<html lang="${lang}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Konto — WedConnect</title>
+<title>${t.title}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
@@ -59,80 +76,80 @@ export async function onRequestGet(context) {
   <div class="brand">Wed<span>Connect</span> Partner</div>
   <div style="display:flex; align-items:center; gap:16px;">
     <span class="who">${escapeHtml(reseller.ceg_nev)} (${escapeHtml(reseller.email)})</span>
-    <a class="back-link" href="/partner/dashboard">Zurück zum Dashboard</a>
-    <form class="logout-form" method="POST" action="/api/reseller-logout"><button type="submit">Abmelden</button></form>
+    <a class="back-link" href="/partner/dashboard">${t.backToDashboard}</a>
+    <form class="logout-form" method="POST" action="/api/reseller-logout"><button type="submit">${t.logout}</button></form>
   </div>
 </header>
 <main>
-  <h2>Passwort ändern</h2>
+  <h2>${t.pwHeading}</h2>
   <div class="card">
-    ${pwError ? `<div class="error-box">${escapeHtml(PW_ERROR_MESSAGES[pwError] || "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.")}</div>` : ""}
-    ${pwChanged ? `<div class="info-box">Passwort geändert.</div>` : ""}
+    ${pwError ? `<div class="error-box">${escapeHtml(pwErrorMessages[pwError] || t.pwGenericError)}</div>` : ""}
+    ${pwChanged ? `<div class="info-box">${t.pwChanged}</div>` : ""}
     <form method="POST" action="/api/change-password">
-      <label>Aktuelles Passwort</label>
+      <label>${t.currentPassword}</label>
       <input type="password" name="jelenlegi_jelszo" required autocomplete="current-password">
-      <label>Neues Passwort</label>
+      <label>${t.newPassword}</label>
       <input type="password" name="uj_jelszo" required autocomplete="new-password" minlength="8">
-      <label>Neues Passwort bestätigen</label>
+      <label>${t.newPasswordConfirm}</label>
       <input type="password" name="uj_jelszo2" required autocomplete="new-password" minlength="8">
-      <button type="submit">Passwort speichern</button>
+      <button type="submit">${t.pwSave}</button>
     </form>
   </div>
 
-  <h2 style="margin-top:36px;">Rechnungs- &amp; Lieferadresse</h2>
+  <h2 style="margin-top:36px;">${t.addressHeading}</h2>
   <div class="card">
-    ${billingError ? `<div class="error-box">Bitte füllen Sie die Rechnungsadresse vollständig aus.</div>` : ""}
-    ${billingSaved ? `<div class="info-box">Adresse gespeichert.</div>` : ""}
+    ${billingError ? `<div class="error-box">${t.billingError}</div>` : ""}
+    ${billingSaved ? `<div class="info-box">${t.addressSaved}</div>` : ""}
     <form method="POST" action="/api/reseller-update-billing">
-      <label>USt-IdNr. / Steuernummer <span class="hint-inline">(optional)</span></label>
-      <input type="text" name="adoszam" placeholder="z. B. DE123456789" value="${escapeHtml(reseller.adoszam || "")}">
+      <label>${t.vatLabel} <span class="hint-inline">${t.optional}</span></label>
+      <input type="text" name="adoszam" placeholder="${t.vatPlaceholder}" value="${escapeHtml(reseller.adoszam || "")}">
 
-      <label>Straße und Hausnummer</label>
+      <label>${t.street}</label>
       <input type="text" name="szamlazasi_utca" value="${escapeHtml(reseller.szamlazasi_utca || "")}">
 
       <div class="field-row">
         <div>
-          <label>PLZ</label>
+          <label>${t.postalCode}</label>
           <input type="text" name="szamlazasi_irsz" value="${escapeHtml(reseller.szamlazasi_irsz || "")}">
         </div>
         <div>
-          <label>Ort</label>
+          <label>${t.city}</label>
           <input type="text" name="szamlazasi_varos" value="${escapeHtml(reseller.szamlazasi_varos || "")}">
         </div>
       </div>
 
-      <label>Land (Rechnungsadresse)</label>
+      <label>${t.countryBilling}</label>
       <select name="szamlazasi_orszag">
-        ${countryOptions(reseller.szamlazasi_orszag || reseller.orszag)}
+        ${countryOptions(reseller.szamlazasi_orszag || reseller.orszag, reseller.nyelv)}
       </select>
 
       <label class="toggle-label">
         <input type="checkbox" name="szallitas_azonos" value="1" id="acc-azonos" ${reseller.szallitas_azonos ? "checked" : ""}>
-        Lieferadresse ist identisch mit der Rechnungsadresse
+        ${t.shippingSameToggle}
       </label>
 
       <div id="acc-shipping-group" ${reseller.szallitas_azonos ? "hidden" : ""}>
-        <label>Straße und Hausnummer (Lieferadresse)</label>
+        <label>${t.streetShipping}</label>
         <input type="text" name="alap_szallitasi_utca" value="${escapeHtml(reseller.alap_szallitasi_utca || "")}">
 
         <div class="field-row">
           <div>
-            <label>PLZ</label>
+            <label>${t.postalCode}</label>
             <input type="text" name="alap_szallitasi_irsz" value="${escapeHtml(reseller.alap_szallitasi_irsz || "")}">
           </div>
           <div>
-            <label>Ort</label>
+            <label>${t.city}</label>
             <input type="text" name="alap_szallitasi_varos" value="${escapeHtml(reseller.alap_szallitasi_varos || "")}">
           </div>
         </div>
 
-        <label>Land (Lieferadresse)</label>
+        <label>${t.countryShipping}</label>
         <select name="alap_szallitasi_orszag">
-          ${countryOptions(reseller.alap_szallitasi_orszag || reseller.orszag)}
+          ${countryOptions(reseller.alap_szallitasi_orszag || reseller.orszag, reseller.nyelv)}
         </select>
       </div>
 
-      <button type="submit">Adresse speichern</button>
+      <button type="submit">${t.addressSave}</button>
     </form>
   </div>
 </main>

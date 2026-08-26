@@ -114,24 +114,89 @@
     color: var(--muted);
   }
   .foot a { color: var(--accent); text-decoration: none; }
+  .lang-switch { display: flex; justify-content: center; gap: 6px; margin-bottom: 22px; }
+  .lang-switch button {
+    width: auto; padding: 5px 12px; border-radius: 999px; background: none; border: 1px solid #ddd6c9;
+    color: var(--muted); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; cursor: pointer;
+  }
+  .lang-switch button.active { background: var(--accent); border-color: var(--accent); color: #1a1408; }
 </style>
 </head>
 <body>
   <div class="card">
     <div class="brand">Wed<span>Connect</span></div>
-    <h1>Passwort vergessen</h1>
+    <div class="lang-switch" id="lang-switch">
+      <button type="button" data-lang="de">DE</button>
+      <button type="button" data-lang="hu">HU</button>
+      <button type="button" data-lang="en">EN</button>
+    </div>
+    <h1 id="t-heading">Passwort vergessen</h1>
     <div class="error" id="err"></div>
     <div class="success" id="ok">Falls ein Konto mit dieser Email-Adresse existiert, wurde ein Link zum Zurücksetzen des Passworts gesendet.</div>
     <p class="hint" id="form-hint">Geben Sie Ihre Email-Adresse ein - wir senden Ihnen einen Link zum Zurücksetzen des Passworts.</p>
     <form method="POST" action="/api/forgot-password" id="form">
       <label for="email">Email</label>
       <input type="email" id="email" name="email" required autocomplete="username">
-      <button type="submit">Link senden</button>
+      <button type="submit" id="t-submit">Link senden</button>
     </form>
-    <div class="foot"><a href="/partner/login">Zurück zum Login</a></div>
+    <div class="foot"><a href="/partner/login" id="t-back">Zurück zum Login</a></div>
   </div>
   <script>
+    var COPY = {
+      de: {
+        heading: "Passwort vergessen", submit: "Link senden", back: "Zurück zum Login",
+        success: "Falls ein Konto mit dieser Email-Adresse existiert, wurde ein Link zum Zurücksetzen des Passworts gesendet.",
+        hint: "Geben Sie Ihre Email-Adresse ein - wir senden Ihnen einen Link zum Zurücksetzen des Passworts.",
+        errors: {
+          missing_fields: "Bitte geben Sie Ihre Email-Adresse ein.",
+          rate_limited: "Zu viele Anfragen. Bitte versuchen Sie es in einer Stunde erneut.",
+          generic: "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+        }
+      },
+      hu: {
+        heading: "Elfelejtett jelszó", submit: "Link küldése", back: "Vissza a bejelentkezéshez",
+        success: "Ha létezik fiók ezzel az email-címmel, elküldtük a jelszó-visszaállító linket.",
+        hint: "Adja meg az email-címét - elküldjük a jelszó-visszaállító linket.",
+        errors: {
+          missing_fields: "Kérjük, adja meg az email-címét.",
+          rate_limited: "Túl sok kérés. Kérjük, próbálja meg egy óra múlva újra.",
+          generic: "Valami hiba történt. Kérjük, próbálja meg újra."
+        }
+      },
+      en: {
+        heading: "Forgot password", submit: "Send link", back: "Back to login",
+        success: "If an account with this email address exists, a password reset link has been sent.",
+        hint: "Enter your email address - we'll send you a link to reset your password.",
+        errors: {
+          missing_fields: "Please enter your email address.",
+          rate_limited: "Too many requests. Please try again in an hour.",
+          generic: "Something went wrong. Please try again."
+        }
+      }
+    };
+
     var params = new URLSearchParams(location.search);
+    var lang = params.get("lang");
+    if (!COPY[lang]) lang = "de";
+    var t = COPY[lang];
+
+    document.documentElement.lang = lang;
+    document.title = t.heading + " — WedConnect";
+    document.getElementById("t-heading").textContent = t.heading;
+    document.getElementById("t-submit").textContent = t.submit;
+    document.getElementById("t-back").textContent = t.back;
+    document.getElementById("ok").textContent = t.success;
+    document.getElementById("form-hint").textContent = t.hint;
+
+    document.querySelectorAll("#lang-switch button").forEach(function (btn) {
+      if (btn.getAttribute("data-lang") === lang) btn.classList.add("active");
+      btn.addEventListener("click", function () {
+        var p = new URLSearchParams(location.search);
+        p.set("lang", btn.getAttribute("data-lang"));
+        location.search = p.toString();
+      });
+    });
+
     if (params.get("sent")) {
       document.getElementById("ok").style.display = "block";
       document.getElementById("form").style.display = "none";
@@ -139,12 +204,8 @@
     }
     var err = params.get("error");
     if (err) {
-      var messages = {
-        missing_fields: "Bitte geben Sie Ihre Email-Adresse ein.",
-        rate_limited: "Zu viele Anfragen. Bitte versuchen Sie es in einer Stunde erneut."
-      };
       var box = document.getElementById("err");
-      box.textContent = messages[err] || "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.";
+      box.textContent = t.errors[err] || t.errors.generic;
       box.style.display = "block";
     }
   </script>
