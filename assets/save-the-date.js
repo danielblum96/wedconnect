@@ -118,6 +118,19 @@ export function generateSVG(name1, name2, year, month, day, lang) {
   // x=5.9813447, width=52.309971 -> kozepe = 32.136331.
   svg = svg.replace(/x="17\.559452"/g, 'x="32.136331" text-anchor="middle"');
 
+  // Ha a honapnak 6 hete van (pl. 2026 augusztus), a naptar 6. sora
+  // (ROW_Y[5] = 60.3185) egeszen a nevek elotti FIX pozicioju elvalaszto
+  // csikig (y=57.0127) er fel es AT IS LOGJA azt - az eredeti sablon csak
+  // 5 soros honapokra volt kiigazitva. 6 soros honapnal az elvalaszto
+  // csikot es a neveket egy teljes sor-magassaggal (ROW_Y[1]-ROW_Y[0])
+  // lejjebb toljuk, hogy legyen hely a 6. sornak.
+  if (calendar.length === 6) {
+    const rowH = ROW_Y[1] - ROW_Y[0];
+    svg = svg
+      .replace("57.012719", (57.012719 + rowH).toFixed(6))
+      .replace(/y="66\.666985"/g, `y="${(66.666985 + rowH).toFixed(6)}"`);
+  }
+
   return svg;
 }
 
