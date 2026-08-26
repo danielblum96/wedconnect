@@ -1,11 +1,8 @@
 import { getSessionReseller } from "../_utils/auth.js";
 import { STYLES, FONT_RECIPES, getStyleName, resolveStyleByStoredValue } from "../_utils/styles.js";
 import { escapeHtml, safeHref } from "../_utils/html.js";
-import { getCopy, getStatusLabel, getResellerCopy } from "../_utils/i18n.js";
+import { getCopy, getStatusLabel, getResellerCopy, getPricing, formatPrice } from "../_utils/i18n.js";
 import { countryOptions } from "../_utils/countries.js";
-
-const PAGE_PRICE_EUR = 50;
-const STD_PRICE_EUR = 4;
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -30,6 +27,9 @@ export async function onRequestGet(context) {
   const lang = reseller.nyelv || "de";
   const t = getResellerCopy(lang).dashboard;
   const stdErrorMessages = t.stdError;
+  const pricing = getPricing(lang);
+  const PAGE_PRICE = pricing.pagePrice;
+  const STD_PRICE = pricing.stdPrice;
 
   const defaultMessage = getCopy(lang).defaultMessage;
   const defaultBilling = {
@@ -418,7 +418,7 @@ export async function onRequestGet(context) {
       <div class="wizard-step" data-step="3" hidden>
         <p class="step-label">${t.step3Label}</p>
         <p class="style-picker-hint">${t.stylePickerHint}</p>
-        <p class="price-note">${t.priceNote(PAGE_PRICE_EUR)}</p>
+        <p class="price-note">${t.priceNote(formatPrice(PAGE_PRICE, lang))}</p>
         <div class="style-picker" id="style-picker">${stylePicker}</div>
         <div class="wizard-nav">
           <button type="button" class="btn-back" data-back="2">${t.back}</button>
@@ -484,13 +484,13 @@ export async function onRequestGet(context) {
         ${t.wantStdToggle} <span class="hint-inline">${t.wantStdHint()}</span>
       </label>
       <div id="std-qty-group" hidden>
-        <label>${t.qtyLabel} <span class="hint-inline">${t.qtyHint(STD_PRICE_EUR.toFixed(2).replace(".", ","))}</span></label>
+        <label>${t.qtyLabel} <span class="hint-inline">${t.qtyHint(formatPrice(STD_PRICE, lang))}</span></label>
         <input type="number" name="mennyiseg" id="std-modal-menge" min="50" max="9999" value="50">
       </div>
       <div class="std-pricing">
-        <div class="std-price-row"><span>${t.pageLine}<span id="std-price-page-note">${t.priceOnce}</span></span><span id="std-price-page">${PAGE_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
-        <div class="std-price-row" id="std-price-std-row" hidden><span>${t.stdLine(`<span id="std-price-qty">50</span>`, STD_PRICE_EUR.toFixed(2).replace(".", ","))}</span><span id="std-price-sub">${STD_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
-        <div class="std-price-row std-price-total"><span>${t.total}</span><span id="std-price-total">${PAGE_PRICE_EUR.toFixed(2).replace(".", ",")} €</span></div>
+        <div class="std-price-row"><span>${t.pageLine}<span id="std-price-page-note">${t.priceOnce}</span></span><span id="std-price-page">${formatPrice(PAGE_PRICE, lang)}</span></div>
+        <div class="std-price-row" id="std-price-std-row" hidden><span>${t.stdLine(`<span id="std-price-qty">50</span>`, formatPrice(STD_PRICE, lang))}</span><span id="std-price-sub">${formatPrice(STD_PRICE, lang)}</span></div>
+        <div class="std-price-row std-price-total"><span>${t.total}</span><span id="std-price-total">${formatPrice(PAGE_PRICE, lang)}</span></div>
       </div>
       <label>${t.vatLabel} <span class="hint-inline">${t.optional}</span></label>
       <input type="text" name="adoszam" id="std-modal-adoszam" placeholder="${t.vatPlaceholder}" value="${escapeHtml(defaultAdoszam)}">
@@ -786,12 +786,16 @@ export async function onRequestGet(context) {
   var stdPriceTotal = document.getElementById("std-price-total");
   var stdNfcBadge = document.getElementById("std-nfc-badge");
   var stdStageCaption = document.getElementById("std-stage-caption");
-  var PAGE_PRICE_EUR = ${PAGE_PRICE_EUR};
-  var STD_PRICE_EUR = ${STD_PRICE_EUR};
+  var PAGE_PRICE = ${PAGE_PRICE};
+  var STD_PRICE = ${STD_PRICE};
+  var CURRENCY = ${JSON.stringify(pricing.currency)};
+  var PRICE_LOCALE = ${JSON.stringify(lang === "hu" ? "hu-HU" : lang === "en" ? "en-US" : "de-DE")};
   var currentCouple = {};
 
-  function formatEUR(n) {
-    return n.toFixed(2).replace(".", ",") + " €";
+  function formatPrice(n) {
+    var opts = { style: "currency", currency: CURRENCY };
+    if (CURRENCY === "HUF") opts.maximumFractionDigits = 0;
+    return new Intl.NumberFormat(PRICE_LOCALE, opts).format(n);
   }
 
   function renderPageMock(nev1, nev2, datum, stilusId, uzenet, gombokJson) {
@@ -856,10 +860,10 @@ export async function onRequestGet(context) {
 
     if (!wantStd) {
       stdModalMenge.value = "0";
-      stdPricePage.textContent = formatEUR(PAGE_PRICE_EUR);
+      stdPricePage.textContent = formatPrice(PAGE_PRICE);
       stdPricePage.className = "";
       stdPricePageNote.textContent = COPY.priceOnce;
-      stdPriceTotal.textContent = formatEUR(PAGE_PRICE_EUR);
+      stdPriceTotal.textContent = formatPrice(PAGE_PRICE);
       return;
     }
 
@@ -868,14 +872,14 @@ export async function onRequestGet(context) {
       qty = 50;
       stdModalMenge.value = "50";
     }
-    var sub = qty * STD_PRICE_EUR;
+    var sub = qty * STD_PRICE;
     var pageFree = qty >= 50;
     stdPriceQty.textContent = qty;
-    stdPriceSub.textContent = formatEUR(sub);
-    stdPricePage.textContent = pageFree ? "0,00 €" : formatEUR(PAGE_PRICE_EUR);
+    stdPriceSub.textContent = formatPrice(sub);
+    stdPricePage.textContent = pageFree ? formatPrice(0) : formatPrice(PAGE_PRICE);
     stdPricePage.className = pageFree ? "std-price-page-free" : "";
     stdPricePageNote.textContent = pageFree ? COPY.priceFreeFrom50 : COPY.priceOnceUnder50;
-    stdPriceTotal.textContent = formatEUR((pageFree ? 0 : PAGE_PRICE_EUR) + sub);
+    stdPriceTotal.textContent = formatPrice((pageFree ? 0 : PAGE_PRICE) + sub);
   }
 
   if (stdModalMenge) stdModalMenge.addEventListener("input", updateStdPricing);

@@ -3,9 +3,7 @@ import { escapeHtml } from "../_utils/html.js";
 import { sendEmail } from "../_utils/mailer.js";
 import { generateSVG } from "../_utils/saveTheDate.js";
 import { countryLabel } from "../_utils/countries.js";
-
-const PAGE_PRICE_EUR = 50;
-const STD_PRICE_EUR = 4;
+import { getPricing, formatPrice } from "../_utils/i18n.js";
 
 function utf8ToBase64(str) {
   const bytes = new TextEncoder().encode(str);
@@ -60,17 +58,22 @@ export async function onRequestPost(context) {
     .first();
   if (!par) return backWithError("invalid");
 
-  const stdSubtotal = mennyiseg * STD_PRICE_EUR;
-  const pageFee = wantsStd ? 0 : PAGE_PRICE_EUR;
+  const lang = reseller.nyelv || "de";
+  const pricing = getPricing(lang);
+  const PAGE_PRICE = pricing.pagePrice;
+  const STD_PRICE = pricing.stdPrice;
+
+  const stdSubtotal = mennyiseg * STD_PRICE;
+  const pageFee = wantsStd ? 0 : PAGE_PRICE;
   const total = pageFee + stdSubtotal;
   const csomag = wantsStd ? "Save the Date naptár (Seite inklusive)" : "Hochzeitsseite (ohne Save the Date)";
 
   await env.DB.prepare(
     `INSERT INTO rendelesek (
-      viszontelado_id, par_id, csomag, mennyiseg, ar_osszesen, megjegyzes,
+      viszontelado_id, par_id, csomag, mennyiseg, ar_osszesen, penznem, megjegyzes,
       adoszam, szamlazasi_utca, szamlazasi_irsz, szamlazasi_varos, szamlazasi_orszag,
       szallitasi_utca, szallitasi_irsz, szallitasi_varos, szallitasi_orszag
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       reseller.id,
@@ -78,6 +81,7 @@ export async function onRequestPost(context) {
       csomag,
       wantsStd ? mennyiseg : 1,
       total,
+      pricing.currency,
       megjegyzes || null,
       adoszam || null,
       billing.utca,
@@ -103,30 +107,30 @@ export async function onRequestPost(context) {
       const filename = `${par.slug}-save-the-date.svg`;
       attachments = [{ filename, content: utf8ToBase64(svg) }];
       stdBlock = `
-        <p><strong>Hochzeitsseite:</strong> kostenlos (Save the Date-Bestellung ab 50 Stück)</p>
-        <p><strong>Save the Date:</strong> ${mennyiseg} db × ${STD_PRICE_EUR.toFixed(2)} € = ${stdSubtotal.toFixed(2)} €</p>
+        <p><strong>Esküvői oldal:</strong> ingyenes (50+ db Save the Date rendelésnél)</p>
+        <p><strong>Save the Date:</strong> ${mennyiseg} db × ${formatPrice(STD_PRICE, lang)} = ${formatPrice(stdSubtotal, lang)}</p>
         <p><strong>Szállítási cím:</strong><br>${formatAddressHtml(shipping)}</p>
         <p>A pontos, lézervágásra kész SVG-fájl csatolva.</p>
       `;
     } else {
-      stdBlock = `<p><strong>Hochzeitsseite (einmalig):</strong> ${PAGE_PRICE_EUR.toFixed(2)} €</p>`;
+      stdBlock = `<p><strong>Esküvői oldal (egyszeri):</strong> ${formatPrice(PAGE_PRICE, lang)}</p>`;
     }
 
     const html = `
-      <h2>Új rendelés (Bestellung abschließen)</h2>
+      <h2>Új rendelés</h2>
       <p><strong>Viszonteladó:</strong> ${escapeHtml(reseller.ceg_nev)} (${escapeHtml(reseller.email)})</p>
       <p><strong>Pár:</strong> ${escapeHtml(par.par_neve)} · ${escapeHtml(par.eskuvo_datuma)}</p>
       ${stdBlock}
-      <p><strong>Összesen:</strong> ${total.toFixed(2)} € (fizetés még nincs beszedve – Stripe folyamatban)</p>
+      <p><strong>Összesen:</strong> ${formatPrice(total, lang)} (fizetés még nincs beszedve – Stripe folyamatban)</p>
       <p><strong>Számlázási cím:</strong><br>${formatAddressHtml(billing)}</p>
-      ${adoszam ? `<p><strong>USt-IdNr. / Steuernummer:</strong> ${escapeHtml(adoszam)}</p>` : ""}
+      ${adoszam ? `<p><strong>Adószám:</strong> ${escapeHtml(adoszam)}</p>` : ""}
       ${megjegyzes ? `<p><strong>Megjegyzés:</strong><br>${escapeHtml(megjegyzes).replace(/\n/g, "<br>")}</p>` : ""}
       <p><a href="https://wedconnect.eu/${escapeHtml(par.slug)}">A pár nyilvános oldala</a></p>
     `;
 
     await sendEmail(env, {
       to: env.ADMIN_EMAIL,
-      subject: `Bestellung abschließen (${total.toFixed(2)} €) – ${par.par_neve}`,
+      subject: `Új rendelés (${formatPrice(total, lang)}) – ${par.par_neve}`,
       html,
       attachments,
     });

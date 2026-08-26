@@ -49,6 +49,27 @@ export function getStatusLabel(status, lang) {
   return entry[lang] || entry.hu;
 }
 
+// Viszonteladói árazás nyelvenként (a HU piacnak saját, kerek forintárai vannak,
+// nem a DACH EUR-ár átváltása - ld. Viszonteladói platform vault-jegyzet, 2026-08-27).
+const PRICING = {
+  de: { pagePrice: 50, stdPrice: 4, currency: "EUR" },
+  en: { pagePrice: 50, stdPrice: 4, currency: "EUR" },
+  hu: { pagePrice: 9990, stdPrice: 1290, currency: "HUF" },
+};
+
+export function getPricing(lang) {
+  return PRICING[lang] || PRICING.de;
+}
+
+export function formatPrice(amount, lang) {
+  const currency = getPricing(lang).currency;
+  if (currency === "HUF") {
+    return new Intl.NumberFormat("hu-HU", { style: "currency", currency: "HUF", maximumFractionDigits: 0 }).format(amount);
+  }
+  const locale = lang === "en" ? "en-US" : "de-DE";
+  return new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }).format(amount);
+}
+
 // A viszonteladói felület (Konto, Dashboard) szövegei, nyelvenként.
 // A `viszontelado.nyelv` mező dönti el, melyik készletet használjuk –
 // regisztrációkor a kiválasztott országból származtatva (lásd countryToLang).
@@ -91,7 +112,7 @@ export const RESELLER_COPY = {
         invalid: "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
         missing_address: "Bitte geben Sie eine Lieferadresse ein.",
         missing_billing: "Bitte geben Sie eine Rechnungsadresse ein.",
-        min_quantity: "Die Mindestbestellmenge für Save the Date-Karten beträgt 50 Stück.",
+        min_quantity: "Die Mindestbestellmenge für Save the Date-Kalender beträgt 50 Stück.",
       },
       successTitle: "Fertig! Die Seite ist online.",
       viewPage: "Seite ansehen",
@@ -118,7 +139,7 @@ export const RESELLER_COPY = {
       back: "Zurück",
       step3Label: "Schritt 3 von 3 · Stil wählen",
       stylePickerHint: "Klicken Sie auf den Stil, der am besten zur Hochzeit passt – Namen, Datum, Nachricht und Buttons werden direkt in der Vorschau angezeigt.",
-      priceNote: (price) => `Preis: ${price} € einmalig pro Hochzeitsseite`,
+      priceNote: (price) => `Preis: ${price} einmalig pro Hochzeitsseite`,
       styleConfirm: "✓ Seite erstellen",
       createPage: "Seite erstellen",
       yourCouples: "Ihre Brautpaare",
@@ -142,15 +163,15 @@ export const RESELLER_COPY = {
       wedconnectLink: "WedConnect-Link",
       moreInfoAria: "Mehr erfahren",
       infoPopover: "WedConnect ist eine NFC-basierte Lösung: Beim Antippen mit dem Smartphone öffnet sich automatisch die individuelle Seite des Brautpaars.",
-      wantStdToggle: "Save the Date-Karten bestellen",
+      wantStdToggle: "Save the Date-Kalender bestellen",
       wantStdHint: (price) => `(mind. 50 Stück – dann ist die Hochzeitsseite kostenlos!)`,
       qtyLabel: "Menge",
-      qtyHint: (price) => `(${price} € / Stück, mind. 50 Stück)`,
+      qtyHint: (price) => `(${price} / Stück, mind. 50 Stück)`,
       pageLine: "Hochzeitsseite",
       priceOnce: " (einmalig)",
       priceFreeFrom50: " (kostenlos ab 50 Stück)",
       priceOnceUnder50: " (einmalig, unter 50 Stück)",
-      stdLine: (qty, price) => `Save the Date (${qty} × ${price} €)`,
+      stdLine: (qty, price) => `Save the Date (${qty} × ${price})`,
       total: "Gesamt",
       vatLabel: "USt-IdNr. / Steuernummer",
       optional: "(optional)",
@@ -245,7 +266,7 @@ export const RESELLER_COPY = {
       back: "Vissza",
       step3Label: "3/3. lépés · Stílus kiválasztása",
       stylePickerHint: "Kattintson az esküvőhöz legjobban illő stílusra – a nevek, a dátum, az üzenet és a gombok azonnal megjelennek az előnézetben.",
-      priceNote: (price) => `Ár: ${price} € egyszeri díj esküvői oldalanként`,
+      priceNote: (price) => `Ár: ${price} egyszeri díj esküvői oldalanként`,
       styleConfirm: "✓ Oldal létrehozása",
       createPage: "Oldal létrehozása",
       yourCouples: "Az Ön párjai",
@@ -269,15 +290,15 @@ export const RESELLER_COPY = {
       wedconnectLink: "WedConnect-link",
       moreInfoAria: "Tudjon meg többet",
       infoPopover: "A WedConnect egy NFC-alapú megoldás: okostelefonnal megérintve automatikusan megnyílik a pár egyedi oldala.",
-      wantStdToggle: "Save the Date kártyák rendelése",
+      wantStdToggle: "Save the Date naptárak rendelése",
       wantStdHint: (price) => `(min. 50 darab – ekkor az esküvői oldal ingyenes!)`,
       qtyLabel: "Mennyiség",
-      qtyHint: (price) => `(${price} € / darab, min. 50 darab)`,
+      qtyHint: (price) => `(${price} / darab, min. 50 darab)`,
       pageLine: "Esküvői oldal",
       priceOnce: " (egyszeri)",
       priceFreeFrom50: " (ingyenes 50 darabtól)",
       priceOnceUnder50: " (egyszeri, 50 darab alatt)",
-      stdLine: (qty, price) => `Save the Date (${qty} × ${price} €)`,
+      stdLine: (qty, price) => `Save the Date (${qty} × ${price})`,
       total: "Összesen",
       vatLabel: "Adószám",
       optional: "(opcionális)",
@@ -345,7 +366,7 @@ export const RESELLER_COPY = {
         invalid: "Something went wrong. Please try again.",
         missing_address: "Please enter a shipping address.",
         missing_billing: "Please enter a billing address.",
-        min_quantity: "The minimum order quantity for Save the Date cards is 50 pieces.",
+        min_quantity: "The minimum order quantity for Save the Date calendars is 50 pieces.",
       },
       successTitle: "Done! The page is live.",
       viewPage: "View page",
@@ -372,7 +393,7 @@ export const RESELLER_COPY = {
       back: "Back",
       step3Label: "Step 3 of 3 · Choose a style",
       stylePickerHint: "Click the style that best fits the wedding – names, date, message and buttons are shown directly in the preview.",
-      priceNote: (price) => `Price: €${price} one-time per wedding page`,
+      priceNote: (price) => `Price: ${price} one-time per wedding page`,
       styleConfirm: "✓ Create page",
       createPage: "Create page",
       yourCouples: "Your couples",
@@ -396,15 +417,15 @@ export const RESELLER_COPY = {
       wedconnectLink: "WedConnect link",
       moreInfoAria: "Learn more",
       infoPopover: "WedConnect is an NFC-based solution: tapping with a smartphone automatically opens the couple's individual page.",
-      wantStdToggle: "Order Save the Date cards",
+      wantStdToggle: "Order Save the Date calendars",
       wantStdHint: (price) => `(min. 50 pieces – the wedding page is then free!)`,
       qtyLabel: "Quantity",
-      qtyHint: (price) => `(€${price} / piece, min. 50 pieces)`,
+      qtyHint: (price) => `(${price} / piece, min. 50 pieces)`,
       pageLine: "Wedding page",
       priceOnce: " (one-time)",
       priceFreeFrom50: " (free from 50 pieces)",
       priceOnceUnder50: " (one-time, under 50 pieces)",
-      stdLine: (qty, price) => `Save the Date (${qty} × €${price})`,
+      stdLine: (qty, price) => `Save the Date (${qty} × ${price})`,
       total: "Total",
       vatLabel: "VAT ID / tax number",
       optional: "(optional)",
