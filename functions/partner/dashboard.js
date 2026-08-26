@@ -288,7 +288,7 @@ export async function onRequestGet(context) {
   .btn-qr, .btn-delete { padding:7px 14px; border-radius:999px; font-weight:600; font-size:0.78rem; cursor:pointer; font-family:inherit; white-space:nowrap; }
   .btn-qr { border:1px solid #ddd6c9; background:none; color:var(--fg); }
   .btn-delete { border:1px solid #e0b8ac; background:none; color:#b1451f; }
-  .pw-link { font-size:0.85rem; color:var(--muted); text-decoration:underline; }
+  .account-link { font-size:0.85rem; color:var(--muted); text-decoration:underline; }
   .stats-bar { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:24px; }
   .stat { flex:1; min-width:180px; background:var(--card); border-radius:14px; padding:20px 22px; box-shadow:0 6px 20px -16px rgba(0,0,0,0.15); }
   .stat-value { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:2rem; color:var(--accent); line-height:1; }
@@ -344,7 +344,7 @@ export async function onRequestGet(context) {
   <div class="brand">Wed<span>Connect</span> Partner</div>
   <div style="display:flex; align-items:center; gap:16px;">
     <span class="who">${escapeHtml(reseller.ceg_nev)} (${escapeHtml(reseller.email)})</span>
-    <a class="pw-link" href="/partner/account">Passwort ändern</a>
+    <a class="account-link" href="/partner/account">Konto</a>
     <form class="logout-form" method="POST" action="/api/reseller-logout"><button type="submit">Abmelden</button></form>
   </div>
 </header>
