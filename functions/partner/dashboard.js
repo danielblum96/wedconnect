@@ -291,7 +291,7 @@ export async function onRequestGet(context) {
   .empty-text { font-size:0.9rem; color:var(--muted); }
   .btn-std-open { font-family:"Poppins",sans-serif; font-size:0.76rem; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:var(--accent); background:#fff; border:1.5px solid var(--accent); padding:10px 22px; border-radius:999px; cursor:pointer; transition:background 0.18s ease, color 0.18s ease; }
   .btn-std-open:hover { background:var(--accent); color:#fff; }
-  .std-modal { border:none; border-radius:22px; padding:0; max-width:760px; width:92vw; box-shadow:0 40px 90px -24px rgba(30,20,8,0.4); position:relative; }
+  .std-modal { border:none; border-radius:22px; padding:0; max-width:760px; width:92vw; box-shadow:0 40px 90px -24px rgba(30,20,8,0.4); position:relative; max-height:90vh; max-height:90dvh; overflow-y:auto; margin:auto; }
   .std-modal::backdrop { background:rgba(20,14,6,0.55); backdrop-filter:blur(3px); }
   .std-modal[open] { animation:std-modal-in 0.22s ease; }
   @keyframes std-modal-in { from { opacity:0; transform:translateY(10px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
@@ -302,6 +302,7 @@ export async function onRequestGet(context) {
   .qr-modal-image { margin:22px 0; display:flex; justify-content:center; }
   .qr-modal-image img { width:220px; height:220px; border-radius:12px; box-shadow:0 10px 24px -10px rgba(0,0,0,0.25); }
   .qr-download-btn { display:inline-block; text-decoration:none; padding:10px 24px; border-radius:999px; background:var(--accent); color:#1a1408; font-weight:600; font-size:0.85rem; }
+  .qr-long-press-hint { font-size:0.76rem; color:var(--muted); margin-top:14px; }
   .std-modal-head { padding:34px 44px 0; text-align:center; }
   .std-modal-title { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.7rem; margin:0; color:var(--fg); }
   .std-modal-subtitle { font-size:0.85rem; color:var(--muted); margin-top:5px; min-height:1.2em; }
@@ -548,6 +549,7 @@ export async function onRequestGet(context) {
     <h3 class="std-modal-title">${t.qrCode}</h3>
     <div class="qr-modal-image" id="qr-modal-image"></div>
     <a class="qr-download-btn" id="qr-download-link" download="">${t.qrDownload}</a>
+    <p class="qr-long-press-hint">${t.qrLongPressHint}</p>
   </div>
 </dialog>
 <script>
@@ -745,6 +747,7 @@ export async function onRequestGet(context) {
   var qrModal = document.getElementById("qr-modal");
   var qrModalImage = document.getElementById("qr-modal-image");
   var qrDownloadLink = document.getElementById("qr-download-link");
+  var currentQrCanvas = null;
 
   document.querySelectorAll(".btn-qr[data-url]").forEach(function (btn) {
     btn.addEventListener("click", function () {
@@ -770,12 +773,14 @@ export async function onRequestGet(context) {
         }
       }
       var dataUrl = canvas.toDataURL("image/png");
+      currentQrCanvas = canvas;
       if (qrModalImage) qrModalImage.innerHTML = '<img src="' + dataUrl + '" width="220" height="220" alt="QR code">';
       if (qrDownloadLink) {
         qrDownloadLink.href = dataUrl;
         qrDownloadLink.download = filename;
       }
       if (qrModal) {
+        window.scrollTo(0, 0);
         if (typeof qrModal.showModal === "function") {
           qrModal.showModal();
         } else {
@@ -784,6 +789,29 @@ export async function onRequestGet(context) {
       }
     });
   });
+
+  if (qrDownloadLink) {
+    qrDownloadLink.addEventListener("click", function (e) {
+      if (!navigator.share || !currentQrCanvas) return;
+      e.preventDefault();
+      var filename = qrDownloadLink.download || "qr-code.png";
+      var fallbackHref = qrDownloadLink.href;
+      currentQrCanvas.toBlob(function (blob) {
+        if (!blob) return;
+        var file = new File([blob], filename, { type: "image/png" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file] }).catch(function () {});
+        } else {
+          var a = document.createElement("a");
+          a.href = fallbackHref;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+      }, "image/png");
+    });
+  }
 
   if (qrModal) {
     qrModal.querySelector(".std-modal-close").addEventListener("click", function () {
@@ -980,6 +1008,7 @@ export async function onRequestGet(context) {
       if (stdModalCimVaros) stdModalCimVaros.value = DEFAULT_SHIPPING.varos;
       if (stdModalCimOrszag) stdModalCimOrszag.value = DEFAULT_SHIPPING.orszag;
       updateStdPricing();
+      window.scrollTo(0, 0);
       if (typeof stdModal.showModal === "function") {
         stdModal.showModal();
       } else {
