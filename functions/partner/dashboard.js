@@ -297,6 +297,11 @@ export async function onRequestGet(context) {
   @keyframes std-modal-in { from { opacity:0; transform:translateY(10px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
   .std-modal-close { position:absolute; top:14px; right:14px; width:34px; height:34px; border-radius:50%; border:none; background:#f4efe2; color:var(--fg); font-size:1.3rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; }
   .std-modal-close:hover { background:#eadfc4; }
+  .qr-modal { max-width:340px; }
+  .qr-modal-body { padding:36px 32px 32px; text-align:center; }
+  .qr-modal-image { margin:22px 0; display:flex; justify-content:center; }
+  .qr-modal-image img { width:220px; height:220px; border-radius:12px; box-shadow:0 10px 24px -10px rgba(0,0,0,0.25); }
+  .qr-download-btn { display:inline-block; text-decoration:none; padding:10px 24px; border-radius:999px; background:var(--accent); color:#1a1408; font-weight:600; font-size:0.85rem; }
   .std-modal-head { padding:34px 44px 0; text-align:center; }
   .std-modal-title { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.7rem; margin:0; color:var(--fg); }
   .std-modal-subtitle { font-size:0.85rem; color:var(--muted); margin-top:5px; min-height:1.2em; }
@@ -536,6 +541,15 @@ export async function onRequestGet(context) {
     </form>
   </div>
 </dialog>
+
+<dialog id="qr-modal" class="std-modal qr-modal">
+  <button type="button" class="std-modal-close" aria-label="${t.modalClose}">&times;</button>
+  <div class="qr-modal-body">
+    <h3 class="std-modal-title">${t.qrCode}</h3>
+    <div class="qr-modal-image" id="qr-modal-image"></div>
+    <a class="qr-download-btn" id="qr-download-link" download="">${t.qrDownload}</a>
+  </div>
+</dialog>
 <script>
 (function () {
   var DEFAULT_MESSAGE = ${defaultMessageForClient};
@@ -728,6 +742,10 @@ export async function onRequestGet(context) {
     });
   });
 
+  var qrModal = document.getElementById("qr-modal");
+  var qrModalImage = document.getElementById("qr-modal-image");
+  var qrDownloadLink = document.getElementById("qr-download-link");
+
   document.querySelectorAll(".btn-qr[data-url]").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var pageUrl = btn.getAttribute("data-url");
@@ -751,12 +769,30 @@ export async function onRequestGet(context) {
           if (qr.isDark(r, c)) ctx.fillRect(margin + c * cell, margin + r * cell, cell, cell);
         }
       }
-      var link = document.createElement("a");
-      link.download = filename;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
+      var dataUrl = canvas.toDataURL("image/png");
+      if (qrModalImage) qrModalImage.innerHTML = '<img src="' + dataUrl + '" width="220" height="220" alt="QR code">';
+      if (qrDownloadLink) {
+        qrDownloadLink.href = dataUrl;
+        qrDownloadLink.download = filename;
+      }
+      if (qrModal) {
+        if (typeof qrModal.showModal === "function") {
+          qrModal.showModal();
+        } else {
+          qrModal.setAttribute("open", "");
+        }
+      }
     });
   });
+
+  if (qrModal) {
+    qrModal.querySelector(".std-modal-close").addEventListener("click", function () {
+      qrModal.close();
+    });
+    qrModal.addEventListener("click", function (e) {
+      if (e.target === qrModal) qrModal.close();
+    });
+  }
 
   var stdModal = document.getElementById("std-modal");
   var stdModalPreview = document.getElementById("std-modal-preview");
