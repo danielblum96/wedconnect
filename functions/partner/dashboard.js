@@ -1002,7 +1002,14 @@ export async function onRequestGet(context) {
     stdModalMenge.addEventListener("input", updateStdPricing);
     stdModalMenge.addEventListener("blur", clampStdQty);
   }
-  if (stdWantStd) stdWantStd.addEventListener("change", updateStdPricing);
+  if (stdWantStd)
+    stdWantStd.addEventListener("change", function () {
+      if (stdWantStd.checked) {
+        var qty = parseInt(stdModalMenge.value, 10);
+        if (!qty || qty < 50) stdModalMenge.value = "50";
+      }
+      updateStdPricing();
+    });
 
   var stdOrderForm = stdModal ? stdModal.querySelector(".std-form") : null;
   if (stdOrderForm) {
