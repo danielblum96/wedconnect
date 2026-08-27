@@ -50,7 +50,7 @@ export async function onRequestPost(context) {
   const stdSubtotal = mennyiseg * STD_PRICE;
   const pageFee = wantsStd ? 0 : PAGE_PRICE;
   const total = pageFee + stdSubtotal;
-  const csomag = wantsStd ? "Save the Date naptár (Seite inklusive)" : "Hochzeitsseite (ohne Save the Date)";
+  const csomag = wantsStd ? pricing.stdProduct : pricing.pageOnlyProduct;
 
   const insert = await env.DB.prepare(
     `INSERT INTO rendelesek (

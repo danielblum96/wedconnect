@@ -52,10 +52,35 @@ export function getStatusLabel(status, lang) {
 
 // Viszonteladói árazás nyelvenként (a HU piacnak saját, kerek forintárai vannak,
 // nem a DACH EUR-ár átváltása - ld. Viszonteladói platform vault-jegyzet, 2026-08-27).
+// pageLabel/pageOnlyProduct/stdProduct: a Stripe Checkout terméknevéhez ÉS a
+// rendelesek.csomag mezőhöz - a viszonteladó nyelvén jelenjenek meg, ne
+// keveredjen nyelv (pl. egy magyar rendelésnél a Stripe oldalán ne legyen
+// német szöveg, ld. Viszonteladói platform vault-jegyzet, 2026-08-27).
 const PRICING = {
-  de: { pagePrice: 50, stdPrice: 4, currency: "EUR" },
-  en: { pagePrice: 50, stdPrice: 4, currency: "EUR" },
-  hu: { pagePrice: 9990, stdPrice: 1290, currency: "HUF" },
+  de: {
+    pagePrice: 50,
+    stdPrice: 4,
+    currency: "EUR",
+    pageLabel: "Hochzeitsseite",
+    pageOnlyProduct: "Hochzeitsseite (ohne Save the Date)",
+    stdProduct: "Save the Date-Kalender (Seite inklusive)",
+  },
+  en: {
+    pagePrice: 50,
+    stdPrice: 4,
+    currency: "EUR",
+    pageLabel: "Wedding page",
+    pageOnlyProduct: "Wedding page (without Save the Date)",
+    stdProduct: "Save the Date calendars (page included)",
+  },
+  hu: {
+    pagePrice: 9990,
+    stdPrice: 1290,
+    currency: "HUF",
+    pageLabel: "Esküvői oldal",
+    pageOnlyProduct: "Esküvői oldal (Save the Date nélkül)",
+    stdProduct: "Save the Date naptár (oldal ingyenes)",
+  },
 };
 
 export function getPricing(lang) {

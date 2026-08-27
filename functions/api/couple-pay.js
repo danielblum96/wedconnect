@@ -34,9 +34,9 @@ export async function onRequestPost(context) {
 
   const insert = await env.DB.prepare(
     `INSERT INTO rendelesek (viszontelado_id, par_id, csomag, mennyiseg, ar_osszesen, penznem, allapot)
-     VALUES (?, ?, 'Hochzeitsseite', 1, ?, ?, 'Fizetésre vár')`
+     VALUES (?, ?, ?, 1, ?, ?, 'Fizetésre vár')`
   )
-    .bind(reseller.id, par.id, pricing.pagePrice, pricing.currency)
+    .bind(reseller.id, par.id, pricing.pageLabel, pricing.pagePrice, pricing.currency)
     .run();
 
   const rendelesId = insert.meta.last_row_id;
@@ -45,7 +45,7 @@ export async function onRequestPost(context) {
     const session = await createCheckoutSession(env, {
       currency: pricing.currency,
       amount: pricing.pagePrice,
-      productName: `Hochzeitsseite – ${par.par_neve}`,
+      productName: `${pricing.pageLabel} – ${par.par_neve}`,
       successUrl: `${dashboardUrl}?stripe_session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${dashboardUrl}?stripe_cancelled=oldal`,
       customerEmail: reseller.email,
