@@ -550,15 +550,15 @@ export async function onRequestGet(context) {
       <input type="text" name="adoszam" id="std-modal-adoszam" placeholder="${t.vatPlaceholder}" value="${escapeHtml(defaultAdoszam)}">
 
       <label>${t.billingStreet}</label>
-      <input type="text" name="szamlazasi_utca" id="std-modal-billing-utca" required value="${escapeHtml(defaultBilling.utca)}">
+      <input type="text" name="szamlazasi_utca" id="std-modal-billing-utca" value="${escapeHtml(defaultBilling.utca)}">
       <div class="field-row">
         <div>
           <label>${t.postalCode}</label>
-          <input type="text" name="szamlazasi_irsz" id="std-modal-billing-irsz" required value="${escapeHtml(defaultBilling.irsz)}">
+          <input type="text" name="szamlazasi_irsz" id="std-modal-billing-irsz" value="${escapeHtml(defaultBilling.irsz)}">
         </div>
         <div>
           <label>${t.city}</label>
-          <input type="text" name="szamlazasi_varos" id="std-modal-billing-varos" required value="${escapeHtml(defaultBilling.varos)}">
+          <input type="text" name="szamlazasi_varos" id="std-modal-billing-varos" value="${escapeHtml(defaultBilling.varos)}">
         </div>
       </div>
       <label>${t.countryBilling}</label>
@@ -964,9 +964,6 @@ export async function onRequestGet(context) {
     var wantStd = stdWantStd.checked;
     stdQtyGroup.hidden = !wantStd;
     stdAddressGroup.hidden = !wantStd;
-    if (stdModalCimUtca) stdModalCimUtca.required = wantStd;
-    if (stdModalCimIrsz) stdModalCimIrsz.required = wantStd;
-    if (stdModalCimVaros) stdModalCimVaros.required = wantStd;
     stdPriceStdRow.hidden = !wantStd;
     updateStdPreviewMode(wantStd);
 
