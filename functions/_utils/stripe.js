@@ -49,7 +49,7 @@ export function toStripeAmount(amount) {
   return Math.round(amount * 100);
 }
 
-export async function createCheckoutSession(env, { currency, amount, productName, successUrl, cancelUrl, metadata, customerEmail }) {
+export async function createCheckoutSession(env, { currency, amount, productName, imageUrl, successUrl, cancelUrl, metadata, customerEmail }) {
   return stripeRequest(env, "POST", "/checkout/sessions", {
     mode: "payment",
     success_url: successUrl,
@@ -61,7 +61,7 @@ export async function createCheckoutSession(env, { currency, amount, productName
         price_data: {
           currency: currency.toLowerCase(),
           unit_amount: toStripeAmount(amount),
-          product_data: { name: productName },
+          product_data: { name: productName, images: imageUrl ? [imageUrl] : undefined },
         },
       },
     ],

@@ -159,8 +159,11 @@ export async function onRequestGet(context) {
             !p.rendeles_id
               ? `<div class="urgent-banner">
                   <span>${t.urgentBanner(hoursLeft(p, now), formatPrice(PAGE_PRICE, lang))}</span>
-                  <form method="POST" action="/api/couple-pay">
+                  <form method="POST" action="/api/couple-pay" class="couple-pay-form"
+                    data-nev1="${escapeHtml(nev1)}" data-nev2="${escapeHtml(nev2)}" data-datum="${escapeHtml(p.eskuvo_datuma)}"
+                    data-stilus="${escapeHtml(resolvedStyle.id)}" data-uzenet="${escapeHtml(p.egyedi_uzenet || "")}">
                     <input type="hidden" name="par_id" value="${p.id}">
+                    <input type="hidden" name="preview_kep" value="">
                     <button type="submit" class="btn-pay-now">${t.payNow}</button>
                   </form>
                 </div>`
@@ -523,6 +526,7 @@ export async function onRequestGet(context) {
     </div>
     <form method="POST" action="/api/order-save-the-date" class="std-form">
       <input type="hidden" name="par_id" id="std-modal-par-id" value="">
+      <input type="hidden" name="preview_kep" id="std-modal-preview-kep" value="">
       <div class="std-link-row">
         <label class="std-link-label">
           ${t.wedconnectLink}
@@ -950,6 +954,142 @@ export async function onRequestGet(context) {
       "</div>";
   }
 
+  // A Stripe checkout oldalán megjelenő termékkép (product_data.images) -
+  // egy önálló, egyszerű SVG-t rajzolunk (NEM a bonyolult lézervágó SVG-t
+  // újrahasznosítva), mert a Stripe csak JPEG/PNG/WEBP-et fogad el a
+  // termékképhez, ezért ezt a böngészőben egy <canvas>-ra kell rasterizálni.
+  // Biztonságos, mindenhol elérhető font-family-ket használunk (nem a Google
+  // Fonts-ot), mert egy off-DOM SVG->Image rasterizálásnál a külső
+  // webfontok nem biztos, hogy betöltődnek.
+  function formatDateDots(datum) {
+    var parts = (datum || "").split("-");
+    return parts.length === 3 ? parts[0] + "." + parts[1] + "." + parts[2] + "." : "";
+  }
+
+  function bgFillForSvg(bg, defId) {
+    var m = /^linear-gradient\\(\\s*([\\d.]+)deg\\s*,\\s*(#[0-9a-fA-F]{3,8})\\s*,\\s*(#[0-9a-fA-F]{3,8})\\s*\\)$/.exec(bg || "");
+    if (!m) return { defs: "", fill: bg || "#f5f0e6" };
+    var angle = parseFloat(m[1]);
+    var defs =
+      '<linearGradient id="' + defId + '" gradientTransform="rotate(' + (angle - 90) + ' 0.5 0.5)">' +
+      '<stop offset="0" stop-color="' + m[2] + '"/>' +
+      '<stop offset="1" stop-color="' + m[3] + '"/>' +
+      "</linearGradient>";
+    return { defs: defs, fill: "url(#" + defId + ")" };
+  }
+
+  function fontFamilyForSvg(font) {
+    if (font === "script" || font === "hand") return "cursive";
+    if (font && font.indexOf("serif") !== -1) return "Georgia, 'Times New Roman', serif";
+    return "system-ui, -apple-system, sans-serif";
+  }
+
+  function buildStdBoxSvg(x, y, w, h, couple) {
+    var dateText = formatDateDots(couple.datum);
+    var names = (couple.nev1 || "") + " & " + (couple.nev2 || "");
+    return (
+      '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="16" fill="#ecd2a3"/>' +
+      '<text x="' + (x + w / 2) + '" y="' + (y + 34) + '" text-anchor="middle" font-family="Georgia, serif" font-size="14" letter-spacing="2" fill="#5c4023">SAVE THE DATE</text>' +
+      '<rect x="' + (x + 16) + '" y="' + (y + 52) + '" width="' + (w - 32) + '" height="34" fill="#1a1408"/>' +
+      '<text x="' + (x + w / 2) + '" y="' + (y + 75) + '" text-anchor="middle" font-family="system-ui, sans-serif" font-size="15" font-weight="700" fill="#ffffff">' +
+      escapeHtml(dateText) +
+      "</text>" +
+      '<text x="' + (x + w / 2) + '" y="' + (y + h / 2 + 20) + '" text-anchor="middle" font-family="cursive" font-size="26" fill="#4a3420">' +
+      escapeHtml(names) +
+      "</text>" +
+      '<text x="' + (x + w / 2) + '" y="' + (y + h - 30) + '" text-anchor="middle" font-size="20" fill="#a8481f">&#10084;</text>' +
+      '<text x="' + (x + w / 2) + '" y="' + (y + h - 12) + '" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" letter-spacing="1" fill="#8a6a3f">+ WEDCONNECT</text>'
+    );
+  }
+
+  function buildPageBoxSvg(x, y, w, h, couple, style) {
+    var grad = bgFillForSvg(style.bg, "pageGrad" + Math.round(x));
+    var dateText = formatDateDots(couple.datum);
+    var names = (couple.nev1 || "") + " & " + (couple.nev2 || "");
+    var msg = couple.uzenet || "";
+    if (msg.length > 46) msg = msg.slice(0, 45) + "…";
+    var namesFont = fontFamilyForSvg(style.font);
+    return (
+      grad.defs +
+      '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="16" fill="' + grad.fill + '"/>' +
+      '<text x="' + (x + w / 2) + '" y="' + (y + 36) + '" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" letter-spacing="3" fill="' + style.accentText + '">' +
+      escapeHtml((COPY.mockEyebrow || "").toUpperCase()) +
+      "</text>" +
+      '<text x="' + (x + w / 2) + '" y="' + (y + h / 2 - 10) + '" text-anchor="middle" font-family="' + namesFont + '" font-size="24" fill="' + style.fg + '">' +
+      escapeHtml(names) +
+      "</text>" +
+      '<text x="' + (x + w / 2) + '" y="' + (y + h / 2 + 20) + '" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" fill="' + style.accentText + '">' +
+      escapeHtml(dateText) +
+      "</text>" +
+      (msg
+        ? '<text x="' + (x + w / 2) + '" y="' + (y + h - 26) + '" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="11" fill="' + style.fg + '">' +
+          escapeHtml(msg) +
+          "</text>"
+        : "")
+    );
+  }
+
+  function buildCheckoutPreviewSvg(wantStd, couple) {
+    var W = 640,
+      H = 420;
+    var style =
+      STYLES.filter(function (s) {
+        return s.id === couple.stilus;
+      })[0] || STYLES[0];
+    var inner = "";
+    if (wantStd) {
+      var boxW = 220,
+        boxH = 340,
+        gap = 70;
+      var startX = (W - (boxW * 2 + gap)) / 2;
+      var y = (H - boxH) / 2;
+      inner += buildStdBoxSvg(startX, y, boxW, boxH, couple);
+      inner +=
+        '<text x="' + (startX + boxW + gap / 2) + '" y="' + (y + boxH / 2 + 16) + '" text-anchor="middle" font-family="system-ui, sans-serif" font-size="46" font-weight="700" fill="#b48b56">+</text>';
+      inner += buildPageBoxSvg(startX + boxW + gap, y, boxW, boxH, couple, style);
+    } else {
+      var w2 = 300,
+        h2 = 380;
+      inner += buildPageBoxSvg((W - w2) / 2, (H - h2) / 2, w2, h2, couple, style);
+    }
+    return (
+      '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '">' +
+      '<rect width="' + W + '" height="' + H + '" fill="#faf7f2"/>' +
+      inner +
+      "</svg>"
+    );
+  }
+
+  function svgToPngDataUrl(svgMarkup, width, height) {
+    return new Promise(function (resolve) {
+      try {
+        var canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        var ctx = canvas.getContext("2d");
+        var img = new Image();
+        img.onload = function () {
+          try {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/png"));
+          } catch (e) {
+            resolve(null);
+          }
+        };
+        img.onerror = function () {
+          resolve(null);
+        };
+        img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgMarkup)));
+      } catch (e) {
+        resolve(null);
+      }
+    });
+  }
+
+  function buildCheckoutPreviewDataUrl(wantStd, couple) {
+    return svgToPngDataUrl(buildCheckoutPreviewSvg(wantStd, couple), 640, 420);
+  }
+
   function updateStdPreviewMode(wantStd) {
     if (stdNfcBadge) stdNfcBadge.hidden = !wantStd;
     if (stdStageCaption) stdStageCaption.hidden = !wantStd;
@@ -1012,11 +1152,36 @@ export async function onRequestGet(context) {
     });
 
   var stdOrderForm = stdModal ? stdModal.querySelector(".std-form") : null;
+  var stdPreviewKepInput = document.getElementById("std-modal-preview-kep");
   if (stdOrderForm) {
-    stdOrderForm.addEventListener("submit", function () {
+    stdOrderForm.addEventListener("submit", function (e) {
+      e.preventDefault();
       if (stdWantStd && stdWantStd.checked) clampStdQty();
+      var wantStd = !!(stdWantStd && stdWantStd.checked);
+      buildCheckoutPreviewDataUrl(wantStd, currentCouple).then(function (dataUrl) {
+        if (stdPreviewKepInput) stdPreviewKepInput.value = dataUrl || "";
+        stdOrderForm.submit();
+      });
     });
   }
+
+  document.querySelectorAll(".couple-pay-form").forEach(function (form) {
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var couple = {
+        nev1: form.getAttribute("data-nev1"),
+        nev2: form.getAttribute("data-nev2"),
+        datum: form.getAttribute("data-datum"),
+        stilus: form.getAttribute("data-stilus"),
+        uzenet: form.getAttribute("data-uzenet"),
+      };
+      var previewInput = form.querySelector('[name="preview_kep"]');
+      buildCheckoutPreviewDataUrl(false, couple).then(function (dataUrl) {
+        if (previewInput) previewInput.value = dataUrl || "";
+        form.submit();
+      });
+    });
+  });
 
   function renderStdPreview(nev1, nev2, datum, nyelv) {
     if (!window.STD || !window.STD.generateMockupSVG) {

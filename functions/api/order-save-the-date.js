@@ -1,6 +1,7 @@
 import { getSessionReseller } from "../_utils/auth.js";
 import { getPricing } from "../_utils/i18n.js";
 import { createCheckoutSession } from "../_utils/stripe.js";
+import { decodeBase64Png } from "../_utils/previewImage.js";
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -13,6 +14,7 @@ export async function onRequestPost(context) {
   const mennyiseg = mennyisegRaw === "" ? 0 : parseInt(mennyisegRaw, 10);
   const megjegyzes = (formData.get("megjegyzes") || "").toString().trim();
   const adoszam = (formData.get("adoszam") || "").toString().trim();
+  const previewKep = decodeBase64Png((formData.get("preview_kep") || "").toString());
 
   const billing = {
     utca: (formData.get("szamlazasi_utca") || "").toString().trim(),
@@ -56,8 +58,8 @@ export async function onRequestPost(context) {
     `INSERT INTO rendelesek (
       viszontelado_id, par_id, csomag, mennyiseg, ar_osszesen, penznem, allapot, megjegyzes,
       adoszam, szamlazasi_utca, szamlazasi_irsz, szamlazasi_varos, szamlazasi_orszag,
-      szallitasi_utca, szallitasi_irsz, szallitasi_varos, szallitasi_orszag
-    ) VALUES (?, ?, ?, ?, ?, ?, 'Fizetésre vár', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      szallitasi_utca, szallitasi_irsz, szallitasi_varos, szallitasi_orszag, preview_kep
+    ) VALUES (?, ?, ?, ?, ?, ?, 'Fizetésre vár', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       reseller.id,
@@ -75,18 +77,21 @@ export async function onRequestPost(context) {
       wantsStd ? shipping.utca : null,
       wantsStd ? shipping.irsz : null,
       wantsStd ? shipping.varos : null,
-      wantsStd ? shipping.orszag || null : null
+      wantsStd ? shipping.orszag || null : null,
+      previewKep
     )
     .run();
 
   const rendelesId = insert.meta.last_row_id;
   const dashboardUrl = new URL("/partner/dashboard", request.url).href;
+  const imageUrl = previewKep ? `${new URL("/api/checkout-preview", request.url).href}?rendeles_id=${rendelesId}` : undefined;
 
   try {
     const session = await createCheckoutSession(env, {
       currency: pricing.currency,
       amount: total,
       productName: csomag,
+      imageUrl,
       successUrl: `${dashboardUrl}?stripe_session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${dashboardUrl}?stripe_cancelled=std`,
       customerEmail: reseller.email,

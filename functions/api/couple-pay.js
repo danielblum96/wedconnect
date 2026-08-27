@@ -1,6 +1,7 @@
 import { getSessionReseller } from "../_utils/auth.js";
 import { getPricing } from "../_utils/i18n.js";
 import { createCheckoutSession } from "../_utils/stripe.js";
+import { decodeBase64Png } from "../_utils/previewImage.js";
 
 // Egy már élő, de MÉG NEM rendezett (parok.rendeles_id IS NULL) esküvői oldal
 // önálló kifizetése - a dashboard "Fizetés" gombja hívja. Ugyanaz a
@@ -15,6 +16,7 @@ export async function onRequestPost(context) {
 
   const formData = await request.formData();
   const parId = parseInt((formData.get("par_id") || "").toString(), 10);
+  const previewKep = decodeBase64Png((formData.get("preview_kep") || "").toString());
   const dashboardUrl = new URL("/partner/dashboard", request.url).href;
 
   function backWithError(code) {
@@ -33,19 +35,21 @@ export async function onRequestPost(context) {
   const pricing = getPricing(lang);
 
   const insert = await env.DB.prepare(
-    `INSERT INTO rendelesek (viszontelado_id, par_id, csomag, mennyiseg, ar_osszesen, penznem, allapot)
-     VALUES (?, ?, ?, 1, ?, ?, 'Fizetésre vár')`
+    `INSERT INTO rendelesek (viszontelado_id, par_id, csomag, mennyiseg, ar_osszesen, penznem, allapot, preview_kep)
+     VALUES (?, ?, ?, 1, ?, ?, 'Fizetésre vár', ?)`
   )
-    .bind(reseller.id, par.id, pricing.pageLabel, pricing.pagePrice, pricing.currency)
+    .bind(reseller.id, par.id, pricing.pageLabel, pricing.pagePrice, pricing.currency, previewKep)
     .run();
 
   const rendelesId = insert.meta.last_row_id;
+  const imageUrl = previewKep ? `${new URL("/api/checkout-preview", request.url).href}?rendeles_id=${rendelesId}` : undefined;
 
   try {
     const session = await createCheckoutSession(env, {
       currency: pricing.currency,
       amount: pricing.pagePrice,
       productName: `${pricing.pageLabel} – ${par.par_neve}`,
+      imageUrl,
       successUrl: `${dashboardUrl}?stripe_session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${dashboardUrl}?stripe_cancelled=oldal`,
       customerEmail: reseller.email,
