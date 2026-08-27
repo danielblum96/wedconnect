@@ -41,6 +41,7 @@ export function countryToLang(orszag) {
 const STATUS_LABELS = {
   Új: { hu: "Új", de: "Neu", en: "New" },
   Aktív: { hu: "Aktív", de: "Aktiv", en: "Active" },
+  "Fizetésre vár": { hu: "Fizetésre vár", de: "Zahlung ausstehend", en: "Payment pending" },
 };
 
 export function getStatusLabel(status, lang) {
@@ -107,12 +108,19 @@ export const RESELLER_COPY = {
       logout: "Abmelden",
       genericError: "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
       coupleDeleted: "Brautpaar gelöscht.",
-      stdOrdered: "Bestellung erhalten. Die Zahlungsabwicklung folgt in Kürze – wir senden Ihnen den Zahlungslink.",
+      payNow: "Zahlung",
+      urgentBanner: (hours, price) =>
+        `⏰ Noch ${hours} Std., um die Seite zu bezahlen (${price}) ODER eine Save the Date-Bestellung von 50+ Stück aufzugeben – dann ist die Seite geschenkt! Sonst wird die Seite automatisch gelöscht.`,
+      stripeCancelled: "Die Zahlung wurde abgebrochen. Sie können es jederzeit erneut versuchen.",
+      stripeError: "Bei der Weiterleitung zur Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+      stdOrdered: "Bestellung erfolgreich aufgegeben und bezahlt. Wir stellen die Save the Date-Kalender in Kürze her und versenden sie.",
+      pagePaidBanner: "Zahlung erfolgreich! Ihre Hochzeitsseite ist jetzt vollständig gesichert.",
       stdError: {
         invalid: "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
         missing_address: "Bitte geben Sie eine Lieferadresse ein.",
         missing_billing: "Bitte geben Sie eine Rechnungsadresse ein.",
         min_quantity: "Die Mindestbestellmenge für Save the Date-Kalender beträgt 50 Stück.",
+        stripe_error: "Bei der Weiterleitung zur Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
       },
       successTitle: "Fertig! Die Seite ist online.",
       viewPage: "Seite ansehen",
@@ -236,12 +244,19 @@ export const RESELLER_COPY = {
       logout: "Kijelentkezés",
       genericError: "Valami hiba történt. Kérjük, próbálja meg újra.",
       coupleDeleted: "Pár törölve.",
-      stdOrdered: "A rendelés megérkezett. A fizetés hamarosan következik – hamarosan küldjük a fizetési linket.",
+      payNow: "Fizetés",
+      urgentBanner: (hours, price) =>
+        `⏰ Még ${hours} órád van, hogy kifizesd az oldalt (${price}) VAGY leadj egy 50+ db-os Save the Date rendelést – utóbbi esetén az oldal ajándékba jár! Különben az oldal automatikusan törlődik.`,
+      stripeCancelled: "A fizetés megszakadt. Bármikor újra megpróbálhatja.",
+      stripeError: "Hiba történt a fizetéshez irányításnál. Kérjük, próbálja meg újra.",
+      stdOrdered: "A rendelés sikeresen leadva és kifizetve. Hamarosan elkészítjük és postázzuk a Save the Date naptárakat.",
+      pagePaidBanner: "Sikeres fizetés! Az esküvői oldala mostantól véglegesen biztosítva van.",
       stdError: {
         invalid: "Valami hiba történt. Kérjük, próbálja meg újra.",
         missing_address: "Kérjük, adjon meg egy szállítási címet.",
         missing_billing: "Kérjük, adjon meg egy számlázási címet.",
-        min_quantity: "A Save the Date kártyák minimális rendelési mennyisége 50 darab.",
+        min_quantity: "A Save the Date naptárak minimális rendelési mennyisége 50 darab.",
+        stripe_error: "Hiba történt a fizetéshez irányításnál. Kérjük, próbálja meg újra.",
       },
       successTitle: "Kész! Az oldal élesben van.",
       viewPage: "Oldal megtekintése",
@@ -365,12 +380,19 @@ export const RESELLER_COPY = {
       logout: "Log out",
       genericError: "Something went wrong. Please try again.",
       coupleDeleted: "Couple deleted.",
-      stdOrdered: "Order received. Payment processing will follow shortly – we'll send you the payment link.",
+      payNow: "Pay now",
+      urgentBanner: (hours, price) =>
+        `⏰ ${hours}h left to pay for the page (${price}) OR place a Save the Date order of 50+ pieces – in that case the page is free! Otherwise the page will be deleted automatically.`,
+      stripeCancelled: "Payment was cancelled. You can try again anytime.",
+      stripeError: "Something went wrong while redirecting to payment. Please try again.",
+      stdOrdered: "Order placed and paid successfully. We'll prepare and ship the Save the Date calendars shortly.",
+      pagePaidBanner: "Payment successful! Your wedding page is now fully secured.",
       stdError: {
         invalid: "Something went wrong. Please try again.",
         missing_address: "Please enter a shipping address.",
         missing_billing: "Please enter a billing address.",
         min_quantity: "The minimum order quantity for Save the Date calendars is 50 pieces.",
+        stripe_error: "Something went wrong while redirecting to payment. Please try again.",
       },
       successTitle: "Done! The page is live.",
       viewPage: "View page",

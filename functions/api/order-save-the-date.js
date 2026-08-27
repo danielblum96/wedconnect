@@ -1,20 +1,6 @@
 import { getSessionReseller } from "../_utils/auth.js";
-import { escapeHtml } from "../_utils/html.js";
-import { sendEmail } from "../_utils/mailer.js";
-import { generateSVG } from "../_utils/saveTheDate.js";
-import { countryLabel } from "../_utils/countries.js";
-import { getPricing, formatPrice } from "../_utils/i18n.js";
-
-function utf8ToBase64(str) {
-  const bytes = new TextEncoder().encode(str);
-  let binary = "";
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary);
-}
-
-function formatAddressHtml({ utca, irsz, varos, orszag }) {
-  return `${escapeHtml(utca)}<br>${escapeHtml(irsz)} ${escapeHtml(varos)}<br>${escapeHtml(countryLabel(orszag, "hu"))}`;
-}
+import { getPricing } from "../_utils/i18n.js";
+import { createCheckoutSession } from "../_utils/stripe.js";
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -51,9 +37,7 @@ export async function onRequestPost(context) {
   if (!billing.utca || !billing.irsz || !billing.varos) return backWithError("missing_billing");
   if (wantsStd && (!shipping.utca || !shipping.irsz || !shipping.varos)) return backWithError("missing_address");
 
-  const par = await env.DB.prepare(
-    "SELECT id, par_neve, nev1, nev2, eskuvo_datuma, slug, nyelv FROM parok WHERE id = ? AND viszontelado_id = ?"
-  )
+  const par = await env.DB.prepare("SELECT id, par_neve FROM parok WHERE id = ? AND viszontelado_id = ?")
     .bind(parId, reseller.id)
     .first();
   if (!par) return backWithError("invalid");
@@ -68,12 +52,12 @@ export async function onRequestPost(context) {
   const total = pageFee + stdSubtotal;
   const csomag = wantsStd ? "Save the Date naptár (Seite inklusive)" : "Hochzeitsseite (ohne Save the Date)";
 
-  await env.DB.prepare(
+  const insert = await env.DB.prepare(
     `INSERT INTO rendelesek (
-      viszontelado_id, par_id, csomag, mennyiseg, ar_osszesen, penznem, megjegyzes,
+      viszontelado_id, par_id, csomag, mennyiseg, ar_osszesen, penznem, allapot, megjegyzes,
       adoszam, szamlazasi_utca, szamlazasi_irsz, szamlazasi_varos, szamlazasi_orszag,
       szallitasi_utca, szallitasi_irsz, szallitasi_varos, szallitasi_orszag
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ) VALUES (?, ?, ?, ?, ?, ?, 'Fizetésre vár', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       reseller.id,
@@ -95,48 +79,23 @@ export async function onRequestPost(context) {
     )
     .run();
 
+  const rendelesId = insert.meta.last_row_id;
+  const dashboardUrl = new URL("/partner/dashboard", request.url).href;
+
   try {
-    let stdBlock = "";
-    let attachments = [];
-
-    if (wantsStd) {
-      const [year, month, day] = (par.eskuvo_datuma || "").split("-").map(Number);
-      const nev1 = par.nev1 || (par.par_neve || "").split(" & ")[0] || "";
-      const nev2 = par.nev2 || (par.par_neve || "").split(" & ")[1] || "";
-      const svg = generateSVG(nev1, nev2, year, month, day, par.nyelv || "hu");
-      const filename = `${par.slug}-save-the-date.svg`;
-      attachments = [{ filename, content: utf8ToBase64(svg) }];
-      stdBlock = `
-        <p><strong>Esküvői oldal:</strong> ingyenes (50+ db Save the Date rendelésnél)</p>
-        <p><strong>Save the Date:</strong> ${mennyiseg} db × ${formatPrice(STD_PRICE, lang)} = ${formatPrice(stdSubtotal, lang)}</p>
-        <p><strong>Szállítási cím:</strong><br>${formatAddressHtml(shipping)}</p>
-        <p>A pontos, lézervágásra kész SVG-fájl csatolva.</p>
-      `;
-    } else {
-      stdBlock = `<p><strong>Esküvői oldal (egyszeri):</strong> ${formatPrice(PAGE_PRICE, lang)}</p>`;
-    }
-
-    const html = `
-      <h2>Új rendelés</h2>
-      <p><strong>Viszonteladó:</strong> ${escapeHtml(reseller.ceg_nev)} (${escapeHtml(reseller.email)})</p>
-      <p><strong>Pár:</strong> ${escapeHtml(par.par_neve)} · ${escapeHtml(par.eskuvo_datuma)}</p>
-      ${stdBlock}
-      <p><strong>Összesen:</strong> ${formatPrice(total, lang)} (fizetés még nincs beszedve – Stripe folyamatban)</p>
-      <p><strong>Számlázási cím:</strong><br>${formatAddressHtml(billing)}</p>
-      ${adoszam ? `<p><strong>Adószám:</strong> ${escapeHtml(adoszam)}</p>` : ""}
-      ${megjegyzes ? `<p><strong>Megjegyzés:</strong><br>${escapeHtml(megjegyzes).replace(/\n/g, "<br>")}</p>` : ""}
-      <p><a href="https://wedconnect.eu/${escapeHtml(par.slug)}">A pár nyilvános oldala</a></p>
-    `;
-
-    await sendEmail(env, {
-      to: env.ADMIN_EMAIL,
-      subject: `Új rendelés (${formatPrice(total, lang)}) – ${par.par_neve}`,
-      html,
-      attachments,
+    const session = await createCheckoutSession(env, {
+      currency: pricing.currency,
+      amount: total,
+      productName: csomag,
+      successUrl: `${dashboardUrl}?stripe_session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: `${dashboardUrl}?stripe_cancelled=std`,
+      customerEmail: reseller.email,
+      metadata: { rendeles_id: String(rendelesId), tipus: "std", par_id: String(par.id) },
     });
+    await env.DB.prepare("UPDATE rendelesek SET stripe_session_id = ? WHERE id = ?").bind(session.id, rendelesId).run();
+    return Response.redirect(session.url, 303);
   } catch (e) {
-    console.error(`order-save-the-date: email küldése sikertelen: ${e.message}`);
+    console.error(`order-save-the-date: Stripe session létrehozása sikertelen (rendeles_id=${rendelesId}): ${e.message}`);
+    return backWithError("stripe_error");
   }
-
-  return Response.redirect(`${new URL("/partner/dashboard", request.url).href}?stdordered=1`, 303);
 }

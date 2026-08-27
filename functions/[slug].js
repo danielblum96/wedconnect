@@ -1,6 +1,7 @@
 import { FONT_RECIPES, namesFontSize, resolveStyleByStoredValue } from "./_utils/styles.js";
 import { escapeHtml, safeHref } from "./_utils/html.js";
 import { getCopy } from "./_utils/i18n.js";
+import { isExpiredUnpaid } from "./_utils/paymentFulfillment.js";
 
 function notFound() {
   const html = `<!DOCTYPE html>
@@ -44,12 +45,17 @@ export async function onRequestGet(context) {
   if (staticResp) return staticResp;
 
   const par = await env.DB.prepare(
-    "SELECT par_neve, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, nyelv FROM parok WHERE slug = ?"
+    "SELECT par_neve, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, nyelv, letrehozva, rendeles_id, viszontelado_id FROM parok WHERE slug = ?"
   )
     .bind(slug)
     .first();
 
   if (!par) return notFound();
+  // Ha az oldal 24 órán belül nem lett rendezve (fizetve, vagy 50+ Save the
+  // Date rendeléssel elengedve), a nyilvános oldal ne legyen elérhető - a
+  // tényleges törlés a viszonteladó dashboard-jának következő betöltésekor
+  // történik (ld. functions/partner/dashboard.js).
+  if (isExpiredUnpaid(par, Date.now())) return notFound();
 
   const style = resolveStyleByStoredValue(par.valasztott_stilus);
   const fontRecipe = FONT_RECIPES[style.font] || FONT_RECIPES.sans;

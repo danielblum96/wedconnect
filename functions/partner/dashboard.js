@@ -3,26 +3,22 @@ import { STYLES, FONT_RECIPES, getStyleName, resolveStyleByStoredValue } from ".
 import { escapeHtml, safeHref } from "../_utils/html.js";
 import { getCopy, getStatusLabel, getResellerCopy, getPricing, formatPrice } from "../_utils/i18n.js";
 import { countryOptions } from "../_utils/countries.js";
+import { retrieveCheckoutSession } from "../_utils/stripe.js";
+import { fulfillStripeOrder, isExpiredUnpaid, hoursLeft } from "../_utils/paymentFulfillment.js";
 
 export async function onRequestGet(context) {
   const { request, env } = context;
   const reseller = await getSessionReseller(request, env.DB);
   if (!reseller) return Response.redirect(new URL("/partner/login", request.url).href, 303);
 
-  const { results: parok } = await env.DB.prepare(
-    "SELECT id, par_neve, nev1, nev2, eskuvo_datuma, slug, allapot, valasztott_stilus, egyedi_uzenet, egyedi_gombok, nyelv FROM parok WHERE viszontelado_id = ? ORDER BY eskuvo_datuma DESC"
-  )
-    .bind(reseller.id)
-    .all();
-
   const url = new URL(request.url);
   const saved = url.searchParams.get("saved");
   const error = url.searchParams.get("error");
   const deleted = url.searchParams.get("deleted");
   const created = url.searchParams.get("created");
-  const createdCouple = created ? (parok || []).find((p) => p.slug === created) : null;
-  const stdOrdered = url.searchParams.get("stdordered");
   const stdError = url.searchParams.get("stderror");
+  const stripeSessionId = url.searchParams.get("stripe_session_id");
+  const stripeCancelled = url.searchParams.get("stripe_cancelled");
 
   const lang = reseller.nyelv || "de";
   const t = getResellerCopy(lang).dashboard;
@@ -30,6 +26,41 @@ export async function onRequestGet(context) {
   const pricing = getPricing(lang);
   const PAGE_PRICE = pricing.pagePrice;
   const STD_PRICE = pricing.stdPrice;
+
+  // A Stripe success_url visszaellenőrzése - a WEBHOOK az autoritatív
+  // megerősítési útvonal, ez csak egy gyorsabb, opcionális kiegészítés
+  // (idempotens, ld. _utils/paymentFulfillment.js), hogy a user ne kelljen
+  // várnia a webhook aszinkron beérkezésére a visszatéréskor.
+  let stripeBannerType = null;
+  if (stripeSessionId) {
+    try {
+      const session = await retrieveCheckoutSession(env, stripeSessionId);
+      if (session.payment_status === "paid" && session.metadata && session.metadata.rendeles_id) {
+        await fulfillStripeOrder(env, parseInt(session.metadata.rendeles_id, 10));
+        stripeBannerType = session.metadata.tipus || null;
+      }
+    } catch (e) {
+      console.error(`dashboard: Stripe session ellenőrzése sikertelen (session_id=${stripeSessionId}): ${e.message}`);
+    }
+  }
+
+  const { results: parokRaw } = await env.DB.prepare(
+    "SELECT id, par_neve, nev1, nev2, eskuvo_datuma, slug, allapot, valasztott_stilus, egyedi_uzenet, egyedi_gombok, nyelv, letrehozva, rendeles_id, viszontelado_id FROM parok WHERE viszontelado_id = ? ORDER BY eskuvo_datuma DESC"
+  )
+    .bind(reseller.id)
+    .all();
+
+  // Lazy takarítás: a 24 órán belül ki nem fizetett / rendezetlen oldalak
+  // törlése - nincs külön cron job (a Cloudflare Pages Functions ezt natívan
+  // nem támogatja), ehelyett minden dashboard-betöltéskor megtörténik.
+  const now = Date.now();
+  const expired = (parokRaw || []).filter((p) => isExpiredUnpaid(p, now));
+  for (const p of expired) {
+    await env.DB.prepare("DELETE FROM parok WHERE id = ? AND viszontelado_id = ?").bind(p.id, reseller.id).run();
+  }
+  const parok = (parokRaw || []).filter((p) => !isExpiredUnpaid(p, now));
+
+  const createdCouple = created ? parok.find((p) => p.slug === created) : null;
 
   const defaultMessage = getCopy(lang).defaultMessage;
   const defaultBilling = {
@@ -124,6 +155,17 @@ export async function onRequestGet(context) {
               </form>
             </div>
           </div>
+          ${
+            !p.rendeles_id
+              ? `<div class="urgent-banner">
+                  <span>${t.urgentBanner(hoursLeft(p, now), formatPrice(PAGE_PRICE, lang))}</span>
+                  <form method="POST" action="/api/couple-pay">
+                    <input type="hidden" name="par_id" value="${p.id}">
+                    <button type="submit" class="btn-pay-now">${t.payNow}</button>
+                  </form>
+                </div>`
+              : ""
+          }
           <details>
             <summary>${t.edit}</summary>
             <form method="POST" action="/api/couple-update" class="edit-form">
@@ -273,6 +315,10 @@ export async function onRequestGet(context) {
   .btn-remove-row { flex:none; border:none; background:none; color:var(--muted); font-size:1.2rem; line-height:1; cursor:pointer; padding:0 4px 14px; }
   .btn-add-row { border:1px dashed #ddd6c9; background:none; color:var(--accent); border-radius:8px; padding:9px 14px; font-size:0.85rem; font-weight:600; cursor:pointer; font-family:inherit; margin-bottom:20px; }
   .info-box { background:#eaf5ee; color:#3a7a4e; border:1px solid #bfe0cb; padding:10px 14px; border-radius:8px; font-size:0.85rem; margin-bottom:18px; }
+  .urgent-banner { display:flex; align-items:center; justify-content:space-between; gap:14px; background:linear-gradient(135deg,#fff0e0,#ffe0c2); border:1.5px solid #e8a15c; border-radius:10px; padding:12px 16px; margin-top:12px; font-size:0.83rem; font-weight:600; color:#8a4a0f; flex-wrap:wrap; animation:urgentPulse 2.2s ease-in-out infinite; }
+  @keyframes urgentPulse { 0%, 100% { box-shadow:0 0 0 0 rgba(232,161,92,0.45); } 50% { box-shadow:0 0 0 7px rgba(232,161,92,0); } }
+  .btn-pay-now { flex:none; padding:9px 20px; border:none; border-radius:999px; background:#c9660f; color:#fff; font-weight:700; font-size:0.82rem; cursor:pointer; white-space:nowrap; font-family:inherit; }
+  .btn-pay-now:hover { background:#a8540c; }
   .search-row input { margin-bottom:18px; }
   .couple-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
   .couple-actions { display:flex; gap:8px; flex:none; }
@@ -349,7 +395,9 @@ export async function onRequestGet(context) {
 <main>
   ${error ? `<div class="error-box">${t.genericError}</div>` : ""}
   ${deleted ? `<div class="info-box">${t.coupleDeleted}</div>` : ""}
-  ${stdOrdered ? `<div class="info-box">${t.stdOrdered}</div>` : ""}
+  ${stripeBannerType === "std" ? `<div class="info-box">${t.stdOrdered}</div>` : ""}
+  ${stripeBannerType === "oldal" ? `<div class="info-box">${t.pagePaidBanner}</div>` : ""}
+  ${stripeCancelled ? `<div class="error-box">${t.stripeCancelled}</div>` : ""}
   ${stdError ? `<div class="error-box">${escapeHtml(stdErrorMessages[stdError] || t.genericError)}</div>` : ""}
   ${
     createdCouple
