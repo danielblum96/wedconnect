@@ -222,7 +222,7 @@ export async function onRequestGet(context) {
 <title>${t.pageTitle}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Great+Vibes&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Great+Vibes&family=Cinzel:wght@500;600&family=Poppins:wght@400;500;600&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
 <script src="/assets/qrcode.min.js"></script>
 <script type="module">
   import { generateMockupSVG } from "/assets/save-the-date.js?v=8";
@@ -543,7 +543,7 @@ export async function onRequestGet(context) {
       </label>
       <div id="std-qty-group" hidden>
         <label>${t.qtyLabel} <span class="hint-inline">${t.qtyHint(formatPrice(STD_PRICE, lang))}</span></label>
-        <input type="number" name="mennyiseg" id="std-modal-menge" min="50" max="9999" value="50">
+        <input type="number" name="mennyiseg" id="std-modal-menge" value="50">
       </div>
       <div class="std-pricing">
         <div class="std-price-row"><span>${t.pageLine}<span id="std-price-page-note">${t.priceOnce}</span></span><span id="std-price-page">${formatPrice(PAGE_PRICE, lang)}</span></div>
@@ -955,139 +955,239 @@ export async function onRequestGet(context) {
   }
 
   // A Stripe checkout oldalán megjelenő termékkép (product_data.images) -
-  // egy önálló, egyszerű SVG-t rajzolunk (NEM a bonyolult lézervágó SVG-t
-  // újrahasznosítva), mert a Stripe csak JPEG/PNG/WEBP-et fogad el a
-  // termékképhez, ezért ezt a böngészőben egy <canvas>-ra kell rasterizálni.
-  // Biztonságos, mindenhol elérhető font-family-ket használunk (nem a Google
-  // Fonts-ot), mert egy off-DOM SVG->Image rasterizálásnál a külső
-  // webfontok nem biztos, hogy betöltődnek.
+  // közvetlenül egy <canvas>-ra rajzolunk (NEM SVG->Image rasterizálással),
+  // hogy a MÁR BETÖLTÖTT Google Fonts-okat (Cormorant Garamond, Great Vibes,
+  // Cinzel, Poppins, Caveat - ugyanazok, mint a valódi esküvői oldalon/
+  // dashboard-mockupokon) ténylegesen felhasználhassuk - egy off-DOM SVG-kép
+  // (data: URI-s <img>) ISZOLÁLT kontextusban tölt be, ott a külső webfontok
+  // nem biztos, hogy elérhetők, ami "nem élethű", rendszer-alapértelmezett
+  // betűkészletet eredményezett.
   function formatDateDots(datum) {
     var parts = (datum || "").split("-");
     return parts.length === 3 ? parts[0] + "." + parts[1] + "." + parts[2] + "." : "";
   }
 
-  function bgFillForSvg(bg, defId) {
-    var m = /^linear-gradient\\(\\s*([\\d.]+)deg\\s*,\\s*(#[0-9a-fA-F]{3,8})\\s*,\\s*(#[0-9a-fA-F]{3,8})\\s*\\)$/.exec(bg || "");
-    if (!m) return { defs: "", fill: bg || "#f5f0e6" };
-    var angle = parseFloat(m[1]);
-    var defs =
-      '<linearGradient id="' + defId + '" gradientTransform="rotate(' + (angle - 90) + ' 0.5 0.5)">' +
-      '<stop offset="0" stop-color="' + m[2] + '"/>' +
-      '<stop offset="1" stop-color="' + m[3] + '"/>' +
-      "</linearGradient>";
-    return { defs: defs, fill: "url(#" + defId + ")" };
+  var FONT_STYLE_MAP = {
+    sans: { family: "'Poppins', sans-serif", weight: "600", italic: false },
+    caps: { family: "'Cinzel', serif", weight: "600", italic: false, uppercase: true },
+    script: { family: "'Great Vibes', cursive", weight: "400", italic: false },
+    hand: { family: "'Caveat', cursive", weight: "600", italic: false },
+    "serif-i": { family: "'Cormorant Garamond', serif", weight: "500", italic: true },
+  };
+
+  function fontCss(recipe, size) {
+    return (recipe.italic ? "italic " : "") + recipe.weight + " " + Math.round(size) + "px " + recipe.family;
   }
 
-  function fontFamilyForSvg(font) {
-    if (font === "script" || font === "hand") return "cursive";
-    if (font && font.indexOf("serif") !== -1) return "Georgia, 'Times New Roman', serif";
-    return "system-ui, -apple-system, sans-serif";
-  }
-
-  function buildStdBoxSvg(x, y, w, h, couple) {
-    var dateText = formatDateDots(couple.datum);
-    var names = (couple.nev1 || "") + " & " + (couple.nev2 || "");
-    return (
-      '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="16" fill="#ecd2a3"/>' +
-      '<text x="' + (x + w / 2) + '" y="' + (y + 34) + '" text-anchor="middle" font-family="Georgia, serif" font-size="14" letter-spacing="2" fill="#5c4023">SAVE THE DATE</text>' +
-      '<rect x="' + (x + 16) + '" y="' + (y + 52) + '" width="' + (w - 32) + '" height="34" fill="#1a1408"/>' +
-      '<text x="' + (x + w / 2) + '" y="' + (y + 75) + '" text-anchor="middle" font-family="system-ui, sans-serif" font-size="15" font-weight="700" fill="#ffffff">' +
-      escapeHtml(dateText) +
-      "</text>" +
-      '<text x="' + (x + w / 2) + '" y="' + (y + h / 2 + 20) + '" text-anchor="middle" font-family="cursive" font-size="26" fill="#4a3420">' +
-      escapeHtml(names) +
-      "</text>" +
-      '<text x="' + (x + w / 2) + '" y="' + (y + h - 30) + '" text-anchor="middle" font-size="20" fill="#a8481f">&#10084;</text>' +
-      '<text x="' + (x + w / 2) + '" y="' + (y + h - 12) + '" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" letter-spacing="1" fill="#8a6a3f">+ WEDCONNECT</text>'
-    );
-  }
-
-  function buildPageBoxSvg(x, y, w, h, couple, style) {
-    var grad = bgFillForSvg(style.bg, "pageGrad" + Math.round(x));
-    var dateText = formatDateDots(couple.datum);
-    var names = (couple.nev1 || "") + " & " + (couple.nev2 || "");
-    var msg = couple.uzenet || "";
-    if (msg.length > 46) msg = msg.slice(0, 45) + "…";
-    var namesFont = fontFamilyForSvg(style.font);
-    return (
-      grad.defs +
-      '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="16" fill="' + grad.fill + '"/>' +
-      '<text x="' + (x + w / 2) + '" y="' + (y + 36) + '" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" letter-spacing="3" fill="' + style.accentText + '">' +
-      escapeHtml((COPY.mockEyebrow || "").toUpperCase()) +
-      "</text>" +
-      '<text x="' + (x + w / 2) + '" y="' + (y + h / 2 - 10) + '" text-anchor="middle" font-family="' + namesFont + '" font-size="24" fill="' + style.fg + '">' +
-      escapeHtml(names) +
-      "</text>" +
-      '<text x="' + (x + w / 2) + '" y="' + (y + h / 2 + 20) + '" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" fill="' + style.accentText + '">' +
-      escapeHtml(dateText) +
-      "</text>" +
-      (msg
-        ? '<text x="' + (x + w / 2) + '" y="' + (y + h - 26) + '" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="11" fill="' + style.fg + '">' +
-          escapeHtml(msg) +
-          "</text>"
-        : "")
-    );
-  }
-
-  function buildCheckoutPreviewSvg(wantStd, couple) {
-    var W = 640,
-      H = 420;
-    var style =
-      STYLES.filter(function (s) {
-        return s.id === couple.stilus;
-      })[0] || STYLES[0];
-    var inner = "";
-    if (wantStd) {
-      var boxW = 220,
-        boxH = 340,
-        gap = 70;
-      var startX = (W - (boxW * 2 + gap)) / 2;
-      var y = (H - boxH) / 2;
-      inner += buildStdBoxSvg(startX, y, boxW, boxH, couple);
-      inner +=
-        '<text x="' + (startX + boxW + gap / 2) + '" y="' + (y + boxH / 2 + 16) + '" text-anchor="middle" font-family="system-ui, sans-serif" font-size="46" font-weight="700" fill="#b48b56">+</text>';
-      inner += buildPageBoxSvg(startX + boxW + gap, y, boxW, boxH, couple, style);
-    } else {
-      var w2 = 300,
-        h2 = 380;
-      inner += buildPageBoxSvg((W - w2) / 2, (H - h2) / 2, w2, h2, couple, style);
-    }
-    return (
-      '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '">' +
-      '<rect width="' + W + '" height="' + H + '" fill="#faf7f2"/>' +
-      inner +
-      "</svg>"
-    );
-  }
-
-  function svgToPngDataUrl(svgMarkup, width, height) {
-    return new Promise(function (resolve) {
+  function ensureFontsReady() {
+    if (!document.fonts) return Promise.resolve();
+    var sample = "Bogi & Ádám 2027.07.27.";
+    var specs = [
+      "600 32px 'Poppins'",
+      "700 32px 'Poppins'",
+      "500 32px 'Poppins'",
+      "600 32px 'Cinzel'",
+      "400 32px 'Great Vibes'",
+      "600 32px 'Caveat'",
+      "italic 500 32px 'Cormorant Garamond'",
+    ];
+    var loads = specs.map(function (spec) {
       try {
-        var canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        var ctx = canvas.getContext("2d");
-        var img = new Image();
-        img.onload = function () {
-          try {
-            ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL("image/png"));
-          } catch (e) {
-            resolve(null);
-          }
-        };
-        img.onerror = function () {
-          resolve(null);
-        };
-        img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgMarkup)));
+        return document.fonts.load(spec, sample);
       } catch (e) {
-        resolve(null);
+        return Promise.resolve();
       }
+    });
+    return Promise.all(loads)
+      .then(function () {
+        return document.fonts.ready;
+      })
+      .catch(function () {
+        return null;
+      });
+  }
+
+  function roundRectPath(ctx, x, y, w, h, r) {
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, r);
+      return;
+    }
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function canvasFillForBg(ctx, bg, x, y, w, h) {
+    var m = /^linear-gradient\\(\\s*([\\d.]+)deg\\s*,\\s*(#[0-9a-fA-F]{3,8})\\s*,\\s*(#[0-9a-fA-F]{3,8})\\s*\\)$/.exec(bg || "");
+    if (!m) return bg || "#f5f0e6";
+    var angleRad = (parseFloat(m[1]) * Math.PI) / 180;
+    var cx = x + w / 2,
+      cy = y + h / 2;
+    var dx = Math.sin(angleRad),
+      dy = -Math.cos(angleRad);
+    var len = Math.sqrt(w * w + h * h) / 2;
+    var grad = ctx.createLinearGradient(cx - dx * len, cy - dy * len, cx + dx * len, cy + dy * len);
+    grad.addColorStop(0, m[2]);
+    grad.addColorStop(1, m[3]);
+    return grad;
+  }
+
+  function fitFontSize(ctx, text, maxWidth, fontFor, startSize, minSize) {
+    var size = startSize;
+    while (size > minSize) {
+      ctx.font = fontFor(size);
+      if (ctx.measureText(text).width <= maxWidth) break;
+      size -= 2;
+    }
+    return size;
+  }
+
+  function drawTrackedText(ctx, text, cx, y, tracking) {
+    ctx.save();
+    ctx.textAlign = "left";
+    var widths = [];
+    var total = -tracking;
+    for (var i = 0; i < text.length; i++) {
+      var cw = ctx.measureText(text[i]).width;
+      widths.push(cw);
+      total += cw + tracking;
+    }
+    var curX = cx - total / 2;
+    for (var j = 0; j < text.length; j++) {
+      ctx.fillText(text[j], curX, y);
+      curX += widths[j] + tracking;
+    }
+    ctx.restore();
+  }
+
+  function drawStdBox(ctx, x, y, w, h, couple) {
+    roundRectPath(ctx, x, y, w, h, w * 0.05);
+    ctx.fillStyle = "#ecd2a3";
+    ctx.fill();
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+
+    ctx.fillStyle = "#5c4023";
+    ctx.font = "600 " + Math.round(w * 0.062) + "px 'Cinzel', serif";
+    drawTrackedText(ctx, "SAVE THE DATE", x + w / 2, y + h * 0.115, w * 0.014);
+
+    var barH = h * 0.085,
+      barY = y + h * 0.155;
+    ctx.fillStyle = "#1a1408";
+    ctx.fillRect(x + w * 0.08, barY, w * 0.84, barH);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "700 " + Math.round(w * 0.085) + "px 'Poppins', sans-serif";
+    ctx.fillText(formatDateDots(couple.datum), x + w / 2, barY + barH / 2 + w * 0.03);
+
+    var names = (couple.nev1 || "") + " & " + (couple.nev2 || "");
+    var namesSize = fitFontSize(
+      ctx,
+      names,
+      w * 0.86,
+      function (s) {
+        return Math.round(s) + "px 'Great Vibes', cursive";
+      },
+      w * 0.22,
+      w * 0.09
+    );
+    ctx.fillStyle = "#4a3420";
+    ctx.font = Math.round(namesSize) + "px 'Great Vibes', cursive";
+    ctx.fillText(names, x + w / 2, y + h * 0.57);
+
+    ctx.fillStyle = "#a8481f";
+    ctx.font = Math.round(w * 0.09) + "px sans-serif";
+    ctx.fillText("♥", x + w / 2, y + h * 0.82);
+
+    ctx.fillStyle = "#8a6a3f";
+    ctx.font = "600 " + Math.round(w * 0.042) + "px 'Poppins', sans-serif";
+    drawTrackedText(ctx, "+ WEDCONNECT", x + w / 2, y + h * 0.945, w * 0.008);
+  }
+
+  function drawPageBox(ctx, x, y, w, h, couple, style) {
+    roundRectPath(ctx, x, y, w, h, w * 0.05);
+    ctx.fillStyle = canvasFillForBg(ctx, style.bg, x, y, w, h);
+    ctx.fill();
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+
+    ctx.fillStyle = style.accentText;
+    ctx.font = "600 " + Math.round(w * 0.05) + "px 'Poppins', sans-serif";
+    drawTrackedText(ctx, (COPY.mockEyebrow || "").toUpperCase(), x + w / 2, y + h * 0.13, w * 0.014);
+
+    var recipe = FONT_STYLE_MAP[style.font] || FONT_STYLE_MAP.sans;
+    var names = (couple.nev1 || "") + " & " + (couple.nev2 || "");
+    var namesText = recipe.uppercase ? names.toUpperCase() : names;
+    var namesSize = fitFontSize(
+      ctx,
+      namesText,
+      w * 0.86,
+      function (s) {
+        return fontCss(recipe, s);
+      },
+      w * 0.145,
+      w * 0.06
+    );
+    ctx.fillStyle = style.fg;
+    ctx.font = fontCss(recipe, namesSize);
+    ctx.fillText(namesText, x + w / 2, y + h * 0.5);
+
+    ctx.fillStyle = style.accentText;
+    ctx.font = "500 " + Math.round(w * 0.048) + "px 'Poppins', sans-serif";
+    ctx.fillText(formatDateDots(couple.datum), x + w / 2, y + h * 0.6);
+  }
+
+  function buildCheckoutPreviewCanvas(wantStd, couple) {
+    return ensureFontsReady().then(function () {
+      var W = 1000,
+        H = 640;
+      var canvas = document.createElement("canvas");
+      canvas.width = W;
+      canvas.height = H;
+      var ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#faf7f2";
+      ctx.fillRect(0, 0, W, H);
+
+      var style =
+        STYLES.filter(function (s) {
+          return s.id === couple.stilus;
+        })[0] || STYLES[0];
+
+      if (wantStd) {
+        var boxW = 340,
+          boxH = 500,
+          gap = 90;
+        var startX = (W - (boxW * 2 + gap)) / 2;
+        var y = (H - boxH) / 2;
+        drawStdBox(ctx, startX, y, boxW, boxH, couple);
+        ctx.fillStyle = "#b48b56";
+        ctx.textAlign = "center";
+        ctx.font = "700 64px 'Poppins', sans-serif";
+        ctx.fillText("+", startX + boxW + gap / 2, y + boxH / 2 + 22);
+        drawPageBox(ctx, startX + boxW + gap, y, boxW, boxH, couple, style);
+      } else {
+        var w2 = 460,
+          h2 = 560;
+        drawPageBox(ctx, (W - w2) / 2, (H - h2) / 2, w2, h2, couple, style);
+      }
+      return canvas;
     });
   }
 
   function buildCheckoutPreviewDataUrl(wantStd, couple) {
-    return svgToPngDataUrl(buildCheckoutPreviewSvg(wantStd, couple), 640, 420);
+    return buildCheckoutPreviewCanvas(wantStd, couple)
+      .then(function (canvas) {
+        return canvas.toDataURL("image/png");
+      })
+      .catch(function () {
+        return null;
+      });
   }
 
   function updateStdPreviewMode(wantStd) {
