@@ -91,7 +91,7 @@ export async function onRequestPost(context) {
       successUrl: `${dashboardUrl}?stripe_session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${dashboardUrl}?stripe_cancelled=std`,
       customerEmail: reseller.email,
-      metadata: { rendeles_id: String(rendelesId), tipus: "std", par_id: String(par.id) },
+      metadata: { rendeles_id: String(rendelesId), tipus: wantsStd ? "std" : "oldal", par_id: String(par.id) },
     });
     await env.DB.prepare("UPDATE rendelesek SET stripe_session_id = ? WHERE id = ?").bind(session.id, rendelesId).run();
     return Response.redirect(session.url, 303);
