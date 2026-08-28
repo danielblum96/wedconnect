@@ -1,7 +1,6 @@
 import { getSessionReseller } from "../_utils/auth.js";
 import { getPricing } from "../_utils/i18n.js";
 import { createCheckoutSession } from "../_utils/stripe.js";
-import { decodeBase64Png } from "../_utils/previewImage.js";
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -28,10 +27,6 @@ export async function onRequestPost(context) {
     orszag: (formData.get("szallitasi_orszag") || "").toString().trim(),
   };
   const wantsStd = mennyiseg > 0;
-  // A user kérésére a csak-oldal fizetésnél NE jelenjen meg semmilyen kép a
-  // Stripe checkout oldalán - a termékkép csak a Save the Date rendelésnél
-  // (naptár + oldal együtt) marad meg.
-  const previewKep = wantsStd ? decodeBase64Png((formData.get("preview_kep") || "").toString()) : null;
 
   function backWithError(code) {
     return Response.redirect(`${new URL("/partner/dashboard", request.url).href}?stderror=${code}`, 303);
@@ -61,8 +56,8 @@ export async function onRequestPost(context) {
     `INSERT INTO rendelesek (
       viszontelado_id, par_id, csomag, mennyiseg, ar_osszesen, penznem, allapot, megjegyzes,
       adoszam, szamlazasi_utca, szamlazasi_irsz, szamlazasi_varos, szamlazasi_orszag,
-      szallitasi_utca, szallitasi_irsz, szallitasi_varos, szallitasi_orszag, preview_kep
-    ) VALUES (?, ?, ?, ?, ?, ?, 'Fizetésre vár', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      szallitasi_utca, szallitasi_irsz, szallitasi_varos, szallitasi_orszag
+    ) VALUES (?, ?, ?, ?, ?, ?, 'Fizetésre vár', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       reseller.id,
@@ -80,21 +75,18 @@ export async function onRequestPost(context) {
       wantsStd ? shipping.utca : null,
       wantsStd ? shipping.irsz : null,
       wantsStd ? shipping.varos : null,
-      wantsStd ? shipping.orszag || null : null,
-      previewKep
+      wantsStd ? shipping.orszag || null : null
     )
     .run();
 
   const rendelesId = insert.meta.last_row_id;
   const dashboardUrl = new URL("/partner/dashboard", request.url).href;
-  const imageUrl = previewKep ? `${new URL("/api/checkout-preview", request.url).href}?rendeles_id=${rendelesId}` : undefined;
 
   try {
     const session = await createCheckoutSession(env, {
       currency: pricing.currency,
       amount: total,
       productName: csomag,
-      imageUrl,
       successUrl: `${dashboardUrl}?stripe_session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${dashboardUrl}?stripe_cancelled=std`,
       customerEmail: reseller.email,
