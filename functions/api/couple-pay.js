@@ -46,6 +46,7 @@ export async function onRequestPost(context) {
       currency: pricing.currency,
       amount: pricing.pagePrice,
       productName: `${pricing.pageLabel} – ${par.par_neve}`,
+      locale: lang,
       successUrl: `${dashboardUrl}?stripe_session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${dashboardUrl}?stripe_cancelled=oldal`,
       customerEmail: reseller.email,

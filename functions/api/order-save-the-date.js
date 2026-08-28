@@ -87,6 +87,7 @@ export async function onRequestPost(context) {
       currency: pricing.currency,
       amount: total,
       productName: csomag,
+      locale: lang,
       successUrl: `${dashboardUrl}?stripe_session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${dashboardUrl}?stripe_cancelled=std`,
       customerEmail: reseller.email,

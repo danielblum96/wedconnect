@@ -49,12 +49,18 @@ export function toStripeAmount(amount) {
   return Math.round(amount * 100);
 }
 
-export async function createCheckoutSession(env, { currency, amount, productName, successUrl, cancelUrl, metadata, customerEmail }) {
+export async function createCheckoutSession(env, { currency, amount, productName, successUrl, cancelUrl, metadata, customerEmail, locale }) {
   return stripeRequest(env, "POST", "/checkout/sessions", {
     mode: "payment",
     success_url: successUrl,
     cancel_url: cancelUrl,
     customer_email: customerEmail || undefined,
+    // A "locale" nélkül a Stripe Checkout a VÁSÁRLÓ böngészőjének
+    // Accept-Language fejlécéből próbálja kitalálni a nyelvet ("auto"),
+    // NEM a viszonteladó fiók nyelvéből - explicit át kell adni, különben
+    // egy magyar böngészőből tesztelt német viszonteladó is magyar
+    // Stripe-oldalt kap.
+    locale: locale || "auto",
     line_items: [
       {
         quantity: 1,
