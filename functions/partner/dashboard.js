@@ -216,11 +216,14 @@ export async function onRequestGet(context) {
             <summary>${t.edit}</summary>
             <form method="POST" action="/api/couple-update" class="edit-form" data-nev1="${escapeHtml(nev1)}" data-nev2="${escapeHtml(nev2)}" data-datetext="${escapeHtml(dateText)}">
               <input type="hidden" name="par_id" value="${p.id}">
-              <label>${t.ownMessageEditHint}</label>
+              <label>${t.ownMessage} <span class="hint-inline">${t.ownMessageEditHint}</span></label>
+              <p class="field-explain">${t.ownMessageExplain}</p>
               <textarea name="egyedi_uzenet" rows="2" placeholder="${t.ownMessagePlaceholder}">${escapeHtml(p.egyedi_uzenet || "")}</textarea>
-              <label>${t.buttonsEditHint}</label>
+              <label>${t.buttons} <span class="hint-inline">${t.buttonsEditHint}</span></label>
+              <p class="field-explain">${t.buttonsExplain}</p>
               ${gombRows}
               <label>${t.editStyleLabel}</label>
+              <p class="field-explain">${t.stylePickerHint}</p>
               <div class="style-picker style-picker--edit">${editStylePicker}</div>
               <button type="submit" class="btn-save">${t.save}</button>
               ${saved === String(p.id) ? `<span class="saved-note">${t.saved}</span>` : ""}
@@ -359,6 +362,7 @@ export async function onRequestGet(context) {
     100% { box-shadow:0 6px 20px -16px rgba(0,0,0,0.15); }
   }
   .style-picker-hint { font-size:0.78rem; color:var(--muted); margin:-2px 0 16px; }
+  .field-explain { font-size:0.78rem; color:var(--muted); line-height:1.45; margin:2px 0 10px; }
   .price-note { display:inline-block; font-size:0.78rem; font-weight:600; color:var(--accent); background:#fbf2e2; border:1px solid #ecd9b6; border-radius:999px; padding:5px 14px; margin:-6px 0 16px; }
   .step-label { font-size:0.78rem; font-weight:600; letter-spacing:0.04em; color:var(--accent); text-transform:uppercase; margin:0 0 16px; }
   .hint-inline { font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted); font-size:0.78rem; }
@@ -514,8 +518,10 @@ export async function onRequestGet(context) {
       <div class="wizard-step" data-step="2" hidden>
         <p class="step-label">${t.step2Label}</p>
         <label>${t.ownMessage} <span class="hint-inline">${t.ownMessageHint}</span></label>
+        <p class="field-explain">${t.ownMessageExplain}</p>
         <textarea name="egyedi_uzenet" id="f-uzenet" rows="3">${escapeHtml(defaultMessage)}</textarea>
         <label>${t.buttons} <span class="hint-inline">${t.buttonsHint}</span></label>
+        <p class="field-explain">${t.buttonsExplain}</p>
         <div id="button-rows">
           <div class="btn-row">
             <input type="text" name="gomb_label" placeholder="${t.buttonLabelPlaceholder}" autocomplete="off">
