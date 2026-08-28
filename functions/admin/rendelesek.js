@@ -38,7 +38,7 @@ export async function onRequestGet(context) {
         : isPhysical && r.allapot === "Fizetve"
         ? `<span class="badge badge-orange">Postázásra vár</span>`
         : "—";
-      const action =
+      const shippingAction =
         isPhysical && r.allapot === "Fizetve"
           ? `<form method="POST" action="/api/admin-mark-shipped">
               <input type="hidden" name="rendeles_id" value="${r.id}">
@@ -46,6 +46,17 @@ export async function onRequestGet(context) {
               <button type="submit" class="btn-small">${r.kiszallitva_datum ? "Visszavonás" : "Postázva jelölés"}</button>
             </form>`
           : "";
+      const markPaidAction =
+        r.allapot !== "Fizetve"
+          ? `<form method="POST" action="/api/admin-mark-paid" onsubmit="return confirm('Biztosan fizetettként jelöli ezt a rendelést? (pl. készpénz/utalás esetén)')">
+              <input type="hidden" name="rendeles_id" value="${r.id}">
+              <button type="submit" class="btn-small btn-small-green">Fizetettként jelölés</button>
+            </form>`
+          : "";
+      const deleteAction = `<form method="POST" action="/api/admin-delete-rendeles" onsubmit="return confirm('Biztosan véglegesen törli ezt a rendelést?')">
+              <input type="hidden" name="rendeles_id" value="${r.id}">
+              <button type="submit" class="btn-small btn-small-red">Törlés</button>
+            </form>`;
       return `
         <tr>
           <td>${escapeHtml((r.letrehozva || "").slice(0, 16).replace("T", " "))}</td>
@@ -57,7 +68,7 @@ export async function onRequestGet(context) {
           <td><span class="badge ${r.allapot === "Fizetve" ? "badge-green" : "badge-orange"}">${escapeHtml(r.allapot)}</span></td>
           <td>${escapeHtml(shippingAddr)}</td>
           <td>${shippedBadge}</td>
-          <td>${action}</td>
+          <td><div class="action-group">${shippingAction}${markPaidAction}${deleteAction}</div></td>
         </tr>`;
     })
     .join("");
@@ -97,8 +108,13 @@ export async function onRequestGet(context) {
   .badge { display:inline-block; padding:3px 10px; border-radius:999px; font-size:0.72rem; font-weight:600; white-space:nowrap; }
   .badge-green { background:#e2f3dd; color:#2f6b28; }
   .badge-orange { background:#ffe9d1; color:#8a4a0f; }
+  .action-group { display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
   .btn-small { border:1px solid var(--accent); background:#fff; color:var(--accent); border-radius:999px; padding:6px 12px; font-size:0.75rem; font-weight:600; cursor:pointer; font-family:inherit; white-space:nowrap; }
   .btn-small:hover { background:var(--accent); color:#fff; }
+  .btn-small-green { border-color:#3a7a4e; color:#3a7a4e; }
+  .btn-small-green:hover { background:#3a7a4e; color:#fff; }
+  .btn-small-red { border-color:#b1451f; color:#b1451f; }
+  .btn-small-red:hover { background:#b1451f; color:#fff; }
   .empty { color:var(--muted); padding:24px; text-align:center; }
 </style>
 </head>
