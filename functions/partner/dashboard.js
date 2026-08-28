@@ -45,7 +45,11 @@ export async function onRequestGet(context) {
   }
 
   const { results: parokRaw } = await env.DB.prepare(
-    "SELECT id, par_neve, nev1, nev2, eskuvo_datuma, slug, allapot, valasztott_stilus, egyedi_uzenet, egyedi_gombok, nyelv, letrehozva, rendeles_id, viszontelado_id FROM parok WHERE viszontelado_id = ? ORDER BY eskuvo_datuma DESC"
+    `SELECT p.id, p.par_neve, p.nev1, p.nev2, p.eskuvo_datuma, p.slug, p.allapot, p.valasztott_stilus, p.egyedi_uzenet, p.egyedi_gombok, p.nyelv, p.letrehozva, p.rendeles_id, p.viszontelado_id, r.mennyiseg AS rendeles_mennyiseg
+     FROM parok p
+     LEFT JOIN rendelesek r ON p.rendeles_id = r.id
+     WHERE p.viszontelado_id = ?
+     ORDER BY p.eskuvo_datuma DESC`
   )
     .bind(reseller.id)
     .all();
@@ -183,6 +187,11 @@ export async function onRequestGet(context) {
         p.egyedi_uzenet || defaultMessage,
         mockGombok
       );
+      // Az oldal-fizetés (couple-pay.js, order-save-the-date.js "csak oldal" ága)
+      // mindig mennyiseg=1-gyel jön létre - ha a rendeles_id mögötti rendelés
+      // ennél nagyobb mennyiséget mutat, az egy VALÓDI Save the Date naptár-
+      // rendelést jelent, tehát mindkét vásárlás megtörtént.
+      const hasStdOrder = !!(p.rendeles_id && p.rendeles_mennyiseg && p.rendeles_mennyiseg > 1);
 
       return `
         <div class="couple${created === p.slug ? " just-created" : ""}" data-search="${escapeHtml(searchText)}">
@@ -229,34 +238,38 @@ export async function onRequestGet(context) {
               ${saved === String(p.id) ? `<span class="saved-note">${t.saved}</span>` : ""}
             </form>
           </details>
-          <button
-            type="button"
-            class="btn-std-open"
-            data-par-id="${p.id}"
-            data-nev1="${escapeHtml(nev1)}"
-            data-nev2="${escapeHtml(nev2)}"
-            data-datum="${escapeHtml(p.eskuvo_datuma)}"
-            data-nyelv="${escapeHtml(p.nyelv || "hu")}"
-            data-url="${escapeHtml(pageUrl)}"
-            data-stilus="${escapeHtml(resolvedStyle.id)}"
-            data-uzenet="${escapeHtml(p.egyedi_uzenet || defaultMessage)}"
-            data-gombok='${escapeHtml(JSON.stringify(mockGombok))}'
-          >${t.createStd}</button>
-          <div class="checkout-row">
-            <button
-              type="button"
-              class="btn-std-open btn-checkout"
-              data-par-id="${p.id}"
-              data-nev1="${escapeHtml(nev1)}"
-              data-nev2="${escapeHtml(nev2)}"
-              data-datum="${escapeHtml(p.eskuvo_datuma)}"
-              data-nyelv="${escapeHtml(p.nyelv || "hu")}"
-              data-url="${escapeHtml(pageUrl)}"
-              data-stilus="${escapeHtml(resolvedStyle.id)}"
-              data-uzenet="${escapeHtml(p.egyedi_uzenet || defaultMessage)}"
-              data-gombok='${escapeHtml(JSON.stringify(mockGombok))}'
-            >${t.checkout}</button>
-          </div>
+          ${
+            hasStdOrder
+              ? ""
+              : `<button
+                  type="button"
+                  class="btn-std-open"
+                  data-par-id="${p.id}"
+                  data-nev1="${escapeHtml(nev1)}"
+                  data-nev2="${escapeHtml(nev2)}"
+                  data-datum="${escapeHtml(p.eskuvo_datuma)}"
+                  data-nyelv="${escapeHtml(p.nyelv || "hu")}"
+                  data-url="${escapeHtml(pageUrl)}"
+                  data-stilus="${escapeHtml(resolvedStyle.id)}"
+                  data-uzenet="${escapeHtml(p.egyedi_uzenet || defaultMessage)}"
+                  data-gombok='${escapeHtml(JSON.stringify(mockGombok))}'
+                >${t.createStd}</button>
+                <div class="checkout-row">
+                  <button
+                    type="button"
+                    class="btn-std-open btn-checkout"
+                    data-par-id="${p.id}"
+                    data-nev1="${escapeHtml(nev1)}"
+                    data-nev2="${escapeHtml(nev2)}"
+                    data-datum="${escapeHtml(p.eskuvo_datuma)}"
+                    data-nyelv="${escapeHtml(p.nyelv || "hu")}"
+                    data-url="${escapeHtml(pageUrl)}"
+                    data-stilus="${escapeHtml(resolvedStyle.id)}"
+                    data-uzenet="${escapeHtml(p.egyedi_uzenet || defaultMessage)}"
+                    data-gombok='${escapeHtml(JSON.stringify(mockGombok))}'
+                  >${t.checkout}</button>
+                </div>`
+          }
         </div>`;
     })
     .join("");
