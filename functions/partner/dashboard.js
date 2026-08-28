@@ -159,11 +159,8 @@ export async function onRequestGet(context) {
             !p.rendeles_id
               ? `<div class="urgent-banner">
                   <span>${t.urgentBanner(hoursLeft(p, now), formatPrice(PAGE_PRICE, lang))}</span>
-                  <form method="POST" action="/api/couple-pay" class="couple-pay-form"
-                    data-nev1="${escapeHtml(nev1)}" data-nev2="${escapeHtml(nev2)}" data-datum="${escapeHtml(p.eskuvo_datuma)}"
-                    data-stilus="${escapeHtml(resolvedStyle.id)}" data-uzenet="${escapeHtml(p.egyedi_uzenet || "")}">
+                  <form method="POST" action="/api/couple-pay">
                     <input type="hidden" name="par_id" value="${p.id}">
-                    <input type="hidden" name="preview_kep" value="">
                     <button type="submit" class="btn-pay-now">${t.payNow}</button>
                   </form>
                 </div>`
@@ -1254,30 +1251,18 @@ export async function onRequestGet(context) {
       e.preventDefault();
       if (stdWantStd && stdWantStd.checked) clampStdQty();
       var wantStd = !!(stdWantStd && stdWantStd.checked);
+      // Csak a Save the Date rendelésnél (naptár + oldal) kell termékkép a
+      // Stripe checkout oldalára - önálló oldal-fizetésnél nem (user kérésére).
+      if (!wantStd) {
+        stdOrderForm.submit();
+        return;
+      }
       buildCheckoutPreviewDataUrl(wantStd, currentCouple).then(function (dataUrl) {
         if (stdPreviewKepInput) stdPreviewKepInput.value = dataUrl || "";
         stdOrderForm.submit();
       });
     });
   }
-
-  document.querySelectorAll(".couple-pay-form").forEach(function (form) {
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
-      var couple = {
-        nev1: form.getAttribute("data-nev1"),
-        nev2: form.getAttribute("data-nev2"),
-        datum: form.getAttribute("data-datum"),
-        stilus: form.getAttribute("data-stilus"),
-        uzenet: form.getAttribute("data-uzenet"),
-      };
-      var previewInput = form.querySelector('[name="preview_kep"]');
-      buildCheckoutPreviewDataUrl(false, couple).then(function (dataUrl) {
-        if (previewInput) previewInput.value = dataUrl || "";
-        form.submit();
-      });
-    });
-  });
 
   function renderStdPreview(nev1, nev2, datum, nyelv) {
     if (!window.STD || !window.STD.generateMockupSVG) {

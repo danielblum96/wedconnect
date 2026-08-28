@@ -14,7 +14,6 @@ export async function onRequestPost(context) {
   const mennyiseg = mennyisegRaw === "" ? 0 : parseInt(mennyisegRaw, 10);
   const megjegyzes = (formData.get("megjegyzes") || "").toString().trim();
   const adoszam = (formData.get("adoszam") || "").toString().trim();
-  const previewKep = decodeBase64Png((formData.get("preview_kep") || "").toString());
 
   const billing = {
     utca: (formData.get("szamlazasi_utca") || "").toString().trim(),
@@ -29,6 +28,10 @@ export async function onRequestPost(context) {
     orszag: (formData.get("szallitasi_orszag") || "").toString().trim(),
   };
   const wantsStd = mennyiseg > 0;
+  // A user kérésére a csak-oldal fizetésnél NE jelenjen meg semmilyen kép a
+  // Stripe checkout oldalán - a termékkép csak a Save the Date rendelésnél
+  // (naptár + oldal együtt) marad meg.
+  const previewKep = wantsStd ? decodeBase64Png((formData.get("preview_kep") || "").toString()) : null;
 
   function backWithError(code) {
     return Response.redirect(`${new URL("/partner/dashboard", request.url).href}?stderror=${code}`, 303);
