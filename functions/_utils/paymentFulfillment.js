@@ -31,9 +31,8 @@ export function isExpiredUnpaid(p, now) {
   return !!p.viszontelado_id && !p.rendeles_id && now - createdAtMs(p) > PAYMENT_DEADLINE_HOURS * 3600000;
 }
 
-export function hoursLeft(p, now) {
-  const remainingMs = PAYMENT_DEADLINE_HOURS * 3600000 - (now - createdAtMs(p));
-  return Math.max(1, Math.ceil(remainingMs / 3600000));
+export function paymentDeadlineMs(p) {
+  return createdAtMs(p) + PAYMENT_DEADLINE_HOURS * 3600000;
 }
 
 function utf8ToBase64(str) {

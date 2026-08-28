@@ -4,7 +4,7 @@ import { escapeHtml, safeHref } from "../_utils/html.js";
 import { getCopy, getStatusLabel, getResellerCopy, getPricing, formatPrice } from "../_utils/i18n.js";
 import { countryOptions } from "../_utils/countries.js";
 import { retrieveCheckoutSession } from "../_utils/stripe.js";
-import { fulfillStripeOrder, isExpiredUnpaid, hoursLeft } from "../_utils/paymentFulfillment.js";
+import { fulfillStripeOrder, isExpiredUnpaid, paymentDeadlineMs } from "../_utils/paymentFulfillment.js";
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -89,6 +89,14 @@ export async function onRequestGet(context) {
     const now = new Date();
     const todayUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
     return Math.round((target.getTime() - todayUTC) / 86400000);
+  }
+
+  function formatCountdown(ms) {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   }
 
   const stylePicker = STYLES.map((s) => {
@@ -196,7 +204,7 @@ export async function onRequestGet(context) {
           ${
             !p.rendeles_id
               ? `<div class="urgent-banner">
-                  <span>${t.urgentBanner(hoursLeft(p, now), formatPrice(PAGE_PRICE, lang))}</span>
+                  <span>${t.urgentBanner(paymentDeadlineMs(p), formatCountdown(paymentDeadlineMs(p) - now), formatPrice(PAGE_PRICE, lang))}</span>
                   <form method="POST" action="/api/couple-pay">
                     <input type="hidden" name="par_id" value="${p.id}">
                     <button type="submit" class="btn-pay-now">${t.payNow}</button>
@@ -362,6 +370,7 @@ export async function onRequestGet(context) {
   .btn-add-row { border:1px dashed #ddd6c9; background:none; color:var(--accent); border-radius:8px; padding:9px 14px; font-size:0.85rem; font-weight:600; cursor:pointer; font-family:inherit; margin-bottom:20px; }
   .info-box { background:#eaf5ee; color:#3a7a4e; border:1px solid #bfe0cb; padding:10px 14px; border-radius:8px; font-size:0.85rem; margin-bottom:18px; }
   .urgent-banner { display:flex; align-items:center; justify-content:space-between; gap:14px; background:linear-gradient(135deg,#fff0e0,#ffe0c2); border:1.5px solid #e8a15c; border-radius:10px; padding:12px 16px; margin-top:12px; font-size:0.83rem; font-weight:600; color:#8a4a0f; flex-wrap:wrap; animation:urgentPulse 2.2s ease-in-out infinite; }
+  .countdown-time { font-variant-numeric:tabular-nums; font-weight:800; color:#c9660f; letter-spacing:0.02em; }
   @keyframes urgentPulse { 0%, 100% { box-shadow:0 0 0 0 rgba(232,161,92,0.45); } 50% { box-shadow:0 0 0 7px rgba(232,161,92,0); } }
   .btn-pay-now { flex:none; padding:9px 20px; border:none; border-radius:999px; background:#c9660f; color:#fff; font-weight:700; font-size:0.82rem; cursor:pointer; white-space:nowrap; font-family:inherit; }
   .btn-pay-now:hover { background:#a8540c; }
@@ -1280,6 +1289,26 @@ export async function onRequestGet(context) {
       }
     }
     requestAnimationFrame(frame);
+  }
+
+  var countdownEls = document.querySelectorAll(".countdown-time");
+  if (countdownEls.length) {
+    var tickCountdowns = function () {
+      var nowMs = Date.now();
+      countdownEls.forEach(function (el) {
+        var deadline = parseInt(el.getAttribute("data-deadline"), 10);
+        var totalSeconds = Math.max(0, Math.floor((deadline - nowMs) / 1000));
+        var h = Math.floor(totalSeconds / 3600);
+        var m = Math.floor((totalSeconds % 3600) / 60);
+        var s = totalSeconds % 60;
+        var pad = function (n) {
+          return String(n).padStart(2, "0");
+        };
+        el.textContent = pad(h) + ":" + pad(m) + ":" + pad(s);
+      });
+    };
+    tickCountdowns();
+    setInterval(tickCountdowns, 1000);
   }
 })();
 </script>
