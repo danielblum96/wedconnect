@@ -663,6 +663,7 @@ export async function onRequestGet(context) {
 
       <label>${t.note} <span class="hint-inline">${t.optional}</span></label>
       <textarea name="megjegyzes" rows="2" placeholder="${t.notePlaceholder}"></textarea>
+      <div class="error-box" id="std-form-error" hidden></div>
       <button type="submit" class="btn-save btn-std-submit">${t.checkout}</button>
     </form>
   </div>
@@ -695,6 +696,8 @@ export async function onRequestGet(context) {
     priceOnce: ${JSON.stringify(t.priceOnce)},
     priceFreeFrom50: ${JSON.stringify(t.priceFreeFrom50)},
     priceOnceUnder50: ${JSON.stringify(t.priceOnceUnder50)},
+    missingBillingError: ${JSON.stringify(t.stdError.missing_billing)},
+    missingAddressError: ${JSON.stringify(t.stdError.missing_address)},
   };
 
   var form = document.getElementById("new-couple-form");
@@ -1099,9 +1102,46 @@ export async function onRequestGet(context) {
     });
 
   var stdOrderForm = stdModal ? stdModal.querySelector(".std-form") : null;
+  var stdFormError = document.getElementById("std-form-error");
+
+  function showStdFormError(message, focusEl) {
+    if (stdFormError) {
+      stdFormError.textContent = message;
+      stdFormError.hidden = false;
+    }
+    if (focusEl) {
+      focusEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      focusEl.focus();
+    }
+  }
+
+  function hideStdFormError() {
+    if (stdFormError) stdFormError.hidden = true;
+  }
+
   if (stdOrderForm) {
-    stdOrderForm.addEventListener("submit", function () {
+    stdOrderForm.addEventListener("input", hideStdFormError);
+
+    stdOrderForm.addEventListener("submit", function (evt) {
       if (stdWantStd && stdWantStd.checked) clampStdQty();
+
+      var billingMissing =
+        !stdModalBillingUtca.value.trim() || !stdModalBillingIrsz.value.trim() || !stdModalBillingVaros.value.trim();
+      var wantStd = stdWantStd && stdWantStd.checked;
+      var shippingMissing =
+        wantStd && (!stdModalCimUtca.value.trim() || !stdModalCimIrsz.value.trim() || !stdModalCimVaros.value.trim());
+
+      if (shippingMissing) {
+        evt.preventDefault();
+        showStdFormError(COPY.missingAddressError, stdModalCimUtca);
+        return;
+      }
+      if (billingMissing) {
+        evt.preventDefault();
+        showStdFormError(COPY.missingBillingError, stdModalBillingUtca);
+        return;
+      }
+      hideStdFormError();
     });
   }
 
@@ -1178,6 +1218,7 @@ export async function onRequestGet(context) {
       stdModalParId.value = btn.getAttribute("data-par-id");
       stdModalSubtitle.textContent = nev1 + " & " + nev2;
       stdModalLink.textContent = btn.getAttribute("data-url");
+      hideStdFormError();
       if (stdInfoPopover) stdInfoPopover.hidden = true;
       if (stdWantStd) stdWantStd.checked = true;
       if (stdModalMenge) stdModalMenge.value = "50";
