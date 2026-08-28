@@ -381,6 +381,9 @@ export async function onRequestGet(context) {
   .std-price-total { border-top:1px solid #e3d5b8; margin-top:5px; padding-top:8px; font-size:0.95rem; font-weight:700; color:var(--fg); }
   .std-info-popover { position:absolute; z-index:5; top:calc(100% + 8px); left:-6px; width:230px; max-width:60vw; background:#2b2620; color:#fff; font-size:0.76rem; font-weight:400; line-height:1.45; letter-spacing:normal; text-transform:none; padding:11px 13px; border-radius:10px; box-shadow:0 12px 28px -10px rgba(0,0,0,0.4); }
   .std-info-popover::before { content:""; position:absolute; top:-5px; left:10px; width:10px; height:10px; background:#2b2620; transform:rotate(45deg); }
+  .std-section { border:1px solid #ece1cc; border-radius:12px; padding:16px 16px 18px; margin-bottom:16px; background:#fffdf9; }
+  .std-section-title { font-size:0.76rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--accent); margin:0 0 12px; }
+  .std-shipping-note { display:flex; align-items:flex-start; gap:8px; font-size:0.8rem; line-height:1.4; color:#3d6b3d; background:#eef6ec; border:1px solid #cfe6c9; border-radius:8px; padding:10px 12px; margin-bottom:14px; }
 </style>
 </head>
 <body>
@@ -546,44 +549,52 @@ export async function onRequestGet(context) {
         <div class="std-price-row" id="std-price-std-row" hidden><span>${t.stdLine(`<span id="std-price-qty">50</span>`, formatPrice(STD_PRICE, lang))}</span><span id="std-price-sub">${formatPrice(STD_PRICE, lang)}</span></div>
         <div class="std-price-row std-price-total"><span>${t.total}</span><span id="std-price-total">${formatPrice(PAGE_PRICE, lang)}</span></div>
       </div>
-      <label>${t.vatLabel} <span class="hint-inline">${t.optional}</span></label>
-      <input type="text" name="adoszam" id="std-modal-adoszam" placeholder="${t.vatPlaceholder}" value="${escapeHtml(defaultAdoszam)}">
-
-      <label>${t.billingStreet}</label>
-      <input type="text" name="szamlazasi_utca" id="std-modal-billing-utca" value="${escapeHtml(defaultBilling.utca)}">
-      <div class="field-row">
-        <div>
-          <label>${t.postalCode}</label>
-          <input type="text" name="szamlazasi_irsz" id="std-modal-billing-irsz" value="${escapeHtml(defaultBilling.irsz)}">
-        </div>
-        <div>
-          <label>${t.city}</label>
-          <input type="text" name="szamlazasi_varos" id="std-modal-billing-varos" value="${escapeHtml(defaultBilling.varos)}">
+      <div id="std-address-group" hidden>
+        <div class="std-section std-shipping-section">
+          <div class="std-section-title">${t.shippingSectionTitle}</div>
+          <div class="std-shipping-note">📦 ${t.freeShippingNote}</div>
+          <label>${t.shippingStreet}</label>
+          <input type="text" name="szallitasi_utca" id="std-modal-cim-utca" value="${escapeHtml(defaultShipping.utca)}">
+          <div class="field-row">
+            <div>
+              <label>${t.postalCode}</label>
+              <input type="text" name="szallitasi_irsz" id="std-modal-cim-irsz" value="${escapeHtml(defaultShipping.irsz)}">
+            </div>
+            <div>
+              <label>${t.city}</label>
+              <input type="text" name="szallitasi_varos" id="std-modal-cim-varos" value="${escapeHtml(defaultShipping.varos)}">
+            </div>
+          </div>
+          <label>${t.countryShipping}</label>
+          <select name="szallitasi_orszag" id="std-modal-cim-orszag">
+            ${countryOptions(defaultShipping.orszag, lang)}
+          </select>
         </div>
       </div>
-      <label>${t.countryBilling}</label>
-      <select name="szamlazasi_orszag" id="std-modal-billing-orszag">
-        ${countryOptions(defaultBilling.orszag, lang)}
-      </select>
 
-      <div id="std-address-group" hidden>
-        <label>${t.shippingStreet}</label>
-        <input type="text" name="szallitasi_utca" id="std-modal-cim-utca" value="${escapeHtml(defaultShipping.utca)}">
+      <div class="std-section std-billing-section">
+        <div class="std-section-title">${t.billingSectionTitle}</div>
+        <label>${t.vatLabel} <span class="hint-inline">${t.optional}</span></label>
+        <input type="text" name="adoszam" id="std-modal-adoszam" placeholder="${t.vatPlaceholder}" value="${escapeHtml(defaultAdoszam)}">
+
+        <label>${t.billingStreet}</label>
+        <input type="text" name="szamlazasi_utca" id="std-modal-billing-utca" value="${escapeHtml(defaultBilling.utca)}">
         <div class="field-row">
           <div>
             <label>${t.postalCode}</label>
-            <input type="text" name="szallitasi_irsz" id="std-modal-cim-irsz" value="${escapeHtml(defaultShipping.irsz)}">
+            <input type="text" name="szamlazasi_irsz" id="std-modal-billing-irsz" value="${escapeHtml(defaultBilling.irsz)}">
           </div>
           <div>
             <label>${t.city}</label>
-            <input type="text" name="szallitasi_varos" id="std-modal-cim-varos" value="${escapeHtml(defaultShipping.varos)}">
+            <input type="text" name="szamlazasi_varos" id="std-modal-billing-varos" value="${escapeHtml(defaultBilling.varos)}">
           </div>
         </div>
-        <label>${t.countryShipping}</label>
-        <select name="szallitasi_orszag" id="std-modal-cim-orszag">
-          ${countryOptions(defaultShipping.orszag, lang)}
+        <label>${t.countryBilling}</label>
+        <select name="szamlazasi_orszag" id="std-modal-billing-orszag">
+          ${countryOptions(defaultBilling.orszag, lang)}
         </select>
       </div>
+
       <label>${t.note} <span class="hint-inline">${t.optional}</span></label>
       <textarea name="megjegyzes" rows="2" placeholder="${t.notePlaceholder}"></textarea>
       <button type="submit" class="btn-save btn-std-submit">${t.checkout}</button>
