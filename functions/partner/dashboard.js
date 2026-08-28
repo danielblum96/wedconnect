@@ -426,6 +426,13 @@ export async function onRequestGet(context) {
   .qr-modal-image img { width:220px; height:220px; border-radius:12px; box-shadow:0 10px 24px -10px rgba(0,0,0,0.25); }
   .qr-download-btn { display:inline-block; text-decoration:none; padding:10px 24px; border-radius:999px; background:var(--accent); color:#1a1408; font-weight:600; font-size:0.85rem; }
   .qr-long-press-hint { font-size:0.76rem; color:var(--muted); margin-top:14px; }
+  .onboarding-modal { max-width:420px; }
+  .onboarding-body { padding:40px 36px 36px; text-align:center; }
+  .onboarding-emoji { font-size:2.6rem; margin-bottom:10px; }
+  .onboarding-intro { font-size:0.9rem; color:var(--muted); margin:10px 0 18px; }
+  .onboarding-steps { text-align:left; margin:0 0 26px; padding-left:22px; display:flex; flex-direction:column; gap:10px; font-size:0.88rem; line-height:1.4; }
+  .onboarding-steps li::marker { color:var(--accent); font-weight:700; }
+  #onboarding-cta { width:100%; }
   .std-modal-head { padding:34px 44px 0; text-align:center; }
   .std-modal-title { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.7rem; margin:0; color:var(--fg); }
   .std-modal-subtitle { font-size:0.85rem; color:var(--muted); margin-top:5px; min-height:1.2em; }
@@ -696,6 +703,21 @@ export async function onRequestGet(context) {
     <p class="qr-long-press-hint">${t.qrLongPressHint}</p>
   </div>
 </dialog>
+
+<dialog id="onboarding-modal" class="std-modal onboarding-modal">
+  <button type="button" class="std-modal-close" id="onboarding-close" aria-label="${t.modalClose}">&times;</button>
+  <div class="onboarding-body">
+    <div class="onboarding-emoji">💍</div>
+    <h3 class="std-modal-title">${escapeHtml(t.onboardingTitle(reseller.ceg_nev))}</h3>
+    <p class="onboarding-intro">${t.onboardingIntro}</p>
+    <ol class="onboarding-steps">
+      <li>${t.onboardingStep1}</li>
+      <li>${t.onboardingStep2}</li>
+      <li>${t.onboardingStep3}</li>
+    </ol>
+    <button type="button" class="btn-std-open btn-checkout" id="onboarding-cta">${t.onboardingCta}</button>
+  </div>
+</dialog>
 <script>
 (function () {
   var DEFAULT_MESSAGE = ${defaultMessageForClient};
@@ -703,6 +725,7 @@ export async function onRequestGet(context) {
   var FONT_RECIPES = ${fontRecipesForClient};
   var MAX_BUTTONS = 5;
   var CREATED_PAR_ID = ${createdCouple ? JSON.stringify(String(createdCouple.id)) : "null"};
+  var HAS_NO_COUPLES = ${JSON.stringify(!parok || parok.length === 0)};
   var DEFAULT_BILLING = ${JSON.stringify(defaultBilling)};
   var DEFAULT_SHIPPING = ${JSON.stringify(defaultShipping)};
   var DEFAULT_ADOSZAM = ${JSON.stringify(defaultAdoszam)};
@@ -976,6 +999,36 @@ export async function onRequestGet(context) {
     qrModal.addEventListener("click", function (e) {
       if (e.target === qrModal) qrModal.close();
     });
+  }
+
+  var onboardingModal = document.getElementById("onboarding-modal");
+  if (onboardingModal) {
+    var ONBOARDING_KEY = "wc_onboarding_dismissed";
+    var dismissOnboarding = function () {
+      try {
+        localStorage.setItem(ONBOARDING_KEY, "1");
+      } catch (e) {}
+      onboardingModal.close();
+    };
+    onboardingModal.querySelector("#onboarding-close").addEventListener("click", dismissOnboarding);
+    onboardingModal.addEventListener("click", function (e) {
+      if (e.target === onboardingModal) dismissOnboarding();
+    });
+    onboardingModal.querySelector("#onboarding-cta").addEventListener("click", function () {
+      dismissOnboarding();
+      var firstField = document.getElementById("f-nev1");
+      if (firstField) {
+        firstField.scrollIntoView({ behavior: "smooth", block: "center" });
+        firstField.focus();
+      }
+    });
+    var alreadySeen = false;
+    try {
+      alreadySeen = localStorage.getItem(ONBOARDING_KEY) === "1";
+    } catch (e) {}
+    if (HAS_NO_COUPLES && !alreadySeen) {
+      onboardingModal.showModal();
+    }
   }
 
   var stdModal = document.getElementById("std-modal");
