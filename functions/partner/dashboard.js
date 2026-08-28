@@ -355,6 +355,9 @@ export async function onRequestGet(context) {
   .std-modal .std-panel-body { padding:26px 44px 40px; }
   .std-panel-body { display:flex; gap:36px; flex-wrap:wrap; align-items:flex-start; }
   .std-stage { flex:none; width:300px; max-width:100%; }
+  @media (min-width: 760px) {
+    .std-stage { position:sticky; top:26px; }
+  }
   .std-stage-bg { position:relative; background:radial-gradient(ellipse at 50% 38%, #ffffff 0%, #f2ead9 65%, #ece0c8 100%); border-radius:20px; padding:28px 24px; box-shadow:inset 0 0 0 1px rgba(180,139,86,0.14); }
   .std-preview svg { width:100%; height:auto; display:block; filter:drop-shadow(0 20px 28px -14px rgba(90,65,30,0.4)); }
   .std-preview-page { border-radius:16px; box-shadow:0 20px 28px -14px rgba(30,20,10,0.35); }
