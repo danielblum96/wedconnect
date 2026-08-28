@@ -225,7 +225,7 @@ export async function onRequestGet(context) {
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Great+Vibes&family=Cinzel:wght@500;600&family=Poppins:wght@400;500;600&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
 <script src="/assets/qrcode.min.js"></script>
 <script type="module">
-  import { generateMockupSVG } from "/assets/save-the-date.js?v=8";
+  import { generateMockupSVG } from "/assets/save-the-date.js?v=9";
   window.STD = { generateMockupSVG };
 </script>
 <style>
@@ -1065,6 +1065,14 @@ export async function onRequestGet(context) {
     ctx.restore();
   }
 
+  // A tenyleges lezervago-fajl (assets/save-the-date.js, generateSVG) pontos
+  // oszlop-/sor-koordinatait (viewBox 64.272954 x 76.16226) normalizaltuk
+  // 0-1 tartomanyba, hogy a MEGLEVO, valodi naptar-elrendezest (7 oszlop,
+  // akar 6 het, sziv a pontos eskuvo-napon) hasznaljuk a checkout-elonezetben
+  // is, NEM egy kitalalt/leegyszerusitett racsot.
+  // A user kérésére a Save the Date doboz NEM próbálja utánozni a fizikai
+  // termék pontos kinézetét (fa-textúra, teljes naptár-rács stb.) - ehelyett
+  // egyszerű, letisztult szöveg: a pár neve + az esküvő dátuma.
   function drawStdBox(ctx, x, y, w, h, couple) {
     roundRectPath(ctx, x, y, w, h, w * 0.05);
     ctx.fillStyle = "#ecd2a3";
@@ -1074,39 +1082,27 @@ export async function onRequestGet(context) {
     ctx.textBaseline = "alphabetic";
 
     ctx.fillStyle = "#5c4023";
-    ctx.font = "600 " + Math.round(w * 0.062) + "px 'Cinzel', serif";
-    drawTrackedText(ctx, "SAVE THE DATE", x + w / 2, y + h * 0.115, w * 0.014);
-
-    var barH = h * 0.085,
-      barY = y + h * 0.155;
-    ctx.fillStyle = "#1a1408";
-    ctx.fillRect(x + w * 0.08, barY, w * 0.84, barH);
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "700 " + Math.round(w * 0.085) + "px 'Poppins', sans-serif";
-    ctx.fillText(formatDateDots(couple.datum), x + w / 2, barY + barH / 2 + w * 0.03);
+    ctx.font = "600 " + Math.round(w * 0.058) + "px 'Poppins', sans-serif";
+    drawTrackedText(ctx, "SAVE THE DATE", x + w / 2, y + h * 0.14, w * 0.012);
 
     var names = (couple.nev1 || "") + " & " + (couple.nev2 || "");
     var namesSize = fitFontSize(
       ctx,
       names,
-      w * 0.86,
+      w * 0.82,
       function (s) {
         return Math.round(s) + "px 'Great Vibes', cursive";
       },
-      w * 0.22,
+      w * 0.2,
       w * 0.09
     );
-    ctx.fillStyle = "#4a3420";
+    ctx.fillStyle = "#2e1d10";
     ctx.font = Math.round(namesSize) + "px 'Great Vibes', cursive";
-    ctx.fillText(names, x + w / 2, y + h * 0.57);
+    ctx.fillText(names, x + w / 2, y + h * 0.5);
 
-    ctx.fillStyle = "#a8481f";
-    ctx.font = Math.round(w * 0.09) + "px sans-serif";
-    ctx.fillText("♥", x + w / 2, y + h * 0.82);
-
-    ctx.fillStyle = "#8a6a3f";
-    ctx.font = "600 " + Math.round(w * 0.042) + "px 'Poppins', sans-serif";
-    drawTrackedText(ctx, "+ WEDCONNECT", x + w / 2, y + h * 0.945, w * 0.008);
+    ctx.fillStyle = "#5c4023";
+    ctx.font = "500 " + Math.round(w * 0.06) + "px 'Poppins', sans-serif";
+    ctx.fillText(formatDateDots(couple.datum), x + w / 2, y + h * 0.62);
   }
 
   function drawPageBox(ctx, x, y, w, h, couple, style) {
