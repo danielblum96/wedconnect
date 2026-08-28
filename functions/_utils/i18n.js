@@ -136,6 +136,7 @@ export const RESELLER_COPY = {
       payNow: "Zahlung",
       urgentBanner: (deadlineMs, display, price) =>
         `⏰ Noch <span class="countdown-time" data-deadline="${deadlineMs}">${display}</span> Zeit, um die Seite zu bezahlen (${price}) ODER eine Save the Date-Bestellung von 50+ Stück aufzugeben – dann ist die Seite geschenkt! Sonst wird die Seite automatisch gelöscht.`,
+      settledBanner: "✅ Die Seite ist bezahlt und dauerhaft gesichert – sie wird nicht gelöscht.",
       stripeCancelled: "Die Zahlung wurde abgebrochen. Sie können es jederzeit erneut versuchen.",
       stripeError: "Bei der Weiterleitung zur Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
       stdOrdered: "Bestellung erfolgreich aufgegeben und bezahlt. Wir stellen die Save the Date-Kalender in Kürze her und versenden sie.",
@@ -278,6 +279,7 @@ export const RESELLER_COPY = {
       payNow: "Fizetés",
       urgentBanner: (deadlineMs, display, price) =>
         `⏰ Még <span class="countdown-time" data-deadline="${deadlineMs}">${display}</span> van, hogy kifizesd az oldalt (${price}) VAGY leadj egy 50+ db-os Save the Date rendelést – utóbbi esetén az oldal ajándékba jár! Különben az oldal automatikusan törlődik.`,
+      settledBanner: "✅ Az oldal ki van fizetve és véglegesen biztosítva van – nem fog törlődni.",
       stripeCancelled: "A fizetés megszakadt. Bármikor újra megpróbálhatja.",
       stripeError: "Hiba történt a fizetéshez irányításnál. Kérjük, próbálja meg újra.",
       stdOrdered: "A rendelés sikeresen leadva és kifizetve. Hamarosan elkészítjük és postázzuk a Save the Date naptárakat.",
@@ -420,6 +422,7 @@ export const RESELLER_COPY = {
       payNow: "Pay now",
       urgentBanner: (deadlineMs, display, price) =>
         `⏰ <span class="countdown-time" data-deadline="${deadlineMs}">${display}</span> left to pay for the page (${price}) OR place a Save the Date order of 50+ pieces – in that case the page is free! Otherwise the page will be deleted automatically.`,
+      settledBanner: "✅ The page is paid and permanently secured – it won't be deleted.",
       stripeCancelled: "Payment was cancelled. You can try again anytime.",
       stripeError: "Something went wrong while redirecting to payment. Please try again.",
       stdOrdered: "Order placed and paid successfully. We'll prepare and ship the Save the Date calendars shortly.",

@@ -210,7 +210,7 @@ export async function onRequestGet(context) {
                     <button type="submit" class="btn-pay-now">${t.payNow}</button>
                   </form>
                 </div>`
-              : ""
+              : `<div class="settled-banner"><span>${t.settledBanner}</span></div>`
           }
           <details class="couple-edit">
             <summary>${t.edit}</summary>
@@ -374,6 +374,7 @@ export async function onRequestGet(context) {
   .btn-add-row { border:1px dashed #ddd6c9; background:none; color:var(--accent); border-radius:8px; padding:9px 14px; font-size:0.85rem; font-weight:600; cursor:pointer; font-family:inherit; margin-bottom:20px; }
   .info-box { background:#eaf5ee; color:#3a7a4e; border:1px solid #bfe0cb; padding:10px 14px; border-radius:8px; font-size:0.85rem; margin-bottom:18px; }
   .urgent-banner { display:flex; align-items:center; justify-content:space-between; gap:14px; background:linear-gradient(135deg,#fff0e0,#ffe0c2); border:1.5px solid #e8a15c; border-radius:10px; padding:12px 16px; margin-top:12px; font-size:0.83rem; font-weight:600; color:#8a4a0f; flex-wrap:wrap; animation:urgentPulse 2.2s ease-in-out infinite; }
+  .settled-banner { display:flex; align-items:center; background:linear-gradient(135deg,#eef8ec,#dbf0d3); border:1.5px solid #a3d494; border-radius:10px; padding:12px 16px; margin-top:12px; font-size:0.83rem; font-weight:600; color:#2f6b28; }
   .countdown-time { display:inline-block; min-width:7ch; text-align:center; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace; font-variant-numeric:tabular-nums; font-weight:700; color:#c9660f; letter-spacing:0; }
   @keyframes urgentPulse { 0%, 100% { box-shadow:0 0 0 0 rgba(232,161,92,0.45); } 50% { box-shadow:0 0 0 7px rgba(232,161,92,0); } }
   .btn-pay-now { flex:none; padding:9px 20px; border:none; border-radius:999px; background:#c9660f; color:#fff; font-weight:700; font-size:0.82rem; cursor:pointer; white-space:nowrap; font-family:inherit; }
