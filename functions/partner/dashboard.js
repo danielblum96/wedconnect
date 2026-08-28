@@ -45,9 +45,9 @@ export async function onRequestGet(context) {
   }
 
   const { results: parokRaw } = await env.DB.prepare(
-    `SELECT p.id, p.par_neve, p.nev1, p.nev2, p.eskuvo_datuma, p.slug, p.allapot, p.valasztott_stilus, p.egyedi_uzenet, p.egyedi_gombok, p.nyelv, p.letrehozva, p.rendeles_id, p.viszontelado_id, r.mennyiseg AS rendeles_mennyiseg
+    `SELECT p.id, p.par_neve, p.nev1, p.nev2, p.eskuvo_datuma, p.slug, p.allapot, p.valasztott_stilus, p.egyedi_uzenet, p.egyedi_gombok, p.nyelv, p.letrehozva, p.rendeles_id, p.viszontelado_id,
+            (SELECT 1 FROM rendelesek r2 WHERE r2.par_id = p.id AND r2.allapot = 'Fizetve' AND r2.mennyiseg > 1 LIMIT 1) AS has_std_order
      FROM parok p
-     LEFT JOIN rendelesek r ON p.rendeles_id = r.id
      WHERE p.viszontelado_id = ?
      ORDER BY p.eskuvo_datuma DESC`
   )
@@ -187,11 +187,15 @@ export async function onRequestGet(context) {
         p.egyedi_uzenet || defaultMessage,
         mockGombok
       );
-      // Az oldal-fizetés (couple-pay.js, order-save-the-date.js "csak oldal" ága)
-      // mindig mennyiseg=1-gyel jön létre - ha a rendeles_id mögötti rendelés
-      // ennél nagyobb mennyiséget mutat, az egy VALÓDI Save the Date naptár-
-      // rendelést jelent, tehát mindkét vásárlás megtörtént.
-      const hasStdOrder = !!(p.rendeles_id && p.rendeles_mennyiseg && p.rendeles_mennyiseg > 1);
+      // FONTOS: ez a MEGLÉVŐ rendelesek táblát nézi át par_id szerint, NEM a
+      // parok.rendeles_id-t - a rendeles_id csak az ELSŐ sikeres fizetésre áll
+      // be (fulfillStripeOrder "WHERE rendeles_id IS NULL" védelme miatt), így
+      // ha a viszonteladó előbb CSAK az oldalt fizette ki, majd KÉSŐBB egy
+      // valódi Save the Date rendelést is leadott, a rendeles_id örökre az
+      // első (oldal, mennyiseg=1) rendelésre mutatna, és a második rendelés
+      // sosem látszana ebből - innen a par_id-alapú, MINDEN rendelést átnéző
+      // has_std_order almező.
+      const hasStdOrder = !!p.has_std_order;
 
       return `
         <div class="couple${created === p.slug ? " just-created" : ""}" data-search="${escapeHtml(searchText)}">
