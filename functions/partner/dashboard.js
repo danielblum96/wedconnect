@@ -229,11 +229,15 @@ export async function onRequestGet(context) {
   :root { --bg:#faf7f2; --fg:#2b2620; --muted:#7a7266; --accent:#b48b56; --card:#ffffff; }
   * { box-sizing: border-box; }
   body { margin:0; font-family:"Poppins",sans-serif; background:var(--bg); color:var(--fg); }
-  header { display:flex; align-items:center; justify-content:space-between; padding:20px 32px; background:var(--card); box-shadow:0 2px 10px rgba(0,0,0,0.05); }
+  header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; padding:20px 32px; background:var(--card); box-shadow:0 2px 10px rgba(0,0,0,0.05); }
   .brand { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.4rem; }
   .brand span { color:var(--accent); }
   .who { font-size:0.85rem; color:var(--muted); }
   .logout-form button { border:none; background:none; color:var(--muted); text-decoration:underline; cursor:pointer; font-family:inherit; font-size:0.85rem; }
+  @media (max-width: 600px) {
+    header { padding:14px 16px; }
+    .who { display:none; }
+  }
   main { max-width:820px; margin:0 auto; padding:36px 24px 80px; }
   h2 { font-family:"Cormorant Garamond",serif; font-size:1.5rem; margin:0 0 18px; }
   .new-couple { background:var(--card); border-radius:14px; padding:26px 28px; margin-bottom:40px; box-shadow:0 10px 30px -20px rgba(0,0,0,0.15); }
@@ -640,6 +644,16 @@ export async function onRequestGet(context) {
   var steps = Array.prototype.slice.call(form.querySelectorAll(".wizard-step"));
   var rowsContainer = document.getElementById("button-rows");
   var addRowBtn = document.getElementById("add-button-row");
+
+  form.querySelectorAll(".style-swatch").forEach(function (sw) {
+    var radio = sw.querySelector('input[type="radio"]');
+    var confirmBtn = sw.querySelector(".swatch-confirm");
+    if (radio && confirmBtn) {
+      confirmBtn.addEventListener("click", function () {
+        radio.checked = true;
+      });
+    }
+  });
 
   function escapeHtml(s) {
     return String(s == null ? "" : s)
