@@ -517,10 +517,12 @@ export async function onRequestGet(context) {
         <div class="std-preview" id="std-modal-preview"></div>
         <div class="std-nfc-badge" id="std-nfc-badge" title="${t.infoPopover}">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <circle cx="7.2" cy="16.8" r="1.4" fill="currentColor"/>
-            <path d="M10.6 13.4a5 5 0 0 1 0 7.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-            <path d="M13.4 10.6a9 9 0 0 1 0 12.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-            <path d="M16.2 7.8a13 13 0 0 1 0 18.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <g transform="translate(0,-3.9)">
+              <circle cx="7.2" cy="16.8" r="1.4" fill="currentColor"/>
+              <path d="M10.6 13.4a5 5 0 0 1 0 7.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M13.4 10.6a9 9 0 0 1 0 12.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M16.2 7.8a13 13 0 0 1 0 18.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </g>
           </svg>
           <span>+ WedConnect</span>
         </div>
