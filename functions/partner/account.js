@@ -67,7 +67,8 @@ export async function onRequestGet(context) {
   input, textarea, select { width:100%; padding:9px 12px; border:1px solid #ddd6c9; border-radius:8px; font-family:inherit; font-size:0.9rem; margin-bottom:14px; background:#fff; }
   textarea { resize:vertical; min-height:60px; }
   .field-row { display:grid; grid-template-columns:1fr 2fr; gap:12px; }
-  button[type=submit] { padding:10px 24px; border:none; border-radius:999px; background:var(--accent); color:#1a1408; font-weight:600; font-size:0.85rem; cursor:pointer; }
+  button[type=submit] { padding:10px 24px; border:none; border-radius:999px; background:linear-gradient(135deg,#f0c988,#b48b56); color:#1a1408; font-weight:600; font-size:0.85rem; cursor:pointer; font-family:inherit; box-shadow:0 6px 16px -8px rgba(139,102,53,0.6); transition:transform 0.15s ease, box-shadow 0.15s ease; }
+  button[type=submit]:hover { transform:translateY(-1px); box-shadow:0 8px 20px -8px rgba(139,102,53,0.75); }
   .error-box { background:#fdeee7; color:#b1451f; border:1px solid #f3c8b3; padding:10px 14px; border-radius:8px; font-size:0.85rem; margin-bottom:18px; }
   .info-box { background:#eaf5ee; color:#3a7a4e; border:1px solid #bfe0cb; padding:10px 14px; border-radius:8px; font-size:0.85rem; margin-bottom:18px; }
   .toggle-label { display:flex; align-items:flex-start; gap:9px; font-size:0.85rem; font-weight:500; color:var(--fg); background:#faf6ee; border:1px solid #ece1cc; border-radius:8px; padding:10px 13px; margin-bottom:14px; cursor:pointer; }

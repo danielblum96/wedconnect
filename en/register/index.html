@@ -113,13 +113,19 @@
     padding: 13px;
     border: none;
     border-radius: 999px;
-    background: var(--accent);
+    background: linear-gradient(135deg, #f0c988, #b48b56);
     color: #1a1408;
     font-family: inherit;
     font-weight: 600;
     font-size: 0.9rem;
     letter-spacing: 0.03em;
     cursor: pointer;
+    box-shadow: 0 6px 16px -8px rgba(139,102,53,0.6);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px -8px rgba(139,102,53,0.75);
   }
   .error {
     background: #fdeee7;
