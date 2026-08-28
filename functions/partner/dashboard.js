@@ -101,6 +101,35 @@ export async function onRequestGet(context) {
       </label>`;
   }).join("");
 
+  function buildMockHtml(s, namesText, dateText, message, buttonLabels) {
+    const recipe = FONT_RECIPES[s.font] || FONT_RECIPES.sans;
+    const namesFontSize = s.font === "script" || s.font === "hand" ? "2rem" : "1.5rem";
+    const buttonsHtml =
+      buttonLabels && buttonLabels.length
+        ? `<span class="mock-buttons">${buttonLabels
+            .slice(0, 2)
+            .map((b) => `<span class="mock-btn">${escapeHtml(b)}</span>`)
+            .join("")}</span>`
+        : "";
+    return `
+      <span class="mock-eyebrow">${escapeHtml(t.mockEyebrow)}</span>
+      <span class="mock-names" style="${recipe} font-size:${namesFontSize};">${escapeHtml(namesText)}</span>
+      ${dateText ? `<span class="mock-date">${escapeHtml(dateText)}</span>` : ""}
+      <span class="mock-message">${escapeHtml(message)}</span>
+      ${buttonsHtml}`;
+  }
+
+  function buildEditStylePicker(selectedStyleId, namesText, dateText, message, buttonLabels) {
+    return STYLES.map((s) => {
+      return `
+        <label class="style-swatch" style="--bg:${s.bg}; --fg:${s.fg}; --accent:${s.accent}; --accent-text:${s.accentText}; --btn-fg:${s.btnFg};">
+          <input type="radio" name="stilus" value="${s.id}" ${s.id === selectedStyleId ? "checked" : ""}>
+          <span class="swatch-mock">${buildMockHtml(s, namesText, dateText, message, buttonLabels)}</span>
+          <span class="swatch-name">${escapeHtml(getStyleName(s, lang))}</span>
+        </label>`;
+    }).join("");
+  }
+
   const stylesForClient = JSON.stringify(
     STYLES.map((s) => ({ id: s.id, font: s.font, bg: s.bg, fg: s.fg, accent: s.accent, accentText: s.accentText, btnFg: s.btnFg }))
   );
@@ -137,6 +166,15 @@ export async function onRequestGet(context) {
         .map((g) => (g && g.label ? g.label.trim() : ""))
         .filter(Boolean)
         .slice(0, 2);
+      const dateParts = (p.eskuvo_datuma || "").split("-");
+      const dateText = dateParts.length === 3 ? `${dateParts[0]}.${dateParts[1]}.${dateParts[2]}.` : "";
+      const editStylePicker = buildEditStylePicker(
+        resolvedStyle.id,
+        `${nev1} & ${nev2}`,
+        dateText,
+        p.egyedi_uzenet || defaultMessage,
+        mockGombok
+      );
 
       return `
         <div class="couple${created === p.slug ? " just-created" : ""}" data-search="${escapeHtml(searchText)}">
@@ -166,14 +204,16 @@ export async function onRequestGet(context) {
                 </div>`
               : ""
           }
-          <details>
+          <details class="couple-edit">
             <summary>${t.edit}</summary>
-            <form method="POST" action="/api/couple-update" class="edit-form">
+            <form method="POST" action="/api/couple-update" class="edit-form" data-nev1="${escapeHtml(nev1)}" data-nev2="${escapeHtml(nev2)}" data-datetext="${escapeHtml(dateText)}">
               <input type="hidden" name="par_id" value="${p.id}">
               <label>${t.ownMessageEditHint}</label>
               <textarea name="egyedi_uzenet" rows="2" placeholder="${t.ownMessagePlaceholder}">${escapeHtml(p.egyedi_uzenet || "")}</textarea>
               <label>${t.buttonsEditHint}</label>
               ${gombRows}
+              <label>${t.editStyleLabel}</label>
+              <div class="style-picker style-picker--edit">${editStylePicker}</div>
               <button type="submit" class="btn-save">${t.save}</button>
               ${saved === String(p.id) ? `<span class="saved-note">${t.saved}</span>` : ""}
             </form>
@@ -257,9 +297,11 @@ export async function onRequestGet(context) {
   .couple-meta { font-size:0.82rem; color:var(--muted); margin:2px 0 4px; }
   .status { color:var(--accent); font-weight:600; }
   .couple-link { font-size:0.82rem; color:var(--accent); text-decoration:none; }
-  details { margin-top:10px; }
+  details { margin:10px 0 18px; }
   summary { cursor:pointer; font-size:0.85rem; color:var(--accent); font-weight:600; }
   .edit-form { margin-top:14px; }
+  .edit-form .style-picker--edit { margin-top:6px; margin-bottom:16px; }
+  .style-picker--edit .style-swatch:has(input:checked) .swatch-name { display:block; }
   .btn-row { display:flex; gap:8px; }
   .btn-row input { flex:1; }
   .saved-note { color:#3a7a4e; font-size:0.85rem; margin-left:10px; }
@@ -736,7 +778,7 @@ export async function onRequestGet(context) {
       return l;
     });
 
-    document.querySelectorAll(".style-swatch").forEach(function (sw) {
+    form.querySelectorAll(".style-swatch").forEach(function (sw) {
       var id = sw.querySelector("input").value;
       var style = STYLES.filter(function (s) {
         return s.id === id;
@@ -1058,6 +1100,50 @@ export async function onRequestGet(context) {
     var parts = datum.split("-").map(Number);
     stdModalPreview.innerHTML = window.STD.generateMockupSVG(nev1, nev2, parts[0], parts[1], parts[2], nyelv);
   }
+
+  document.querySelectorAll(".edit-form").forEach(function (form) {
+    var namesText = form.getAttribute("data-nev1") + " & " + form.getAttribute("data-nev2");
+    var dateText = form.getAttribute("data-datetext") || "";
+
+    function refreshEditPreview() {
+      var uzenetEl = form.querySelector('[name="egyedi_uzenet"]');
+      var message = (uzenetEl.value.trim()) || DEFAULT_MESSAGE;
+      var buttons = Array.prototype.map
+        .call(form.querySelectorAll('[name="gomb_label"]'), function (el) {
+          return el.value.trim();
+        })
+        .filter(function (l) {
+          return l;
+        });
+      form.querySelectorAll(".style-swatch").forEach(function (sw) {
+        var id = sw.querySelector("input").value;
+        var style = STYLES.filter(function (s) {
+          return s.id === id;
+        })[0];
+        if (!style) return;
+        var recipe = FONT_RECIPES[style.font] || FONT_RECIPES.sans;
+        var namesFontSize = style.font === "script" || style.font === "hand" ? "2rem" : "1.5rem";
+        var buttonsHtml = buttons.length
+          ? '<span class="mock-buttons">' +
+            buttons
+              .slice(0, 2)
+              .map(function (b) {
+                return '<span class="mock-btn">' + escapeHtml(b) + "</span>";
+              })
+              .join("") +
+            "</span>"
+          : "";
+        sw.querySelector(".swatch-mock").innerHTML =
+          '<span class="mock-eyebrow">' + escapeHtml(COPY.mockEyebrow) + '</span>' +
+          '<span class="mock-names" style="' + recipe + " font-size:" + namesFontSize + ';">' + escapeHtml(namesText) + "</span>" +
+          (dateText ? '<span class="mock-date">' + escapeHtml(dateText) + "</span>" : "") +
+          '<span class="mock-message">' + escapeHtml(message) + "</span>" +
+          buttonsHtml;
+      });
+    }
+
+    form.addEventListener("input", refreshEditPreview);
+  });
 
   document.querySelectorAll(".btn-std-open").forEach(function (btn) {
     btn.addEventListener("click", function () {

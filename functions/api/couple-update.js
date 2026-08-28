@@ -1,4 +1,5 @@
 import { getSessionReseller } from "../_utils/auth.js";
+import { getStyle } from "../_utils/styles.js";
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -8,6 +9,7 @@ export async function onRequestPost(context) {
   const formData = await request.formData();
   const parId = parseInt((formData.get("par_id") || "").toString(), 10);
   const uzenet = (formData.get("egyedi_uzenet") || "").toString().trim();
+  const stilusId = (formData.get("stilus") || "").toString().trim();
   const labels = formData.getAll("gomb_label");
   const urls = formData.getAll("gomb_url");
 
@@ -25,8 +27,10 @@ export async function onRequestPost(context) {
     if (label && url) gombok.push({ label, url });
   }
 
-  await env.DB.prepare("UPDATE parok SET egyedi_uzenet = ?, egyedi_gombok = ? WHERE id = ?")
-    .bind(uzenet || null, gombok.length ? JSON.stringify(gombok) : null, parId)
+  const style = getStyle(stilusId);
+
+  await env.DB.prepare("UPDATE parok SET egyedi_uzenet = ?, egyedi_gombok = ?, valasztott_stilus = ? WHERE id = ?")
+    .bind(uzenet || null, gombok.length ? JSON.stringify(gombok) : null, style.id, parId)
     .run();
 
   return Response.redirect(`${new URL("/partner/dashboard", request.url).href}?saved=${parId}`, 303);
