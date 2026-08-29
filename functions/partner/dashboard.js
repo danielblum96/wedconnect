@@ -232,8 +232,8 @@ export async function onRequestGet(context) {
               <label>${t.ownMessage} <span class="hint-inline">${t.ownMessageEditHint}</span></label>
               <p class="field-explain">${t.ownMessageExplain}</p>
               <div class="chip-row">
-                <span class="chip-row-label">${t.useDefaultTextLabel}</span>
-                <button type="button" class="chip" data-fill-message="${escapeHtml(defaultMessage)}">${escapeHtml(defaultMessage)}</button>
+                <span class="chip-row-label">${t.inspirationLabel}</span>
+                ${t.messageSuggestions.map((s) => `<button type="button" class="chip" data-fill-message="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
               </div>
               <textarea name="egyedi_uzenet" rows="2" placeholder="${t.ownMessagePlaceholder}">${escapeHtml(p.egyedi_uzenet || "")}</textarea>
               <label>${t.buttons} <span class="hint-inline">${t.buttonsEditHint}</span></label>
@@ -560,6 +560,10 @@ export async function onRequestGet(context) {
         <p class="step-label">${t.step2Label}</p>
         <label>${t.ownMessage} <span class="hint-inline">${t.ownMessageHint}</span></label>
         <p class="field-explain">${t.ownMessageExplain}</p>
+        <div class="chip-row">
+          <span class="chip-row-label">${t.inspirationLabel}</span>
+          ${t.messageSuggestions.map((s) => `<button type="button" class="chip" data-fill-message="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+        </div>
         <textarea name="egyedi_uzenet" id="f-uzenet" rows="3">${escapeHtml(defaultMessage)}</textarea>
         <label>${t.buttons} <span class="hint-inline">${t.buttonsHint}</span></label>
         <p class="field-explain">${t.buttonsExplain}</p>
