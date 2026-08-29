@@ -53,9 +53,9 @@ export async function onRequestGet(context) {
   header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; padding:20px 32px; background:var(--card); box-shadow:0 2px 10px rgba(0,0,0,0.05); }
   .brand { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.4rem; }
   .brand span { color:var(--accent); }
-  .who { font-size:0.85rem; color:var(--muted); }
-  .back-link { font-size:0.85rem; color:var(--muted); text-decoration:underline; }
-  .logout-form button { border:none; background:none; color:var(--muted); text-decoration:underline; cursor:pointer; font-family:inherit; font-size:0.85rem; }
+  .who { font-size:0.95rem; color:var(--muted); }
+  .back-link { font-size:0.95rem; color:var(--muted); text-decoration:underline; }
+  .logout-form button { border:none; background:none; color:var(--muted); text-decoration:underline; cursor:pointer; font-family:inherit; font-size:0.95rem; }
   @media (max-width: 600px) {
     header { padding:14px 16px; }
     .who { display:none; }
@@ -63,15 +63,15 @@ export async function onRequestGet(context) {
   main { max-width:420px; margin:0 auto; padding:36px 24px 80px; }
   h2 { font-family:"Cormorant Garamond",serif; font-size:1.5rem; margin:0 0 18px; }
   .card { background:var(--card); border-radius:14px; padding:26px 28px; box-shadow:0 10px 30px -20px rgba(0,0,0,0.15); }
-  label { display:block; font-size:0.8rem; font-weight:500; margin-bottom:5px; }
-  input, textarea, select { width:100%; padding:9px 12px; border:1px solid #ddd6c9; border-radius:8px; font-family:inherit; font-size:0.9rem; margin-bottom:14px; background:#fff; }
+  label { display:block; font-size:0.9rem; font-weight:500; margin-bottom:5px; }
+  input, textarea, select { width:100%; padding:9px 12px; border:1px solid #ddd6c9; border-radius:8px; font-family:inherit; font-size:1rem; margin-bottom:14px; background:#fff; }
   textarea { resize:vertical; min-height:60px; }
   .field-row { display:grid; grid-template-columns:1fr 2fr; gap:12px; }
-  button[type=submit] { padding:10px 24px; border:none; border-radius:999px; background:linear-gradient(135deg,#f0c988,#b48b56); color:#1a1408; font-weight:600; font-size:0.85rem; cursor:pointer; font-family:inherit; box-shadow:0 6px 16px -8px rgba(139,102,53,0.6); transition:transform 0.15s ease, box-shadow 0.15s ease; }
+  button[type=submit] { padding:10px 24px; border:none; border-radius:999px; background:linear-gradient(135deg,#f0c988,#b48b56); color:#1a1408; font-weight:600; font-size:0.95rem; cursor:pointer; font-family:inherit; box-shadow:0 6px 16px -8px rgba(139,102,53,0.6); transition:transform 0.15s ease, box-shadow 0.15s ease; }
   button[type=submit]:hover { transform:translateY(-1px); box-shadow:0 8px 20px -8px rgba(139,102,53,0.75); }
-  .error-box { background:#fdeee7; color:#b1451f; border:1px solid #f3c8b3; padding:10px 14px; border-radius:8px; font-size:0.85rem; margin-bottom:18px; }
-  .info-box { background:#eaf5ee; color:#3a7a4e; border:1px solid #bfe0cb; padding:10px 14px; border-radius:8px; font-size:0.85rem; margin-bottom:18px; }
-  .toggle-label { display:flex; align-items:flex-start; gap:9px; font-size:0.85rem; font-weight:500; color:var(--fg); background:#faf6ee; border:1px solid #ece1cc; border-radius:8px; padding:10px 13px; margin-bottom:14px; cursor:pointer; }
+  .error-box { background:#fdeee7; color:#b1451f; border:1px solid #f3c8b3; padding:10px 14px; border-radius:8px; font-size:0.95rem; margin-bottom:18px; }
+  .info-box { background:#eaf5ee; color:#3a7a4e; border:1px solid #bfe0cb; padding:10px 14px; border-radius:8px; font-size:0.95rem; margin-bottom:18px; }
+  .toggle-label { display:flex; align-items:flex-start; gap:9px; font-size:0.95rem; font-weight:500; color:var(--fg); background:#faf6ee; border:1px solid #ece1cc; border-radius:8px; padding:10px 13px; margin-bottom:14px; cursor:pointer; }
   .toggle-label input[type="checkbox"] { width:16px; height:16px; margin:2px 0 0; flex:none; accent-color:var(--accent); }
   .hint-inline { font-weight:400; color:var(--muted); }
 </style>

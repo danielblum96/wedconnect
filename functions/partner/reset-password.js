@@ -45,13 +45,13 @@ function page({ valid, token, error, lang }) {
   .brand { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.6rem; margin-bottom:6px; }
   .brand span { color:var(--accent); }
   h1 { font-size:1rem; font-weight:500; color:var(--muted); margin:0 0 24px; }
-  label { display:block; font-size:0.85rem; font-weight:500; margin-bottom:6px; text-align:left; }
+  label { display:block; font-size:0.95rem; font-weight:500; margin-bottom:6px; text-align:left; }
   input { width:100%; padding:11px 14px; border:1px solid #ddd6c9; border-radius:8px; font-family:inherit; font-size:0.95rem; margin-bottom:18px; }
   input:focus { outline:2px solid var(--accent); outline-offset:1px; }
-  button, .btn-link { width:100%; display:block; padding:13px; border:none; border-radius:999px; background:linear-gradient(135deg,#f0c988,#b48b56); color:#1a1408; font-family:inherit; font-weight:600; font-size:0.9rem; letter-spacing:0.03em; cursor:pointer; text-decoration:none; box-sizing:border-box; box-shadow:0 6px 16px -8px rgba(139,102,53,0.6); transition:transform 0.15s ease, box-shadow 0.15s ease; }
+  button, .btn-link { width:100%; display:block; padding:13px; border:none; border-radius:999px; background:linear-gradient(135deg,#f0c988,#b48b56); color:#1a1408; font-family:inherit; font-weight:600; font-size:1rem; letter-spacing:0.03em; cursor:pointer; text-decoration:none; box-sizing:border-box; box-shadow:0 6px 16px -8px rgba(139,102,53,0.6); transition:transform 0.15s ease, box-shadow 0.15s ease; }
   button:hover, .btn-link:hover { transform:translateY(-1px); box-shadow:0 8px 20px -8px rgba(139,102,53,0.75); }
-  .error { background:#fdeee7; color:var(--error); border:1px solid #f3c8b3; padding:10px 14px; border-radius:8px; font-size:0.85rem; margin-bottom:18px; text-align:left; }
-  .hint { font-size:0.85rem; color:var(--muted); margin:0 0 24px; }
+  .error { background:#fdeee7; color:var(--error); border:1px solid #f3c8b3; padding:10px 14px; border-radius:8px; font-size:0.95rem; margin-bottom:18px; text-align:left; }
+  .hint { font-size:0.95rem; color:var(--muted); margin:0 0 24px; }
 </style>
 </head>
 <body>
