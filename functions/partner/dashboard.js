@@ -395,7 +395,16 @@ export async function onRequestGet(context) {
   .chip { border:1px solid #ddd6c9; background:#fff; color:var(--fg); border-radius:999px; padding:6px 14px; font-size:0.78rem; font-weight:500; cursor:pointer; font-family:inherit; transition:background 0.15s ease, border-color 0.15s ease; }
   .chip:hover { background:#f7f0e2; border-color:var(--accent); }
   .price-note { display:inline-block; font-size:0.78rem; font-weight:600; color:var(--accent); background:#fbf2e2; border:1px solid #ecd9b6; border-radius:999px; padding:5px 14px; margin:-6px 0 16px; }
-  .step-label { font-size:0.78rem; font-weight:600; letter-spacing:0.04em; color:var(--accent); text-transform:uppercase; margin:0 0 16px; }
+  .wizard-progress { display:flex; align-items:flex-start; margin-bottom:28px; }
+  .wizard-progress-step { display:flex; flex-direction:column; align-items:center; flex:none; width:90px; }
+  .wizard-progress-circle { width:32px; height:32px; border-radius:50%; border:2px solid #ddd6c9; background:#fff; color:var(--muted); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85rem; transition:background 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease; }
+  .wizard-progress-label { font-size:0.7rem; color:var(--muted); margin-top:8px; text-align:center; line-height:1.3; transition:color 0.25s ease; }
+  .wizard-progress-line { flex:1; height:2px; background:#ddd6c9; margin-top:15px; transition:background 0.3s ease; }
+  .wizard-progress-step.active .wizard-progress-circle { border-color:var(--accent); color:var(--accent); background:#fff; box-shadow:0 0 0 4px rgba(180,139,86,0.18); }
+  .wizard-progress-step.active .wizard-progress-label { color:var(--fg); font-weight:700; }
+  .wizard-progress-step.completed .wizard-progress-circle { background:linear-gradient(135deg,#f0c988,#b48b56); border-color:transparent; color:#1a1408; }
+  .wizard-progress-step.completed .wizard-progress-label { color:var(--accent); font-weight:600; }
+  .wizard-progress-line.completed { background:linear-gradient(90deg,#f0c988,#b48b56); }
   .hint-inline { font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted); font-size:0.78rem; }
   .wizard-nav { display:flex; gap:12px; margin-top:8px; }
   .btn-back { padding:10px 24px; border:1px solid #ddd6c9; border-radius:999px; background:none; color:var(--fg); font-weight:600; font-size:0.85rem; cursor:pointer; font-family:inherit; }
@@ -541,9 +550,20 @@ export async function onRequestGet(context) {
   }
   <div class="new-couple">
     <h2>${t.newCoupleHeading}</h2>
+    <div class="wizard-progress" id="wizard-progress">
+      ${t.progressSteps
+        .map(
+          (label, i) => `
+        ${i > 0 ? `<div class="wizard-progress-line" data-progress-line="${i}"></div>` : ""}
+        <div class="wizard-progress-step" data-progress-step="${i + 1}">
+          <div class="wizard-progress-circle">${i + 1}</div>
+          <div class="wizard-progress-label">${escapeHtml(label)}</div>
+        </div>`
+        )
+        .join("")}
+    </div>
     <form method="POST" action="/api/couple-create" id="new-couple-form" novalidate>
       <div class="wizard-step" data-step="1">
-        <p class="step-label">${t.step1Label}</p>
         <div class="field-row">
           <div><label>${t.brideName}</label><input type="text" name="nev1" id="f-nev1" required></div>
           <div><label>${t.groomName}</label><input type="text" name="nev2" id="f-nev2" required></div>
@@ -557,7 +577,6 @@ export async function onRequestGet(context) {
       </div>
 
       <div class="wizard-step" data-step="2" hidden>
-        <p class="step-label">${t.step2Label}</p>
         <label>${t.ownMessage} <span class="hint-inline">${t.ownMessageHint}</span></label>
         <p class="field-explain">${t.ownMessageExplain}</p>
         <div class="chip-row">
@@ -586,7 +605,6 @@ export async function onRequestGet(context) {
       </div>
 
       <div class="wizard-step" data-step="3" hidden>
-        <p class="step-label">${t.step3Label}</p>
         <p class="style-picker-hint">${t.stylePickerHint}</p>
         <p class="price-note">${t.priceNote(formatPrice(PAGE_PRICE, lang))}</p>
         <div class="style-picker" id="style-picker">${stylePicker}</div>
@@ -792,6 +810,21 @@ export async function onRequestGet(context) {
   function showStep(n) {
     steps.forEach(function (s) {
       s.hidden = parseInt(s.dataset.step, 10) !== n;
+    });
+    form.parentElement.querySelectorAll(".wizard-progress-step").forEach(function (el) {
+      var stepNum = parseInt(el.getAttribute("data-progress-step"), 10);
+      var circle = el.querySelector(".wizard-progress-circle");
+      el.classList.remove("active", "completed");
+      if (stepNum < n) {
+        el.classList.add("completed");
+        circle.textContent = "✓";
+      } else {
+        if (stepNum === n) el.classList.add("active");
+        circle.textContent = String(stepNum);
+      }
+    });
+    form.parentElement.querySelectorAll(".wizard-progress-line").forEach(function (el) {
+      el.classList.toggle("completed", parseInt(el.getAttribute("data-progress-line"), 10) < n);
     });
     if (n === 3) renderPreviews();
   }
