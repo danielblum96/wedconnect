@@ -231,9 +231,17 @@ export async function onRequestGet(context) {
               <input type="hidden" name="par_id" value="${p.id}">
               <label>${t.ownMessage} <span class="hint-inline">${t.ownMessageEditHint}</span></label>
               <p class="field-explain">${t.ownMessageExplain}</p>
+              <div class="chip-row">
+                <span class="chip-row-label">${t.useDefaultTextLabel}</span>
+                <button type="button" class="chip" data-fill-message="${escapeHtml(defaultMessage)}">${escapeHtml(defaultMessage)}</button>
+              </div>
               <textarea name="egyedi_uzenet" rows="2" placeholder="${t.ownMessagePlaceholder}">${escapeHtml(p.egyedi_uzenet || "")}</textarea>
               <label>${t.buttons} <span class="hint-inline">${t.buttonsEditHint}</span></label>
               <p class="field-explain">${t.buttonsExplain}</p>
+              <div class="chip-row">
+                <span class="chip-row-label">${t.inspirationLabel}</span>
+                ${t.buttonSuggestions.map((s) => `<button type="button" class="chip" data-fill="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+              </div>
               ${gombRows}
               <label>${t.editStyleLabel}</label>
               <p class="field-explain">${t.stylePickerHint}</p>
@@ -382,6 +390,10 @@ export async function onRequestGet(context) {
   }
   .style-picker-hint { font-size:0.78rem; color:var(--muted); margin:-2px 0 16px; }
   .field-explain { font-size:0.78rem; color:var(--muted); line-height:1.45; margin:2px 0 10px; }
+  .chip-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 14px; }
+  .chip-row-label { font-size:0.76rem; color:var(--muted); font-weight:600; margin-right:2px; }
+  .chip { border:1px solid #ddd6c9; background:#fff; color:var(--fg); border-radius:999px; padding:6px 14px; font-size:0.78rem; font-weight:500; cursor:pointer; font-family:inherit; transition:background 0.15s ease, border-color 0.15s ease; }
+  .chip:hover { background:#f7f0e2; border-color:var(--accent); }
   .price-note { display:inline-block; font-size:0.78rem; font-weight:600; color:var(--accent); background:#fbf2e2; border:1px solid #ecd9b6; border-radius:999px; padding:5px 14px; margin:-6px 0 16px; }
   .step-label { font-size:0.78rem; font-weight:600; letter-spacing:0.04em; color:var(--accent); text-transform:uppercase; margin:0 0 16px; }
   .hint-inline { font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted); font-size:0.78rem; }
@@ -551,6 +563,10 @@ export async function onRequestGet(context) {
         <textarea name="egyedi_uzenet" id="f-uzenet" rows="3">${escapeHtml(defaultMessage)}</textarea>
         <label>${t.buttons} <span class="hint-inline">${t.buttonsHint}</span></label>
         <p class="field-explain">${t.buttonsExplain}</p>
+        <div class="chip-row">
+          <span class="chip-row-label">${t.inspirationLabel}</span>
+          ${t.buttonSuggestions.map((s) => `<button type="button" class="chip" data-fill="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+        </div>
         <div id="button-rows">
           <div class="btn-row">
             <input type="text" name="gomb_label" placeholder="${t.buttonLabelPlaceholder}" autocomplete="off">
@@ -1004,6 +1020,41 @@ export async function onRequestGet(context) {
       if (e.target === qrModal) qrModal.close();
     });
   }
+
+  document.addEventListener("click", function (e) {
+    var chip = e.target.closest(".chip");
+    if (!chip) return;
+    var form = chip.closest("form");
+    if (!form) return;
+
+    if (chip.hasAttribute("data-fill-message")) {
+      var textarea = form.querySelector('[name="egyedi_uzenet"]');
+      if (textarea) {
+        textarea.value = chip.getAttribute("data-fill-message");
+        textarea.dispatchEvent(new Event("input", { bubbles: true }));
+        textarea.focus();
+      }
+      return;
+    }
+
+    var fillText = chip.getAttribute("data-fill");
+    if (fillText == null) return;
+    var labelInputs = form.querySelectorAll('[name="gomb_label"]');
+    for (var i = 0; i < labelInputs.length; i++) {
+      if (!labelInputs[i].value.trim()) {
+        labelInputs[i].value = fillText;
+        labelInputs[i].dispatchEvent(new Event("input", { bubbles: true }));
+        var row = labelInputs[i].closest(".btn-row");
+        var urlInput = row ? row.querySelector('[name="gomb_url"]') : null;
+        if (urlInput && !urlInput.value.trim()) {
+          urlInput.focus();
+        } else {
+          labelInputs[i].focus();
+        }
+        return;
+      }
+    }
+  });
 
   var onboardingModal = document.getElementById("onboarding-modal");
   if (onboardingModal) {
