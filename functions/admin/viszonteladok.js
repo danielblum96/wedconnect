@@ -56,7 +56,11 @@ export async function onRequestGet(context) {
           <td>${v.utolso_rendeles ? escapeHtml(v.utolso_rendeles.slice(0, 10)) : "—"}</td>
           <td><span class="badge ${v.segment.cls}">${escapeHtml(v.segment.label)}</span></td>
           <td><span class="badge ${isActive ? "badge-green" : "badge-red"}">${escapeHtml(v.allapot)}</span></td>
-          <td>
+          <td class="actions-cell">
+            <form method="POST" action="/api/admin-impersonate" target="_blank">
+              <input type="hidden" name="viszontelado_id" value="${v.id}">
+              <button type="submit" class="btn-small btn-view">Megtekintés</button>
+            </form>
             <form method="POST" action="/api/admin-toggle-reseller" onsubmit="return confirm('${
               isActive ? "Biztosan inaktiválja ezt a fiókot? A viszonteladó nem fog tudni bejelentkezni." : "Biztosan aktiválja ezt a fiókot?"
             }')">
@@ -112,6 +116,9 @@ export async function onRequestGet(context) {
   .badge-blue { background:#e0ecf7; color:#2a5a8a; }
   .btn-small { border:1px solid var(--accent); background:#fff; color:var(--accent); border-radius:999px; padding:6px 12px; font-size:0.85rem; font-weight:600; cursor:pointer; font-family:inherit; }
   .btn-small:hover { background:var(--accent); color:#fff; }
+  .actions-cell { display:flex; gap:8px; }
+  .btn-view { border-color:#2a5a8a; color:#2a5a8a; }
+  .btn-view:hover { background:#2a5a8a; color:#fff; }
   .empty { color:var(--muted); padding:24px; text-align:center; }
 </style>
 </head>

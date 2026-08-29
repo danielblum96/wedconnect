@@ -496,9 +496,21 @@ export async function onRequestGet(context) {
   .std-section { border:1px solid #ece1cc; border-radius:12px; padding:16px 16px 18px; margin-bottom:16px; background:#fffdf9; }
   .std-section-title { font-size:0.85rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--accent); margin:0 0 12px; }
   .std-shipping-note { display:flex; align-items:flex-start; gap:8px; font-size:0.9rem; line-height:1.4; color:#3d6b3d; background:#eef6ec; border:1px solid #cfe6c9; border-radius:8px; padding:10px 12px; margin-bottom:14px; }
+  .impersonation-bar { display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; background:#2b2620; color:#fff; padding:10px 16px; font-size:0.9rem; font-weight:600; text-align:center; }
+  .impersonation-bar form { display:inline; }
+  .impersonation-bar button { border:1px solid rgba(255,255,255,0.5); background:none; color:#fff; border-radius:999px; padding:5px 16px; font-size:0.85rem; font-weight:600; cursor:pointer; font-family:inherit; }
+  .impersonation-bar button:hover { background:rgba(255,255,255,0.15); }
 </style>
 </head>
 <body>
+${
+  reseller.admin_impersonalt
+    ? `<div class="impersonation-bar">
+        <span>🔍 Admin nézet – ide léptél be: <strong>${escapeHtml(reseller.ceg_nev)}</strong> (${escapeHtml(reseller.email)}) helyett</span>
+        <form method="POST" action="/api/admin-impersonate-exit"><button type="submit">Kilépés az admin panelbe</button></form>
+      </div>`
+    : ""
+}
 <header>
   <div class="brand">Wed<span>Connect</span> Partner</div>
   <div style="display:flex; align-items:center; gap:16px;">

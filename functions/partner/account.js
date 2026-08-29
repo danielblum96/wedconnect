@@ -74,9 +74,21 @@ export async function onRequestGet(context) {
   .toggle-label { display:flex; align-items:flex-start; gap:9px; font-size:0.95rem; font-weight:500; color:var(--fg); background:#faf6ee; border:1px solid #ece1cc; border-radius:8px; padding:10px 13px; margin-bottom:14px; cursor:pointer; }
   .toggle-label input[type="checkbox"] { width:16px; height:16px; margin:2px 0 0; flex:none; accent-color:var(--accent); }
   .hint-inline { font-weight:400; color:var(--muted); }
+  .impersonation-bar { display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; background:#2b2620; color:#fff; padding:10px 16px; font-size:0.9rem; font-weight:600; text-align:center; }
+  .impersonation-bar form { display:inline; }
+  .impersonation-bar button { border:1px solid rgba(255,255,255,0.5); background:none; color:#fff; border-radius:999px; padding:5px 16px; font-size:0.85rem; font-weight:600; cursor:pointer; font-family:inherit; }
+  .impersonation-bar button:hover { background:rgba(255,255,255,0.15); }
 </style>
 </head>
 <body>
+${
+  reseller.admin_impersonalt
+    ? `<div class="impersonation-bar">
+        <span>🔍 Admin nézet – ide léptél be: <strong>${escapeHtml(reseller.ceg_nev)}</strong> (${escapeHtml(reseller.email)}) helyett</span>
+        <form method="POST" action="/api/admin-impersonate-exit"><button type="submit">Kilépés az admin panelbe</button></form>
+      </div>`
+    : ""
+}
 <header>
   <div class="brand">Wed<span>Connect</span> Partner</div>
   <div style="display:flex; align-items:center; gap:16px;">
