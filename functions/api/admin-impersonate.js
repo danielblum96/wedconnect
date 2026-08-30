@@ -1,5 +1,5 @@
 import { getAdminSession } from "../_utils/adminAuth.js";
-import { newSessionToken, sessionCookie } from "../_utils/auth.js";
+import { newSessionToken, sessionCookie, dashboardHref } from "../_utils/auth.js";
 
 // Rövid élettartam, mert ez egy admin-eszköz (support/debug célra), nem
 // valódi bejelentkezés - ha nyitva marad egy böngészőfülön, magától lejár.
@@ -14,7 +14,7 @@ export async function onRequestPost(context) {
   const viszonteladoId = parseInt((formData.get("viszontelado_id") || "").toString(), 10);
   if (!viszonteladoId) return Response.redirect(new URL("/admin/viszonteladok", request.url).href, 303);
 
-  const reseller = await env.DB.prepare("SELECT id FROM viszontelado WHERE id = ?").bind(viszonteladoId).first();
+  const reseller = await env.DB.prepare("SELECT id, fiok_tipus FROM viszontelado WHERE id = ?").bind(viszonteladoId).first();
   if (!reseller) return Response.redirect(new URL("/admin/viszonteladok", request.url).href, 303);
 
   const token = newSessionToken();
@@ -28,7 +28,7 @@ export async function onRequestPost(context) {
   return new Response(null, {
     status: 303,
     headers: {
-      Location: new URL("/partner/dashboard", request.url).href,
+      Location: new URL(dashboardHref(reseller.fiok_tipus), request.url).href,
       "Set-Cookie": sessionCookie(token, IMPERSONATION_MAX_AGE),
     },
   });

@@ -55,7 +55,7 @@ export async function onRequestPost(context) {
   return new Response(null, {
     status: 303,
     headers: {
-      Location: new URL("/partner/dashboard", request.url).href,
+      Location: new URL("/sajat/dashboard", request.url).href,
       "Set-Cookie": sessionCookie(token, SESSION_MAX_AGE),
     },
   });

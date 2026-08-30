@@ -1,4 +1,4 @@
-import { getSessionReseller } from "../_utils/auth.js";
+import { getSessionReseller, accountHref } from "../_utils/auth.js";
 import { STYLES, FONT_RECIPES, getStyleName, resolveStyleByStoredValue } from "../_utils/styles.js";
 import { escapeHtml, safeHref } from "../_utils/html.js";
 import { getCopy, getStatusLabel, getResellerCopy, getPricing, formatPrice } from "../_utils/i18n.js";
@@ -10,6 +10,19 @@ export async function onRequestGet(context) {
   const { request, env } = context;
   const reseller = await getSessionReseller(request, env.DB);
   if (!reseller) return Response.redirect(new URL("/partner/login", request.url).href, 303);
+  if (reseller.fiok_tipus === "maganszemely") return Response.redirect(new URL("/sajat/dashboard", request.url).href, 303);
+  return renderDashboard(context, reseller);
+}
+
+// A magánszemélyes (/sajat/dashboard) és a viszonteladói (/partner/dashboard)
+// nézet TARTALMILAG azonos - csak a márkajelzés és a "Fiók" link célja tér el
+// (ld. accountHref/brandSuffix lejjebb) -, ezért a teljes renderelő logika
+// ebben az egy függvényben él, amit mindkét útvonal (a fenti onRequestGet ÉS
+// a functions/sajat/dashboard.js) meghív, a session-ellenőrzés/redirect-döntés
+// viszont KÜLÖN-KÜLÖN a két útvonal saját onRequestGet-jében marad.
+export async function renderDashboard(context, reseller) {
+  const { request, env } = context;
+  const brandSuffix = reseller.fiok_tipus === "maganszemely" ? "" : " Partner";
 
   const url = new URL(request.url);
   const saved = url.searchParams.get("saved");
@@ -513,10 +526,10 @@ ${
     : ""
 }
 <header>
-  <div class="brand">Wed<span>Connect</span> Partner</div>
+  <div class="brand">Wed<span>Connect</span>${brandSuffix}</div>
   <div style="display:flex; align-items:center; gap:16px;">
     <span class="who">${escapeHtml(reseller.ceg_nev)} (${escapeHtml(reseller.email)})</span>
-    <a class="account-link" href="/partner/account">${t.account}</a>
+    <a class="account-link" href="${accountHref(reseller.fiok_tipus)}">${t.account}</a>
     <form class="logout-form" method="POST" action="/api/reseller-logout"><button type="submit">${t.logout}</button></form>
   </div>
 </header>

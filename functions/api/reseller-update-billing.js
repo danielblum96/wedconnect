@@ -1,9 +1,10 @@
-import { getSessionReseller } from "../_utils/auth.js";
+import { getSessionReseller, accountHref } from "../_utils/auth.js";
 
 export async function onRequestPost(context) {
   const { request, env } = context;
   const reseller = await getSessionReseller(request, env.DB);
   if (!reseller) return Response.redirect(new URL("/partner/login", request.url).href, 303);
+  const accountUrl = accountHref(reseller.fiok_tipus);
 
   const formData = await request.formData();
   const adoszam = (formData.get("adoszam") || "").toString().trim();
@@ -18,7 +19,7 @@ export async function onRequestPost(context) {
   const alapSzallitasiOrszag = szallitasAzonos ? "" : (formData.get("alap_szallitasi_orszag") || "").toString().trim();
 
   if (!szamlazasiUtca || !szamlazasiIrsz || !szamlazasiVaros) {
-    return Response.redirect(`${new URL("/partner/account", request.url).href}?billingerror=missing_billing`, 303);
+    return Response.redirect(`${new URL(accountUrl, request.url).href}?billingerror=missing_billing`, 303);
   }
 
   await env.DB.prepare(
@@ -42,5 +43,5 @@ export async function onRequestPost(context) {
     )
     .run();
 
-  return Response.redirect(`${new URL("/partner/account", request.url).href}?billingsaved=1`, 303);
+  return Response.redirect(`${new URL(accountUrl, request.url).href}?billingsaved=1`, 303);
 }

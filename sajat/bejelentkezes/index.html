@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Készítsd el a saját esküvői oldalatokat — WedConnect</title>
+<title>Bejelentkezés — WedConnect</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
@@ -30,7 +30,7 @@
   }
   .card {
     background: var(--card-bg);
-    max-width: 440px;
+    max-width: 420px;
     width: 100%;
     padding: 40px 36px;
     border-radius: 12px;
@@ -46,19 +46,10 @@
   .brand span { color: var(--accent); }
   h1 {
     text-align: center;
-    font-size: 1.05rem;
+    font-size: 1rem;
     font-weight: 500;
     color: var(--muted);
     margin: 0 0 28px;
-  }
-  .info-box {
-    background: #faf6ee;
-    border: 1px solid #ece1cc;
-    border-radius: 8px;
-    padding: 12px 14px;
-    font-size: 0.92rem;
-    color: var(--fg);
-    margin-bottom: 22px;
   }
   label {
     display: block;
@@ -74,10 +65,8 @@
     font-family: inherit;
     font-size: 0.95rem;
     margin-bottom: 18px;
-    background: #fff;
   }
   input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .hint { font-size: 0.88rem; color: var(--muted); margin: -12px 0 18px; }
   button {
     width: 100%;
     padding: 13px;
@@ -107,6 +96,24 @@
     margin-bottom: 18px;
     display: none;
   }
+  .success {
+    background: #eaf5ee;
+    color: #3a7a4e;
+    border: 1px solid #bfe0cb;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    margin-bottom: 18px;
+    display: none;
+  }
+  .forgot-link {
+    display: block;
+    text-align: right;
+    font-size: 0.9rem;
+    color: var(--muted);
+    text-decoration: none;
+    margin: -10px 0 18px;
+  }
   .foot {
     text-align: center;
     margin-top: 20px;
@@ -119,37 +126,36 @@
 <body>
   <div class="card">
     <div class="brand">Wed<span>Connect</span></div>
-    <h1>Készítsd el a saját esküvői oldalatokat</h1>
-    <div class="info-box">Ingyen kipróbálhatod — a saját neveitekkel, dátumotokkal élesedik az oldal. Csak akkor kell fizetned, ha meg szeretnéd tartani.</div>
+    <h1>Bejelentkezés</h1>
     <div class="error" id="err"></div>
-    <form method="POST" action="/api/individual-register">
-      <label for="nev">Neved</label>
-      <input type="text" id="nev" name="nev" required>
-
+    <div class="success" id="ok">A jelszava megváltozott. Kérjük, jelentkezzen be az új jelszóval.</div>
+    <form method="POST" action="/api/reseller-login">
+      <input type="hidden" name="redirect_back" value="/sajat/bejelentkezes">
       <label for="email">Email</label>
       <input type="email" id="email" name="email" required autocomplete="username">
-
       <label for="jelszo">Jelszó</label>
-      <input type="password" id="jelszo" name="jelszo" required autocomplete="new-password" minlength="8">
-      <div class="hint">Legalább 8 karakter.</div>
-
-      <button type="submit">Ingyenes kezdés</button>
+      <input type="password" id="jelszo" name="jelszo" required autocomplete="current-password">
+      <a class="forgot-link" href="/partner/forgot-password?lang=hu">Elfelejtett jelszó?</a>
+      <button type="submit">Bejelentkezés</button>
     </form>
-    <div class="foot">Már van fiókod? <a href="/sajat/bejelentkezes">Jelentkezz be itt</a></div>
+    <div class="foot">Még nincs saját oldalad? <a href="/hu/sajat-oldal">Készítsd el ingyen</a></div>
   </div>
   <script>
     var params = new URLSearchParams(location.search);
+    if (params.get("reset")) {
+      document.getElementById("ok").style.display = "block";
+    }
     var err = params.get("error");
     if (err) {
       var messages = {
-        missing_fields: "Kérjük, töltsön ki minden mezőt.",
-        weak_password: "A jelszónak legalább 8 karakter hosszúnak kell lennie.",
-        invalid_email: "Kérjük, adjon meg egy érvényes email-címet.",
-        email_exists: "Ez az email-cím már regisztrálva van.",
-        rate_limited: "Túl sok regisztrációs kísérlet. Kérjük, próbálja meg később."
+        missing_fields: "Kérjük, töltse ki mindkét mezőt.",
+        invalid: "Az email cím vagy a jelszó helytelen.",
+        suspended: "Ez a fiók jelenleg inaktív. Kérjük, vegye fel velünk a kapcsolatot.",
+        rate_limited: "Túl sok bejelentkezési kísérlet. Kérjük, próbálja meg néhány perc múlva újra.",
+        generic: "Valami hiba történt. Kérjük, próbálja meg újra."
       };
       var box = document.getElementById("err");
-      box.textContent = messages[err] || "Valami hiba történt. Kérjük, próbálja meg újra.";
+      box.textContent = messages[err] || messages.generic;
       box.style.display = "block";
     }
   </script>

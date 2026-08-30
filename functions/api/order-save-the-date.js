@@ -1,4 +1,4 @@
-import { getSessionReseller } from "../_utils/auth.js";
+import { getSessionReseller, dashboardHref } from "../_utils/auth.js";
 import { getPricing } from "../_utils/i18n.js";
 import { createCheckoutSession } from "../_utils/stripe.js";
 
@@ -29,7 +29,7 @@ export async function onRequestPost(context) {
   const wantsStd = mennyiseg > 0;
 
   function backWithError(code) {
-    return Response.redirect(`${new URL("/partner/dashboard", request.url).href}?stderror=${code}`, 303);
+    return Response.redirect(`${new URL(dashboardHref(reseller.fiok_tipus), request.url).href}?stderror=${code}`, 303);
   }
 
   if (!parId || isNaN(mennyiseg) || mennyiseg < 0 || mennyiseg > 9999) return backWithError("invalid");
@@ -80,7 +80,7 @@ export async function onRequestPost(context) {
     .run();
 
   const rendelesId = insert.meta.last_row_id;
-  const dashboardUrl = new URL("/partner/dashboard", request.url).href;
+  const dashboardUrl = new URL(dashboardHref(reseller.fiok_tipus), request.url).href;
 
   try {
     const session = await createCheckoutSession(env, {

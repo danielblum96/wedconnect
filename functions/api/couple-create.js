@@ -1,4 +1,4 @@
-import { getSessionReseller } from "../_utils/auth.js";
+import { getSessionReseller, dashboardHref } from "../_utils/auth.js";
 import { slugify } from "../_utils/slug.js";
 import { getStyle } from "../_utils/styles.js";
 import { getCopy } from "../_utils/i18n.js";
@@ -7,6 +7,7 @@ export async function onRequestPost(context) {
   const { request, env } = context;
   const reseller = await getSessionReseller(request, env.DB);
   if (!reseller) return Response.redirect(new URL("/partner/login", request.url).href, 303);
+  const dashboardUrl = dashboardHref(reseller.fiok_tipus);
 
   const formData = await request.formData();
   const nev1 = (formData.get("nev1") || "").toString().trim();
@@ -18,7 +19,7 @@ export async function onRequestPost(context) {
   const urls = formData.getAll("gomb_url");
 
   function backWithError(code) {
-    return Response.redirect(`${new URL("/partner/dashboard", request.url).href}?error=${code}`, 303);
+    return Response.redirect(`${new URL(dashboardUrl, request.url).href}?error=${code}`, 303);
   }
 
   if (!nev1 || !nev2 || !datum || !stilusId) return backWithError("missing_fields");
@@ -75,5 +76,5 @@ export async function onRequestPost(context) {
     )
     .run();
 
-  return Response.redirect(`${new URL("/partner/dashboard", request.url).href}?created=${encodeURIComponent(slug)}`, 303);
+  return Response.redirect(`${new URL(dashboardUrl, request.url).href}?created=${encodeURIComponent(slug)}`, 303);
 }

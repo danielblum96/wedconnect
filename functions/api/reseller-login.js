@@ -1,4 +1,4 @@
-import { verifyPassword, newSessionToken, sessionCookie } from "../_utils/auth.js";
+import { verifyPassword, newSessionToken, sessionCookie, dashboardHref } from "../_utils/auth.js";
 import { checkRateLimit, clientIp } from "../_utils/rateLimit.js";
 
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
@@ -10,9 +10,13 @@ export async function onRequestPost(context) {
   const formData = await request.formData();
   const email = (formData.get("email") || "").toString().trim().toLowerCase();
   const jelszo = (formData.get("jelszo") || "").toString();
+  // A /partner/login ÉS a /sajat/bejelentkezes UGYANEZT a végpontot hívja -
+  // hiba esetén oda kell visszairányítani, ahonnan a kérés jött, hogy a
+  // magánszemély sose lássa véletlenül a "Partner" oldalt.
+  const redirectBack = (formData.get("redirect_back") || "/partner/login").toString();
 
   function backWithError(code) {
-    return Response.redirect(`${new URL("/partner/login", request.url).href}?error=${code}`, 303);
+    return Response.redirect(`${new URL(redirectBack, request.url).href}?error=${code}`, 303);
   }
 
   const allowed = await checkRateLimit(
@@ -25,7 +29,7 @@ export async function onRequestPost(context) {
 
   if (!email || !jelszo) return backWithError("missing_fields");
 
-  const user = await env.DB.prepare("SELECT id, jelszo_hash, allapot FROM viszontelado WHERE email = ?")
+  const user = await env.DB.prepare("SELECT id, jelszo_hash, allapot, fiok_tipus FROM viszontelado WHERE email = ?")
     .bind(email)
     .first();
   if (!user) return backWithError("invalid");
@@ -43,7 +47,7 @@ export async function onRequestPost(context) {
   return new Response(null, {
     status: 303,
     headers: {
-      Location: new URL("/partner/dashboard", request.url).href,
+      Location: new URL(dashboardHref(user.fiok_tipus), request.url).href,
       "Set-Cookie": sessionCookie(token, SESSION_MAX_AGE),
     },
   });

@@ -1,4 +1,4 @@
-import { getSessionReseller } from "../_utils/auth.js";
+import { getSessionReseller, dashboardHref } from "../_utils/auth.js";
 import { getPricing } from "../_utils/i18n.js";
 import { createCheckoutSession } from "../_utils/stripe.js";
 
@@ -15,7 +15,7 @@ export async function onRequestPost(context) {
 
   const formData = await request.formData();
   const parId = parseInt((formData.get("par_id") || "").toString(), 10);
-  const dashboardUrl = new URL("/partner/dashboard", request.url).href;
+  const dashboardUrl = new URL(dashboardHref(reseller.fiok_tipus), request.url).href;
 
   function backWithError(code) {
     return Response.redirect(`${dashboardUrl}?stderror=${code}`, 303);

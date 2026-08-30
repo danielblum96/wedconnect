@@ -66,6 +66,24 @@ export async function getSessionReseller(request, db) {
   return row;
 }
 
+// A viszonteladói és a magánszemélyes fiókok UGYANAZT a táblát/session-rendszert
+// használják, de a user kérésére (2026-08-30: "a partnert és a magánszemélyeket
+// el kell különíteni teljesen") a LÁTHATÓ útvonalak és márkajelzés teljesen
+// külön élnek (/partner/... vs /sajat/...) - ez a három helper garantálja, hogy
+// minden redirect-célpont egy helyen legyen definiálva, ne szóródjon szét
+// egyenként hardcodolt string-ként az összes API-végponton.
+export function dashboardHref(fiokTipus) {
+  return fiokTipus === "maganszemely" ? "/sajat/dashboard" : "/partner/dashboard";
+}
+
+export function accountHref(fiokTipus) {
+  return fiokTipus === "maganszemely" ? "/sajat/fiok" : "/partner/account";
+}
+
+export function loginHref(fiokTipus) {
+  return fiokTipus === "maganszemely" ? "/sajat/bejelentkezes" : "/partner/login";
+}
+
 export function sessionCookie(token, maxAgeSeconds) {
   return `wc_session=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${maxAgeSeconds}`;
 }

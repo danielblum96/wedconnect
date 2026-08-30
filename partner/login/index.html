@@ -141,6 +141,7 @@
     <div class="error" id="err"></div>
     <div class="success" id="ok">Ihr Passwort wurde geändert. Bitte loggen Sie sich mit dem neuen Passwort ein.</div>
     <form method="POST" action="/api/reseller-login">
+      <input type="hidden" name="redirect_back" value="/partner/login">
       <label for="email">Email</label>
       <input type="email" id="email" name="email" required autocomplete="username">
       <label for="jelszo" id="t-pwlabel">Passwort</label>

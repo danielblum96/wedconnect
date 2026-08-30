@@ -124,6 +124,7 @@ export async function onRequestGet(context) {
   <nav>
     <a href="/admin/rendelesek" class="active">Rendelések</a>
     <a href="/admin/viszonteladok">Viszonteladók</a>
+    <a href="/admin/maganszemelyek">Magánszemélyek</a>
     <form method="POST" action="/api/admin-logout" class="logout-form"><button type="submit">Kijelentkezés</button></form>
   </nav>
 </header>

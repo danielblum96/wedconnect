@@ -1,4 +1,4 @@
-import { getSessionReseller } from "../_utils/auth.js";
+import { getSessionReseller, dashboardHref } from "../_utils/auth.js";
 import { escapeHtml } from "../_utils/html.js";
 import { countryOptions } from "../_utils/countries.js";
 import { getResellerCopy } from "../_utils/i18n.js";
@@ -25,6 +25,15 @@ export async function onRequestGet(context) {
   const { request, env } = context;
   const reseller = await getSessionReseller(request, env.DB);
   if (!reseller) return Response.redirect(new URL("/partner/login", request.url).href, 303);
+  if (reseller.fiok_tipus === "maganszemely") return Response.redirect(new URL("/sajat/fiok", request.url).href, 303);
+  return renderAccount(context, reseller);
+}
+
+// Ld. functions/partner/dashboard.js renderDashboard()-jának ugyanilyen
+// megjegyzését - a /sajat/fiok (functions/sajat/fiok.js) ezt hívja meg.
+export async function renderAccount(context, reseller) {
+  const { request, env } = context;
+  const brandSuffix = reseller.fiok_tipus === "maganszemely" ? "" : " Partner";
 
   const lang = reseller.nyelv || "de";
   const t = getResellerCopy(lang).account;
@@ -90,10 +99,10 @@ ${
     : ""
 }
 <header>
-  <div class="brand">Wed<span>Connect</span> Partner</div>
+  <div class="brand">Wed<span>Connect</span>${brandSuffix}</div>
   <div style="display:flex; align-items:center; gap:16px;">
     <span class="who">${escapeHtml(reseller.ceg_nev)} (${escapeHtml(reseller.email)})</span>
-    <a class="back-link" href="/partner/dashboard">${t.backToDashboard}</a>
+    <a class="back-link" href="${dashboardHref(reseller.fiok_tipus)}">${t.backToDashboard}</a>
     <form class="logout-form" method="POST" action="/api/reseller-logout"><button type="submit">${t.logout}</button></form>
   </div>
 </header>
