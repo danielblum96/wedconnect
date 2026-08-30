@@ -24,6 +24,16 @@ export async function onRequestPost(context) {
   if (!nev1 || !nev2 || !datum || !stilusId) return backWithError("missing_fields");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(datum)) return backWithError("invalid_date");
 
+  // Magánszemélyes fiók csak a saját (1 db) oldalát hozhatja létre - a
+  // dashboard UI ezt már elrejti, ez a szerver-oldali védőháló ugyanerre,
+  // ha valaki közvetlenül POST-olna az endpointra.
+  if (reseller.fiok_tipus === "maganszemely") {
+    const existing = await env.DB.prepare("SELECT COUNT(*) as cnt FROM parok WHERE viszontelado_id = ?")
+      .bind(reseller.id)
+      .first();
+    if (existing && existing.cnt >= 1) return backWithError("limit_reached");
+  }
+
   const style = getStyle(stilusId);
   const baseSlug = `${slugify(nev1)}-${slugify(nev2)}-${datum}`;
 

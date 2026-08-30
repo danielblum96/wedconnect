@@ -43,7 +43,7 @@ export async function onRequestPost(context) {
   if (!par) return backWithError("invalid");
 
   const lang = reseller.nyelv || "de";
-  const pricing = getPricing(lang);
+  const pricing = getPricing(lang, reseller.fiok_tipus);
   const PAGE_PRICE = pricing.pagePrice;
   const STD_PRICE = pricing.stdPrice;
 

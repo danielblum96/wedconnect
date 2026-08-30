@@ -76,7 +76,7 @@ export async function fulfillStripeOrder(env, rendelesId) {
   if (!rendeles.par_id) return true; // önálló oldal-fizetés (couple-pay.js) - nincs email/SVG teendő
 
   try {
-    const reseller = await env.DB.prepare("SELECT ceg_nev, email FROM viszontelado WHERE id = ?")
+    const reseller = await env.DB.prepare("SELECT ceg_nev, email, fiok_tipus FROM viszontelado WHERE id = ?")
       .bind(rendeles.viszontelado_id)
       .first();
     const par = await env.DB.prepare("SELECT par_neve, nev1, nev2, eskuvo_datuma, slug, nyelv FROM parok WHERE id = ?")
@@ -85,7 +85,7 @@ export async function fulfillStripeOrder(env, rendelesId) {
     if (!reseller || !par) return true;
 
     const lang = par.nyelv || "hu";
-    const pricing = getPricing(lang);
+    const pricing = getPricing(lang, reseller.fiok_tipus);
     const wantsStd = rendeles.mennyiseg >= 50;
 
     let stdBlock = "";

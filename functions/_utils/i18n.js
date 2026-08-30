@@ -81,9 +81,22 @@ const PRICING = {
     pageOnlyProduct: "Esküvői oldal (Save the Date nélkül)",
     stdProduct: "Save the Date naptár (oldal ingyenes)",
   },
+  // Magánszemélyeknek (nem viszonteladón keresztül regisztrált fiókok) szándékosan
+  // magasabb, "listaár" jellegű árazás - a viszonteladós csatorna marad az olcsóbb,
+  // "hivatalos" beszerzési út, hogy ez a közvetlen regisztráció ne konkurálja a
+  // viszonteladók árrését (ld. Viszonteladói platform vault-jegyzet, 2026-08-30).
+  hu_maganszemely: {
+    pagePrice: 19990,
+    stdPrice: 1990,
+    currency: "HUF",
+    pageLabel: "Esküvői oldal",
+    pageOnlyProduct: "Esküvői oldal (Save the Date nélkül)",
+    stdProduct: "Save the Date naptár (oldal ingyenes)",
+  },
 };
 
-export function getPricing(lang) {
+export function getPricing(lang, fiokTipus) {
+  if (fiokTipus === "maganszemely") return PRICING.hu_maganszemely;
   return PRICING[lang] || PRICING.de;
 }
 

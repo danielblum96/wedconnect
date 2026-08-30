@@ -30,7 +30,7 @@ export async function onRequestPost(context) {
   if (par.rendeles_id) return Response.redirect(dashboardUrl, 303); // már rendezve van
 
   const lang = reseller.nyelv || "de";
-  const pricing = getPricing(lang);
+  const pricing = getPricing(lang, reseller.fiok_tipus);
 
   const insert = await env.DB.prepare(
     `INSERT INTO rendelesek (viszontelado_id, par_id, csomag, mennyiseg, ar_osszesen, penznem, allapot)

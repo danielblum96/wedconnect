@@ -21,9 +21,10 @@ export async function onRequestGet(context) {
   const stripeCancelled = url.searchParams.get("stripe_cancelled");
 
   const lang = reseller.nyelv || "de";
+  const isIndividual = reseller.fiok_tipus === "maganszemely";
   const t = getResellerCopy(lang).dashboard;
   const stdErrorMessages = t.stdError;
-  const pricing = getPricing(lang);
+  const pricing = getPricing(lang, reseller.fiok_tipus);
   const PAGE_PRICE = pricing.pagePrice;
   const STD_PRICE = pricing.stdPrice;
 
@@ -560,7 +561,10 @@ ${
         </div>`
       : ""
   }
-  <div class="new-couple">
+  ${
+    isIndividual && parok && parok.length >= 1
+      ? ""
+      : `<div class="new-couple">
     <h2>${t.newCoupleHeading}</h2>
     <div class="wizard-progress" id="wizard-progress">
       ${t.progressSteps
@@ -626,7 +630,8 @@ ${
         </div>
       </div>
     </form>
-  </div>
+  </div>`
+  }
 
   <h2>${t.yourCouples}</h2>
   ${
@@ -796,6 +801,7 @@ ${
   };
 
   var form = document.getElementById("new-couple-form");
+  if (form) {
   var steps = Array.prototype.slice.call(form.querySelectorAll(".wizard-step"));
   var rowsContainer = document.getElementById("button-rows");
   var addRowBtn = document.getElementById("add-button-row");
@@ -936,6 +942,7 @@ ${
 
   renderPreviews();
   showStep(1);
+  }
 
   var searchInput = document.getElementById("couple-search");
   if (searchInput) {
