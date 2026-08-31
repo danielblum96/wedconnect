@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /partner/
+Disallow: /sajat/
+
+User-agent: OAI-SearchBot
+Allow: /
+
+Sitemap: https://wedconnect.eu/sitemap.xml
