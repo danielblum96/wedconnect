@@ -583,6 +583,26 @@ export const RESELLER_COPY = {
   },
 };
 
-export function getResellerCopy(lang) {
-  return RESELLER_COPY[lang] || RESELLER_COPY.de;
+// A "magánszemély" fiókoknak (saját esküvőjükre regisztrálnak, nem
+// viszonteladóként több párnak) a dashboard alap-szövege félrevezető lenne
+// ("Az Ön párjai", "hozz létre egy párnak" stb. - többes-szám/ügyfél-keretezés).
+// Ezek a kulcsok felülírják a releváns dashboard-szövegeket egyes szám,
+// személyes megfogalmazásra.
+const INDIVIDUAL_DASHBOARD_OVERRIDES = {
+  hu: {
+    yourCouples: "A saját esküvői oldalatok",
+    emptyText: "Hozzátok létre fent a saját esküvői oldalatokat — kevesebb mint 2 perc alatt élesben lesz.",
+    onboardingStep1: "Hozd létre a saját esküvői oldalatokat – kevesebb mint 2 perc",
+    onboardingStep2: "Oszd meg a linket vagy a QR-kódot a vendégeitekkel",
+    onboardingStep3: "A vendégeitek élvezik az oldalt, ti pedig készen vagytok – ennyi az egész!",
+    confirmDelete: "Biztosan véglegesen törlöd a saját esküvői oldalatokat?",
+  },
+};
+
+export function getResellerCopy(lang, fiokTipus) {
+  const base = RESELLER_COPY[lang] || RESELLER_COPY.de;
+  if (fiokTipus !== "maganszemely") return base;
+  const overrides = INDIVIDUAL_DASHBOARD_OVERRIDES[lang];
+  if (!overrides) return base;
+  return { ...base, dashboard: { ...base.dashboard, ...overrides } };
 }

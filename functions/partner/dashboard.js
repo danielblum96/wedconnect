@@ -35,7 +35,7 @@ export async function renderDashboard(context, reseller) {
 
   const lang = reseller.nyelv || "de";
   const isIndividual = reseller.fiok_tipus === "maganszemely";
-  const t = getResellerCopy(lang).dashboard;
+  const t = getResellerCopy(lang, reseller.fiok_tipus).dashboard;
   const stdErrorMessages = t.stdError;
   const pricing = getPricing(lang, reseller.fiok_tipus);
   const PAGE_PRICE = pricing.pagePrice;
