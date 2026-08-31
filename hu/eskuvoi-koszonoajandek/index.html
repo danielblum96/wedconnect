@@ -77,6 +77,18 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
+  "@type": "VideoObject",
+  "name": "Köszönőajándék WedConnect szolgáltatással",
+  "description": "Rövid videó bemutató arról, hogyan nyitja meg a vendég a pár saját WedConnect esküvői oldalát a személyre szabott esküvői köszönőajándék hozzáérintésével.",
+  "thumbnailUrl": "https://i.ytimg.com/vi/L49pti5ixxA/hqdefault.jpg",
+  "uploadDate": "2026-08-31",
+  "embedUrl": "https://www.youtube.com/embed/L49pti5ixxA",
+  "contentUrl": "https://www.youtube.com/shorts/L49pti5ixxA"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
     {
@@ -375,6 +387,57 @@
     .hero-photo img.photo-accent { width: 50%; left: 4%; bottom: -26px; }
   }
 
+  /* ===== Videó bemutató ===== */
+  .video-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 0;
+  }
+  .video-frame {
+    width: 100%;
+    max-width: 320px;
+    aspect-ratio: 9 / 16;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 24px 50px -20px rgba(43,38,32,0.35);
+    border: 1px solid #ece4d6;
+  }
+  .video-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .video-caption {
+    margin-top: 18px;
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--accent-dark);
+    text-align: center;
+  }
+
+  /* ===== GEO definíciós blokk ===== */
+  .definition-box {
+    border-left: 3px solid var(--accent);
+    padding-left: 28px;
+  }
+  .definition-label {
+    font-family: "Poppins", sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+    margin-bottom: 12px;
+  }
+
+  /* ===== Demo-kártya (fotó + érintés-folyamat egyben) ===== */
+  .demo-card {
+    background: var(--bg);
+    border: 1px solid #ece4d6;
+    border-radius: 20px;
+    padding: 20px 20px 28px;
+  }
+  .demo-card img { display: block; }
+  .demo-card .touch-flow { margin-top: 26px; }
+
   /* ===== Bullet lista (általános) ===== */
   .plain-list {
     max-width: 480px;
@@ -410,8 +473,8 @@
   }
   .reveal-photo img {
     width: 100%;
-    border-radius: 16px;
-    box-shadow: 0 20px 44px -18px rgba(0,0,0,0.3);
+    border-radius: 14px;
+    display: block;
   }
   .reveal-text .line {
     font-family: "Cormorant Garamond", serif;
@@ -758,10 +821,24 @@
   </header>
 </div>
 
+<!-- Videó bemutató -->
+<section class="wrap">
+  <h2 class="section-title center">Nézzétek meg videón is</h2>
+  <div class="video-wrap">
+    <div class="video-frame">
+      <iframe src="https://www.youtube.com/embed/L49pti5ixxA" title="Köszönőajándék WedConnect szolgáltatással" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+    </div>
+    <p class="video-caption">Egy érintés. És újra ott vagytok.</p>
+  </div>
+</section>
+
 <!-- GEO / AI definíciós blokk -->
 <section class="wrap">
-  <h2 class="section-title">Mi a WedConnect esküvői köszönőajándék?</h2>
-  <p class="body-text">A WedConnecttel összekapcsolt esküvői köszönőajándék egy személyre szabott, lézervágott és gravírozott fa emléknaptár, amely a pár nevével és esküvőjük dátumával készül. A vendég a telefonját hozzáérintve azonnal megnyithatja a pár saját WedConnect esküvői oldalát, ahol fotók, videók, galériák és más esküvői tartalmak érhetők el.</p>
+  <div class="definition-box">
+    <div class="definition-label">Definíció</div>
+    <h2 class="section-title" style="margin-bottom:14px;">Mi a WedConnect esküvői köszönőajándék?</h2>
+    <p class="body-text" style="margin-bottom:0;">A WedConnecttel összekapcsolt esküvői köszönőajándék egy személyre szabott, lézervágott és gravírozott fa emléknaptár, amely a pár nevével és esküvőjük dátumával készül. A vendég a telefonját hozzáérintve azonnal megnyithatja a pár saját WedConnect esküvői oldalát, ahol fotók, videók, galériák és más esküvői tartalmak érhetők el.</p>
+  </div>
 </section>
 
 <!-- Előbb nézzétek meg a sajátotokkal -->
@@ -797,26 +874,28 @@
       <p class="line strong">Egyetlen érintésre.</p>
     </div>
     <div class="reveal-photo">
-      <img src="/assets/images/std-emma-bence-levendula.jpg" alt="Gravírozott esküvői köszönőajándék levendulás asztaldíszen, Emma és Bence nevével" loading="lazy">
-      <div class="touch-flow">
-        <div class="touch-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 3v7"></path>
-            <path d="M8.5 21c-1.5-2-3-4.2-3-7 0-2 1-3 2.5-3s2.5 1.3 2.5 3"></path>
-            <path d="M8 14v-3.5c0-1 .8-1.8 1.8-1.8s1.7.8 1.7 1.8V13"></path>
-            <path d="M11.5 13v-1.5c0-1 .8-1.8 1.8-1.8s1.7.8 1.7 1.8V14"></path>
-            <path d="M15 14v-1c0-1 .8-1.8 1.7-1.8 1 0 1.8.8 1.8 1.8v2c0 3.5-1.7 6-3.5 8"></path>
-          </svg>
-        </div>
-        <div class="phone-mock">
-          <div class="phone-mock-screen">
-            <div class="pm-eyebrow">Esküvő</div>
-            <div class="pm-names">Anna &amp; Bence</div>
-            <div class="pm-date">2027. 06. 12.</div>
-            <div class="pm-buttons">
-              <span class="pm-btn">Esküvői fotók</span>
-              <span class="pm-btn">Esküvői videó</span>
-              <span class="pm-btn">Vendégfotók</span>
+      <div class="demo-card">
+        <img src="/assets/images/std-emma-bence-levendula.jpg" alt="Gravírozott esküvői köszönőajándék levendulás asztaldíszen, Emma és Bence nevével" loading="lazy">
+        <div class="touch-flow">
+          <div class="touch-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3v7"></path>
+              <path d="M8.5 21c-1.5-2-3-4.2-3-7 0-2 1-3 2.5-3s2.5 1.3 2.5 3"></path>
+              <path d="M8 14v-3.5c0-1 .8-1.8 1.8-1.8s1.7.8 1.7 1.8V13"></path>
+              <path d="M11.5 13v-1.5c0-1 .8-1.8 1.8-1.8s1.7.8 1.7 1.8V14"></path>
+              <path d="M15 14v-1c0-1 .8-1.8 1.7-1.8 1 0 1.8.8 1.8 1.8v2c0 3.5-1.7 6-3.5 8"></path>
+            </svg>
+          </div>
+          <div class="phone-mock">
+            <div class="phone-mock-screen">
+              <div class="pm-eyebrow">Esküvő</div>
+              <div class="pm-names">Anna &amp; Bence</div>
+              <div class="pm-date">2027. 06. 12.</div>
+              <div class="pm-buttons">
+                <span class="pm-btn">Esküvői fotók</span>
+                <span class="pm-btn">Esküvői videó</span>
+                <span class="pm-btn">Vendégfotók</span>
+              </div>
             </div>
           </div>
         </div>
