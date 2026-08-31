@@ -25,11 +25,114 @@
     background: var(--bg);
     color: var(--fg);
     line-height: 1.6;
+    padding-top: 68px;
   }
   .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
+  /* Fejléc-menü */
+  .site-nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 28px;
+    background: rgba(250, 247, 242, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(180,139,86,0.15);
+    transition: box-shadow 0.2s ease;
+  }
+  .site-nav.scrolled { box-shadow: 0 6px 24px -12px rgba(0,0,0,0.15); }
+  .nav-brand {
+    font-family: "Cormorant Garamond", serif;
+    font-weight: 600;
+    font-size: 1.3rem;
+    color: var(--fg);
+    text-decoration: none;
+    flex: none;
+  }
+  .nav-brand span { color: var(--accent); }
+  .nav-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    margin: -8px;
+  }
+  .nav-toggle span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--fg);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .nav-toggle.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .nav-toggle.active span:nth-child(2) { opacity: 0; }
+  .nav-toggle.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+  }
+  .nav-links a {
+    color: var(--fg);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .nav-links a:hover { color: var(--accent-dark); }
+  .nav-login { color: var(--muted) !important; }
+  .nav-cta {
+    display: inline-block;
+    padding: 10px 22px;
+    background: linear-gradient(135deg, #f0c988, #b48b56);
+    color: #1a1408 !important;
+    border-radius: 999px;
+    font-weight: 600 !important;
+    font-size: 0.9rem;
+    box-shadow: 0 8px 20px -10px rgba(140,109,52,0.6);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 10px 24px -10px rgba(140,109,52,0.75); }
+  @media (max-width: 780px) {
+    .nav-toggle { display: flex; }
+    .nav-links {
+      position: fixed;
+      top: 60px; left: 0; right: 0;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 2px;
+      background: var(--bg);
+      padding: 10px 24px 20px;
+      border-bottom: 1px solid rgba(180,139,86,0.15);
+      box-shadow: 0 16px 28px -16px rgba(0,0,0,0.15);
+      transform: translateY(-8px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: transform 0.2s ease, opacity 0.2s ease, visibility 0.2s;
+    }
+    .nav-links.open {
+      transform: translateY(0);
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .nav-links a { padding: 12px 0; border-bottom: 1px solid rgba(180,139,86,0.08); }
+    .nav-cta { text-align: center; margin-top: 10px; border-bottom: none !important; }
+  }
+
   header.hero {
     text-align: center;
-    padding: 90px 24px 70px;
+    padding: 60px 24px 70px;
   }
   h1 {
     font-family: "Cormorant Garamond", serif;
@@ -238,13 +341,27 @@
 </head>
 <body>
 
-<header class="hero">
+<nav class="site-nav" id="site-nav">
+  <a href="#top" class="nav-brand">Wed<span>Connect</span></a>
+  <button class="nav-toggle" id="nav-toggle" aria-label="Menü megnyitása" aria-expanded="false" aria-controls="nav-links">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links" id="nav-links">
+    <a href="#miert">Miért WedConnect</a>
+    <a href="#hogyan-mukodik">Hogyan működik</a>
+    <a href="#testreszabas">Testreszabás</a>
+    <a href="/sajat/bejelentkezes" class="nav-login">Bejelentkezés</a>
+    <a href="/hu/sajat-oldal" class="nav-cta">Ingyenes kezdés</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
   <h1>Minden fontos esküvői tartalom egyetlen helyen — egy érintésre a vendégeitektől.</h1>
   <p class="lead">A WedConnect egy személyre szabott esküvői oldal. Ti töltitek meg tartalommal — fotókkal, videókkal, RSVP-vel, bármi fontossal —, a vendégeitek pedig QR-kóddal vagy egyetlen érintéssel nyitják meg.</p>
   <a class="cta" href="/hu/sajat-oldal">Készítsd el ingyen a saját oldalatokat</a>
 </header>
 
-<section class="wrap">
+<section class="wrap" id="miert">
   <div class="section-title">Nem öt külön link. Egyetlen hely.</div>
   <div class="section-sub">A fotók egy Google Drive-mappában, a videók máshol, a selfie box képei egy külön galériában, az RSVP Messengerben, minden más pedig szétszórva a csoportos üzenetekben és Instagram-sztorikban?</div>
   <div class="section-body">Nem kell többé külön elküldenetek a fotóalbumot, a videókat, az RSVP-linket vagy bármi más fontos infót — a WedConnect mindezt egyetlen oldalra rendezi.</div>
@@ -270,7 +387,7 @@
   </div>
 </section>
 
-<section class="wrap">
+<section class="wrap" id="hogyan-mukodik">
   <div class="section-title">Hogyan működik?</div>
   <div class="steps">
     <div class="step">
@@ -291,7 +408,7 @@
   </div>
 </section>
 
-<section class="wrap">
+<section class="wrap" id="testreszabas">
   <div class="section-title">Mit tehettek rá?</div>
   <div class="section-body">Bármilyen linket hozzáadhattok — ti döntitek el, mi kerüljön az oldalra.</div>
   <div class="chip-row">
@@ -337,5 +454,28 @@
   <p>Már partner vagy? <a href="/partner/login">Jelentkezz be itt</a></p>
 </footer>
 
+<script>
+  var siteNav = document.getElementById("site-nav");
+  var navToggle = document.getElementById("nav-toggle");
+  var navLinks = document.getElementById("nav-links");
+
+  navToggle.addEventListener("click", function () {
+    var isOpen = navLinks.classList.toggle("open");
+    navToggle.classList.toggle("active", isOpen);
+    navToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  });
+
+  navLinks.querySelectorAll("a").forEach(function (a) {
+    a.addEventListener("click", function () {
+      navLinks.classList.remove("open");
+      navToggle.classList.remove("active");
+      navToggle.setAttribute("aria-expanded", "false");
+    });
+  });
+
+  window.addEventListener("scroll", function () {
+    siteNav.classList.toggle("scrolled", window.scrollY > 8);
+  });
+</script>
 </body>
 </html>
