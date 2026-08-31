@@ -7,7 +7,7 @@
 <title>WedConnect — minden esküvői tartalom egy helyen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@400;500;600;700&family=Cinzel:wght@600&family=Great+Vibes&family=Caveat:wght@600&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #faf7f2;
@@ -275,6 +275,58 @@
   .step h3 { margin: 0 0 8px; font-size: 1.1rem; }
   .step p { margin: 0; color: var(--muted); font-size: 1rem; }
 
+  /* Stílus-galéria - 20 valódi stílus a wizardból */
+  .style-showcase {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin-top: 40px;
+  }
+  .style-swatch {
+    background: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px -14px rgba(0,0,0,0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .style-swatch:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 28px -14px rgba(0,0,0,0.32);
+  }
+  .style-swatch-mock {
+    aspect-ratio: 4 / 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 10px;
+    text-align: center;
+  }
+  .style-swatch-eyebrow {
+    font-family: "Poppins", sans-serif;
+    font-size: 0.5rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 600;
+    opacity: 0.8;
+  }
+  .style-swatch-names { line-height: 1.1; max-width: 100%; overflow-wrap: break-word; }
+  .style-swatch-name {
+    padding: 9px 6px;
+    text-align: center;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--fg);
+  }
+  @media (max-width: 900px) {
+    .style-showcase { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .style-showcase { grid-template-columns: repeat(2, 1fr); }
+    .style-swatch-names { font-size: 0.95rem !important; }
+  }
+
   /* Mit tehettek rá - chip-sor a példákhoz */
   .chip-row {
     display: flex;
@@ -325,165 +377,6 @@
     box-shadow: 0 10px 30px -18px rgba(0,0,0,0.12);
   }
 
-  /* Fizikai ajándék - fotó-galéria + "érintsd hozzá" bemutató */
-  .std-gallery {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    margin-top: 32px;
-  }
-  .std-gallery img {
-    width: 100%;
-    aspect-ratio: 3 / 2;
-    object-fit: cover;
-    border-radius: 14px;
-    box-shadow: 0 10px 26px -14px rgba(0,0,0,0.22);
-    display: block;
-  }
-  @media (max-width: 640px) {
-    .std-gallery { grid-template-columns: 1fr 1fr; }
-    .std-gallery img:first-child { grid-column: 1 / -1; aspect-ratio: 16/9; }
-  }
-
-  .tap-demo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 22px;
-    flex-wrap: wrap;
-    margin-top: 40px;
-  }
-  .tap-demo-card {
-    width: 210px;
-    flex: none;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 16px 34px -16px rgba(0,0,0,0.28);
-  }
-  .tap-demo-card img { display: block; width: 100%; height: 100%; object-fit: cover; }
-  .tap-demo-signal {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    flex: none;
-    color: var(--accent-dark);
-  }
-  .tap-demo-signal svg { width: 38px; height: 38px; }
-  .tap-demo-signal span {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--muted);
-    text-align: center;
-    max-width: 90px;
-  }
-  .phone-mock {
-    width: 204px;
-    height: 434px;
-    flex: none;
-    background: #1a1408;
-    border-radius: 34px;
-    padding: 9px;
-    box-shadow: 0 22px 44px -18px rgba(0,0,0,0.4);
-  }
-  .phone-mock-screen {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    border-radius: 25px;
-    background: linear-gradient(165deg, #fdf4ef, #f6dfd2);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 36px 16px 20px;
-  }
-  .phone-mock-screen::before {
-    content: "";
-    position: absolute;
-    top: -40px; right: -40px;
-    width: 120px; height: 120px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(240,201,136,0.5), transparent 70%);
-  }
-  .phone-mock-notch {
-    position: absolute;
-    top: 7px; left: 50%;
-    transform: translateX(-50%);
-    width: 64px; height: 16px;
-    background: #1a1408;
-    border-radius: 9px;
-  }
-  .phone-mock-heart {
-    color: var(--accent);
-    font-size: 1rem;
-    line-height: 1;
-  }
-  .phone-mock-eyebrow {
-    font-size: 0.56rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--accent-dark);
-    font-weight: 700;
-    margin-top: 6px;
-  }
-  .phone-mock-names {
-    font-family: "Cormorant Garamond", serif;
-    font-style: italic;
-    font-weight: 600;
-    font-size: 1.55rem;
-    color: #4a2e26;
-    margin-top: 8px;
-    line-height: 1.1;
-  }
-  .phone-mock-date {
-    font-size: 0.72rem;
-    color: #8a6a5e;
-    margin-top: 6px;
-    letter-spacing: 0.04em;
-    font-weight: 500;
-  }
-  .phone-mock-divider {
-    width: 36px;
-    height: 2px;
-    border-radius: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    margin: 13px 0;
-    flex: none;
-  }
-  .phone-mock-msg {
-    font-family: "Cormorant Garamond", serif;
-    font-style: italic;
-    font-size: 0.78rem;
-    color: #6b534a;
-    line-height: 1.45;
-    padding: 0 2px;
-  }
-  .phone-mock-spacer { flex: 1; min-height: 10px; }
-  .phone-mock-btn {
-    width: 100%;
-    background: linear-gradient(135deg, #f0c988, #b48b56);
-    color: #3a2418;
-    font-size: 0.64rem;
-    font-weight: 700;
-    padding: 10px 10px;
-    border-radius: 999px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    box-shadow: 0 8px 18px -10px rgba(140,109,52,0.55);
-  }
-  .phone-mock-btn + .phone-mock-btn {
-    margin-top: 9px;
-    background: #fffaf4;
-    color: var(--accent-dark);
-    border: 1.5px solid var(--accent);
-    box-shadow: none;
-  }
-  @media (max-width: 640px) {
-    .tap-demo-signal { transform: rotate(90deg); }
-    .tap-demo-signal span { display: none; }
-  }
 
   .closing-cta {
     text-align: center;
@@ -509,6 +402,7 @@
   <div class="nav-links" id="nav-links">
     <a href="#miert">Miért WedConnect</a>
     <a href="#hogyan-mukodik">Hogyan működik</a>
+    <a href="#stilusok">Stílusok</a>
     <a href="#testreszabas">Testreszabás</a>
     <a href="/sajat/bejelentkezes" class="nav-login">Bejelentkezés</a>
     <a href="/hu/sajat-oldal" class="nav-cta">Ingyenes kezdés</a>
@@ -568,6 +462,153 @@
   </div>
 </section>
 
+<section class="wrap" id="stilusok">
+  <div class="section-title">20 stílus közül válogathattok</div>
+  <div class="section-sub">Klasszikustól a modern minimalistáig, boho-tól a sötét romantikáig — minden esküvőhöz van hozzá illő hangulat. Ez mind valódi stílus, amit a wizardban ki is választhattok.</div>
+  <div class="style-showcase">
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:#ffffff; color:#161616;">
+          <span class="style-swatch-eyebrow" style="color:#161616;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Poppins',sans-serif; font-weight:600; letter-spacing:0.02em; font-size:1.15rem; color:#161616;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Modern minimalista</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:linear-gradient(160deg,#0d0d0d,#1c1a16); color:#f2e6c9;">
+          <span class="style-swatch-eyebrow" style="color:#cfa74d;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Cinzel',serif; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; font-size:1.15rem; color:#f2e6c9;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Luxury / Elegáns</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:#fbfaf5; color:#22301f;">
+          <span class="style-swatch-eyebrow" style="color:#8c6d34;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Great Vibes',cursive; font-weight:400; font-size:1.55rem; color:#22301f;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Klasszikus</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:linear-gradient(160deg,#7a5638,#5b3f28); color:#fbf1e1;">
+          <span class="style-swatch-eyebrow" style="color:#ecd6b2;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Caveat',cursive; font-weight:600; font-size:1.55rem; color:#fbf1e1;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Rusztikus</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:linear-gradient(160deg,#e9d3ac,#cf9a67); color:#4a3320;">
+          <span class="style-swatch-eyebrow" style="color:#353b24;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Caveat',cursive; font-weight:600; font-size:1.55rem; color:#4a3320;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Boho</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:#f3e6e2; color:#6b4a52;">
+          <span class="style-swatch-eyebrow" style="color:#7e5e65;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Great Vibes',cursive; font-weight:400; font-size:1.55rem; color:#6b4a52;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Vintage</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:linear-gradient(160deg,#fdedf0,#f6d6dc); color:#7a3f4c;">
+          <span class="style-swatch-eyebrow" style="color:#80545e;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Great Vibes',cursive; font-weight:400; font-size:1.55rem; color:#7a3f4c;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Romantikus</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:linear-gradient(160deg,#2a3350,#3d4a70); color:#f5efe0;">
+          <span class="style-swatch-eyebrow" style="color:#f2c250;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:500; font-size:1.15rem; color:#f5efe0;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Kerti (Garden Party)</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:linear-gradient(160deg,#f5e7c6,#e3bd7c); color:#6b3d1f;">
+          <span class="style-swatch-eyebrow" style="color:#883518;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:500; font-size:1.15rem; color:#6b3d1f;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Mediterrán / Toszkán</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:linear-gradient(160deg,#eaf6fb,#cdeaf4); color:#225063;">
+          <span class="style-swatch-eyebrow" style="color:#386b7e;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Caveat',cursive; font-weight:600; font-size:1.55rem; color:#225063;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Tengerparti</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:linear-gradient(160deg,#3c3c3c,#282828); color:#e9e9e9;">
+          <span class="style-swatch-eyebrow" style="color:#cf9e8a;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Poppins',sans-serif; font-weight:600; letter-spacing:0.02em; font-size:1.15rem; color:#e9e9e9;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Industrial</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:linear-gradient(160deg,#141414,#242424); color:#f2e7d2;">
+          <span class="style-swatch-eyebrow" style="color:#d4b039;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Cinzel',serif; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; font-size:1.15rem; color:#f2e7d2;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Modern Glam</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:#111111; color:#f0e6d0;">
+          <span class="style-swatch-eyebrow" style="color:#caa329;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Cinzel',serif; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; font-size:1.15rem; color:#f0e6d0;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Art Deco</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:#f7f5ef; color:#2e3a2f;">
+          <span class="style-swatch-eyebrow" style="color:#61745f;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Poppins',sans-serif; font-weight:600; letter-spacing:0.02em; font-size:1.15rem; color:#2e3a2f;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Skandináv</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:linear-gradient(160deg,#1c0e13,#2d0f17); color:#e9d5d0;">
+          <span class="style-swatch-eyebrow" style="color:#b1737b;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Great Vibes',cursive; font-weight:400; font-size:1.55rem; color:#e9d5d0;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Dark Romance</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:linear-gradient(160deg,#1f3524,#2c4632); color:#e6ead9;">
+          <span class="style-swatch-eyebrow" style="color:#90b97d;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:500; font-size:1.15rem; color:#e6ead9;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Forest / Woodland</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:linear-gradient(160deg,#f3e9ff,#e3d1f5); color:#5a3d73;">
+          <span class="style-swatch-eyebrow" style="color:#73526b;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Great Vibes',cursive; font-weight:400; font-size:1.55rem; color:#5a3d73;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Tündérmese (Fairytale)</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:#f7f2e6; color:#4a4038;">
+          <span class="style-swatch-eyebrow" style="color:#5e6f7c;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Caveat',cursive; font-weight:600; font-size:1.55rem; color:#4a4038;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Farmhouse</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:#fbfbf7; color:#2e3a2f;">
+          <span class="style-swatch-eyebrow" style="color:#4e7951;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Cormorant Garamond',serif; font-style:italic; font-weight:500; font-size:1.15rem; color:#2e3a2f;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Modern Botanical</div>
+      </div>
+      <div class="style-swatch">
+        <div class="style-swatch-mock" style="background:linear-gradient(160deg,#ffffff,#e4eef3); color:#1f3a4a;">
+          <span class="style-swatch-eyebrow" style="color:#2c6d8e;">Esküvő</span>
+          <span class="style-swatch-names" style="font-family:'Poppins',sans-serif; font-weight:600; letter-spacing:0.02em; font-size:1.15rem; color:#1f3a4a;">Anna &amp; Bence</span>
+        </div>
+        <div class="style-swatch-name">Coastal</div>
+      </div>
+  </div>
+</section>
+
 <section class="wrap" id="testreszabas">
   <div class="section-title">Mit tehettek rá?</div>
   <div class="section-body">Bármilyen linket hozzáadhattok — ti döntitek el, mi kerüljön az oldalra.</div>
@@ -599,41 +640,8 @@
 <section class="wrap" id="ajandek">
   <div class="styles-note">
     <div class="section-title" style="margin-bottom:14px;">Ha szeretnétek, ennél is tovább mehettek</div>
-    <p style="color:var(--muted); max-width:600px; margin:0 auto;">A WedConnect nem csak digitálisan létezik: gravírozott, kézzelfogható esküvői ajándékként is elkészíthető, amit a vendégeitek haza is visznek — és amivel bármikor újra megnyithatják az esküvőtök digitális világát.</p>
-
-    <div class="std-gallery">
-      <img src="/assets/images/std-csoport-arany.jpg" alt="Gravírozott Save the Date naptárak" loading="lazy">
-      <img src="/assets/images/std-emma-bence-makrame.jpg" alt="Save the Date naptár, Emma és Bence" loading="lazy">
-      <img src="/assets/images/std-reni-tibi.jpg" alt="Save the Date naptár, Reni és Tibi" loading="lazy">
-    </div>
-
-    <div class="tap-demo">
-      <div class="tap-demo-card">
-        <img src="/assets/images/std-emma-bence-levendula.jpg" alt="Gravírozott Save the Date naptár, Emma és Bence">
-      </div>
-      <div class="tap-demo-signal">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M12 20h.01"></path>
-          <path d="M8.5 16.5a5 5 0 0 1 7 0"></path>
-          <path d="M5 13a10 10 0 0 1 14 0"></path>
-        </svg>
-        <span>Érintsd hozzá a telefont</span>
-      </div>
-      <div class="phone-mock">
-        <div class="phone-mock-screen">
-          <div class="phone-mock-notch"></div>
-          <div class="phone-mock-heart">♥</div>
-          <div class="phone-mock-eyebrow">Esküvő</div>
-          <div class="phone-mock-names">Emma &amp; Bence</div>
-          <div class="phone-mock-date">2024. 05. 17.</div>
-          <div class="phone-mock-divider"></div>
-          <div class="phone-mock-msg">Hálásak vagyunk, hogy itt lehetsz velünk ezen a különleges napon. Alig várjuk, hogy együtt ünnepeljünk!</div>
-          <div class="phone-mock-spacer"></div>
-          <div class="phone-mock-btn">Esküvői képek</div>
-          <div class="phone-mock-btn">RSVP</div>
-        </div>
-      </div>
-    </div>
+    <p style="color:var(--muted); max-width:600px; margin:0 auto 22px;">A WedConnect oldal önmagában is tökéletesen működik — a linket vagy a QR-kódot a meghívóra, egy asztalkártyára, bárhova rátehetitek. De ha szeretnétek, kérhettek hozzá egy gravírozott, kézzelfogható fa Save the Date naptárat is, amit a vendégeitek haza is visznek.</p>
+    <a class="cta" href="/hu/save-the-date" style="padding:13px 30px; font-size:0.88rem;">Nézd meg a Save the Date naptárt →</a>
   </div>
 </section>
 

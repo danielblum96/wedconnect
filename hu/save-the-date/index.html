@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Gravírozott, kézzelfogható Save the Date naptár a WedConnect esküvői oldalatokhoz — a vendégeitek egy érintéssel nyitják meg rajta az oldalt.">
+<title>Save the Date naptár — WedConnect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf7f2;
+    --fg: #2b2620;
+    --muted: #6b6255;
+    --accent: #b48b56;
+    --accent-dark: #8c6d34;
+    --card-bg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Poppins", sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
+  header.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 28px;
+  }
+  .brand {
+    font-family: "Cormorant Garamond", serif;
+    font-weight: 600;
+    font-size: 1.3rem;
+    color: var(--fg);
+    text-decoration: none;
+  }
+  .brand span { color: var(--accent); }
+  .back-link {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.92rem;
+  }
+  .back-link:hover { color: var(--accent-dark); }
+
+  header.hero {
+    text-align: center;
+    padding: 30px 24px 60px;
+  }
+  h1 {
+    font-family: "Cormorant Garamond", serif;
+    font-weight: 600;
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin: 0 0 20px;
+    line-height: 1.2;
+    max-width: 780px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .lead {
+    max-width: 600px;
+    margin: 0 auto 30px;
+    font-size: 1.1rem;
+    color: var(--muted);
+  }
+  .cta {
+    display: inline-block;
+    padding: 16px 42px;
+    background: linear-gradient(135deg, #f0c988, #b48b56);
+    color: #1a1408;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    box-shadow: 0 12px 30px -12px rgba(140,109,52,0.5);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 36px -12px rgba(140,109,52,0.65);
+  }
+  section { padding: 40px 0; }
+  .section-title {
+    font-family: "Cormorant Garamond", serif;
+    font-weight: 600;
+    font-size: 1.9rem;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .section-sub {
+    text-align: center;
+    color: var(--muted);
+    max-width: 620px;
+    margin: 0 auto 20px;
+    font-size: 1.05rem;
+  }
+
+  .std-gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 32px;
+  }
+  .std-gallery img {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    border-radius: 14px;
+    box-shadow: 0 10px 26px -14px rgba(0,0,0,0.22);
+    display: block;
+  }
+  @media (max-width: 640px) {
+    .std-gallery { grid-template-columns: 1fr 1fr; }
+    .std-gallery img:first-child { grid-column: 1 / -1; aspect-ratio: 16/9; }
+  }
+
+  .tap-demo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    flex-wrap: wrap;
+    margin-top: 46px;
+  }
+  .tap-demo-card {
+    width: 210px;
+    flex: none;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 16px 34px -16px rgba(0,0,0,0.28);
+  }
+  .tap-demo-card img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .tap-demo-signal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+    color: var(--accent-dark);
+  }
+  .tap-demo-signal svg { width: 38px; height: 38px; }
+  .tap-demo-signal span {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-align: center;
+    max-width: 90px;
+  }
+  .phone-mock {
+    width: 204px;
+    height: 434px;
+    flex: none;
+    background: #1a1408;
+    border-radius: 34px;
+    padding: 9px;
+    box-shadow: 0 22px 44px -18px rgba(0,0,0,0.4);
+  }
+  .phone-mock-screen {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 25px;
+    background: linear-gradient(165deg, #fdf4ef, #f6dfd2);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 36px 16px 20px;
+  }
+  .phone-mock-screen::before {
+    content: "";
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(240,201,136,0.5), transparent 70%);
+  }
+  .phone-mock-notch {
+    position: absolute;
+    top: 7px; left: 50%;
+    transform: translateX(-50%);
+    width: 64px; height: 16px;
+    background: #1a1408;
+    border-radius: 9px;
+  }
+  .phone-mock-heart { color: var(--accent); font-size: 1rem; line-height: 1; }
+  .phone-mock-eyebrow {
+    font-size: 0.56rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+    font-weight: 700;
+    margin-top: 6px;
+  }
+  .phone-mock-names {
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: 1.55rem;
+    color: #4a2e26;
+    margin-top: 8px;
+    line-height: 1.1;
+  }
+  .phone-mock-date {
+    font-size: 0.72rem;
+    color: #8a6a5e;
+    margin-top: 6px;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+  }
+  .phone-mock-divider {
+    width: 36px;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    margin: 13px 0;
+    flex: none;
+  }
+  .phone-mock-msg {
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-size: 0.78rem;
+    color: #6b534a;
+    line-height: 1.45;
+    padding: 0 2px;
+  }
+  .phone-mock-spacer { flex: 1; min-height: 10px; }
+  .phone-mock-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #f0c988, #b48b56);
+    color: #3a2418;
+    font-size: 0.64rem;
+    font-weight: 700;
+    padding: 10px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    box-shadow: 0 8px 18px -10px rgba(140,109,52,0.55);
+  }
+  .phone-mock-btn + .phone-mock-btn {
+    margin-top: 9px;
+    background: #fffaf4;
+    color: var(--accent-dark);
+    border: 1.5px solid var(--accent);
+    box-shadow: none;
+  }
+  @media (max-width: 640px) {
+    .tap-demo-signal { transform: rotate(90deg); }
+    .tap-demo-signal span { display: none; }
+  }
+
+  .info-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+    margin-top: 20px;
+  }
+  .info-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 28px 24px;
+    box-shadow: 0 10px 30px -18px rgba(0,0,0,0.12);
+    text-align: center;
+  }
+  .info-card .icon { font-size: 1.6rem; margin-bottom: 10px; }
+  .info-card h3 {
+    font-family: "Cormorant Garamond", serif;
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin: 0 0 8px;
+  }
+  .info-card p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+  .closing-cta { text-align: center; }
+
+  footer {
+    text-align: center;
+    padding: 30px 24px 60px;
+    border-top: 1px solid #ece4d6;
+    margin-top: 20px;
+  }
+  footer p { color: var(--muted); font-size: 0.92rem; margin: 6px 0; }
+  footer a { color: var(--accent-dark); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a href="/hu/" class="brand">Wed<span>Connect</span></a>
+  <a href="/hu/" class="back-link">← Vissza a főoldalra</a>
+</header>
+
+<header class="hero">
+  <h1>Egy gravírozott naptár, ami megnyitja az esküvői oldalatokat.</h1>
+  <p class="lead">A digitális WedConnect-oldal mellé kérhettek egy kézzelfogható, fa Save the Date naptárat is — a vendégeitek egyetlen érintéssel nyitják meg rajta az oldalt, és utána is megmarad náluk, mint egy szép emlék.</p>
+  <a class="cta" href="/hu/sajat-oldal">Ingyenes kezdés →</a>
+</header>
+
+<section class="wrap">
+  <div class="section-title">Valódi, kézzel gravírozott darabok</div>
+  <div class="section-sub">Minden naptár a ti neveitekkel és dátumotokkal készül, gondosan gravírozva.</div>
+  <div class="std-gallery">
+    <img src="/assets/images/std-csoport-arany.jpg" alt="Gravírozott Save the Date naptárak" loading="lazy">
+    <img src="/assets/images/std-emma-bence-makrame.jpg" alt="Save the Date naptár, Emma és Bence" loading="lazy">
+    <img src="/assets/images/std-reni-tibi.jpg" alt="Save the Date naptár, Reni és Tibi" loading="lazy">
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="section-title">Érintésre megnyílik az oldalatok</div>
+  <div class="section-sub">A naptárba épített NFC-chip miatt elég hozzáérinteni a telefont — nincs alkalmazás, nincs keresgélés, nincs beírandó link.</div>
+  <div class="tap-demo">
+    <div class="tap-demo-card">
+      <img src="/assets/images/std-emma-bence-levendula.jpg" alt="Gravírozott Save the Date naptár, Emma és Bence">
+    </div>
+    <div class="tap-demo-signal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M12 20h.01"></path>
+        <path d="M8.5 16.5a5 5 0 0 1 7 0"></path>
+        <path d="M5 13a10 10 0 0 1 14 0"></path>
+      </svg>
+      <span>Érintsd hozzá a telefont</span>
+    </div>
+    <div class="phone-mock">
+      <div class="phone-mock-screen">
+        <div class="phone-mock-notch"></div>
+        <div class="phone-mock-heart">♥</div>
+        <div class="phone-mock-eyebrow">Esküvő</div>
+        <div class="phone-mock-names">Emma &amp; Bence</div>
+        <div class="phone-mock-date">2024. 05. 17.</div>
+        <div class="phone-mock-divider"></div>
+        <div class="phone-mock-msg">Hálásak vagyunk, hogy itt lehetsz velünk ezen a különleges napon. Alig várjuk, hogy együtt ünnepeljünk!</div>
+        <div class="phone-mock-spacer"></div>
+        <div class="phone-mock-btn">Esküvői képek</div>
+        <div class="phone-mock-btn">RSVP</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="section-title">Nem kötelező, csak egy szép extra</div>
+  <div class="section-sub">A WedConnect oldal önmagában is tökéletesen működik — a linket vagy a QR-kódot bárhova rátehetitek: a meghívóra, egy asztalkártyára, vagy akár egy Instagram-sztoriba is.</div>
+  <div class="info-strip">
+    <div class="info-card">
+      <div class="icon">💌</div>
+      <h3>A meghívóra is mehet</h3>
+      <p>A QR-kódot kinyomtathatjátok a papíralapú meghívóra is — a fa naptár csak egy extra, kézzelfogható lehetőség.</p>
+    </div>
+    <div class="info-card">
+      <div class="icon">🎁</div>
+      <h3>Marad emléknek</h3>
+      <p>A vendégek hazaviszik, és bármikor újra elő tudják venni, hogy megnyissák az oldalatokat.</p>
+    </div>
+    <div class="info-card">
+      <div class="icon">🪵</div>
+      <h3>Gondosan gravírozva</h3>
+      <p>Minden darab a ti neveitekkel, dátumotokkal készül — nem gyári, sablonos termék.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap closing-cta">
+  <div class="section-title">Kezdjétek a digitális oldallal.</div>
+  <div class="section-sub" style="margin-bottom:30px;">Készítsétek el ingyen a saját esküvői oldalatokat — a fa naptárt utólag is hozzáadhatjátok.</div>
+  <a class="cta" href="/hu/sajat-oldal">Ingyenes kezdés →</a>
+</section>
+
+<footer>
+  <p><a href="/hu/">← Vissza a WedConnect főoldalra</a></p>
+</footer>
+
+</body>
+</html>
