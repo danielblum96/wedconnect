@@ -378,11 +378,11 @@
     max-width: 90px;
   }
   .phone-mock {
-    width: 190px;
-    height: 380px;
+    width: 204px;
+    height: 434px;
     flex: none;
     background: #1a1408;
-    border-radius: 32px;
+    border-radius: 34px;
     padding: 9px;
     box-shadow: 0 22px 44px -18px rgba(0,0,0,0.4);
   }
@@ -390,14 +390,22 @@
     position: relative;
     width: 100%;
     height: 100%;
-    border-radius: 23px;
-    background: linear-gradient(165deg, #f7ece9, #f0dbd3);
+    border-radius: 25px;
+    background: linear-gradient(165deg, #fdf4ef, #f6dfd2);
     overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 34px 14px 16px;
+    padding: 36px 16px 20px;
+  }
+  .phone-mock-screen::before {
+    content: "";
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(240,201,136,0.5), transparent 70%);
   }
   .phone-mock-notch {
     position: absolute;
@@ -407,46 +415,70 @@
     background: #1a1408;
     border-radius: 9px;
   }
+  .phone-mock-heart {
+    color: var(--accent);
+    font-size: 1rem;
+    line-height: 1;
+  }
   .phone-mock-eyebrow {
-    font-size: 0.55rem;
-    letter-spacing: 0.24em;
+    font-size: 0.56rem;
+    letter-spacing: 0.28em;
     text-transform: uppercase;
-    color: #a3685a;
-    font-weight: 600;
+    color: var(--accent-dark);
+    font-weight: 700;
+    margin-top: 6px;
   }
   .phone-mock-names {
     font-family: "Cormorant Garamond", serif;
     font-style: italic;
     font-weight: 600;
-    font-size: 1.4rem;
+    font-size: 1.55rem;
     color: #4a2e26;
     margin-top: 8px;
-    line-height: 1.15;
+    line-height: 1.1;
   }
   .phone-mock-date {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     color: #8a6a5e;
-    margin-top: 5px;
-    letter-spacing: 0.03em;
+    margin-top: 6px;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+  }
+  .phone-mock-divider {
+    width: 36px;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    margin: 13px 0;
+    flex: none;
   }
   .phone-mock-msg {
     font-family: "Cormorant Garamond", serif;
     font-style: italic;
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     color: #6b534a;
-    margin-top: 16px;
-    line-height: 1.4;
+    line-height: 1.45;
+    padding: 0 2px;
   }
+  .phone-mock-spacer { flex: 1; min-height: 10px; }
   .phone-mock-btn {
-    margin-top: 18px;
-    background: #4a2e26;
-    color: #f7ece9;
-    font-size: 0.62rem;
+    width: 100%;
+    background: linear-gradient(135deg, #f0c988, #b48b56);
+    color: #3a2418;
+    font-size: 0.64rem;
     font-weight: 700;
-    padding: 8px 16px;
+    padding: 10px 10px;
     border-radius: 999px;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
+    box-shadow: 0 8px 18px -10px rgba(140,109,52,0.55);
+  }
+  .phone-mock-btn + .phone-mock-btn {
+    margin-top: 9px;
+    background: #fffaf4;
+    color: var(--accent-dark);
+    border: 1.5px solid var(--accent);
+    box-shadow: none;
   }
   @media (max-width: 640px) {
     .tap-demo-signal { transform: rotate(90deg); }
@@ -590,11 +622,15 @@
       <div class="phone-mock">
         <div class="phone-mock-screen">
           <div class="phone-mock-notch"></div>
+          <div class="phone-mock-heart">♥</div>
           <div class="phone-mock-eyebrow">Esküvő</div>
           <div class="phone-mock-names">Emma &amp; Bence</div>
-          <div class="phone-mock-date">2024.05.17.</div>
-          <div class="phone-mock-msg">Hálásak vagyunk, hogy itt lehetsz velünk ezen a különleges napon.</div>
+          <div class="phone-mock-date">2024. 05. 17.</div>
+          <div class="phone-mock-divider"></div>
+          <div class="phone-mock-msg">Hálásak vagyunk, hogy itt lehetsz velünk ezen a különleges napon. Alig várjuk, hogy együtt ünnepeljünk!</div>
+          <div class="phone-mock-spacer"></div>
           <div class="phone-mock-btn">Esküvői képek</div>
+          <div class="phone-mock-btn">RSVP</div>
         </div>
       </div>
     </div>
