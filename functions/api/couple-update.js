@@ -1,5 +1,6 @@
 import { getSessionReseller, dashboardHref } from "../_utils/auth.js";
 import { getStyle } from "../_utils/styles.js";
+import { normalizeUrl } from "../_utils/html.js";
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -24,7 +25,7 @@ export async function onRequestPost(context) {
   const gombok = [];
   for (let i = 0; i < labels.length; i++) {
     const label = (labels[i] || "").toString().trim();
-    const url = (urls[i] || "").toString().trim();
+    const url = normalizeUrl(urls[i]);
     if (label && url) gombok.push({ label, url });
   }
 

@@ -176,7 +176,7 @@ export async function renderDashboard(context, reseller) {
           return `
             <div class="btn-row">
               <input type="text" name="gomb_label" placeholder="${t.buttonLabelPlaceholder}" value="${escapeHtml(g.label)}" autocomplete="off">
-              <input type="url" name="gomb_url" placeholder="https://..." value="${escapeHtml(g.url)}" autocomplete="off">
+              <input type="text" name="gomb_url" placeholder="https://..." value="${escapeHtml(g.url)}" autocomplete="off">
             </div>`;
         })
         .join("");
@@ -306,7 +306,7 @@ export async function renderDashboard(context, reseller) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>${t.pageTitle}</title>
+<title>${reseller.fiok_tipus === "maganszemely" ? "Saját oldal — WedConnect" : t.pageTitle}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Great+Vibes&family=Cinzel:wght@500;600&family=Poppins:wght@400;500;600&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
@@ -622,7 +622,7 @@ ${
         <div id="button-rows">
           <div class="btn-row">
             <input type="text" name="gomb_label" placeholder="${t.buttonLabelPlaceholder}" autocomplete="off">
-            <input type="url" name="gomb_url" placeholder="https://..." autocomplete="off">
+            <input type="text" name="gomb_url" placeholder="https://..." autocomplete="off">
             <button type="button" class="btn-remove-row" aria-label="${t.buttonRemoveAria}">×</button>
           </div>
         </div>
@@ -898,7 +898,7 @@ ${
     div.className = "btn-row";
     div.innerHTML =
       '<input type="text" name="gomb_label" placeholder="' + escapeHtml(COPY.buttonLabelPlaceholder) + '" autocomplete="off">' +
-      '<input type="url" name="gomb_url" placeholder="https://..." autocomplete="off">' +
+      '<input type="text" name="gomb_url" placeholder="https://..." autocomplete="off">' +
       '<button type="button" class="btn-remove-row" aria-label="' + escapeHtml(COPY.buttonRemoveAria) + '">×</button>';
     rowsContainer.appendChild(div);
     bindRemove(div.querySelector(".btn-remove-row"));
