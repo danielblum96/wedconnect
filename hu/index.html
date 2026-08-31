@@ -211,7 +211,7 @@
     font-weight: 600;
     font-size: 2rem;
     text-align: center;
-    margin-bottom: 12px;
+    margin-bottom: 22px;
   }
   .section-sub {
     text-align: center;
@@ -221,20 +221,21 @@
     font-size: 1.05rem;
   }
   .section-body {
-    max-width: 640px;
+    max-width: 620px;
     margin: 0 auto;
-    text-align: center;
+    text-align: left;
     color: var(--fg);
-    font-size: 1.05rem;
+    font-size: 1.03rem;
   }
+  .section-body + .section-body { margin-top: 16px; }
 
-  /* Nem öt külön link - checklist + záró banner */
+  /* Nem öt külön link - checklist + záró sor */
   .check-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 14px 30px;
     max-width: 600px;
-    margin: 36px auto 0;
+    margin: 32px auto 0;
     text-align: left;
   }
   .check-item {
@@ -246,103 +247,95 @@
   }
   .check-item .tick {
     flex: none;
-    width: 22px; height: 22px;
+    width: 20px; height: 20px;
     border-radius: 50%;
-    background: var(--accent);
-    color: #fff;
-    font-size: 0.66rem;
+    border: 1.5px solid var(--accent);
+    color: var(--accent-dark);
+    font-size: 0.6rem;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-top: 2px;
   }
-  .punch-banner {
+  .punch-line {
     margin: 40px auto 0;
-    max-width: 560px;
-    background: linear-gradient(135deg, #f0c988, #b48b56);
-    border-radius: 16px;
-    padding: 20px 28px;
+    max-width: 520px;
     text-align: center;
     font-family: "Cormorant Garamond", serif;
-    font-weight: 600;
-    font-size: 1.25rem;
-    color: #1a1408;
-    box-shadow: 0 14px 32px -14px rgba(140,109,52,0.55);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 1.4rem;
+    color: var(--accent-dark);
+    padding-top: 22px;
+    border-top: 1px solid rgba(180,139,86,0.35);
   }
   @media (max-width: 560px) {
     .check-grid { grid-template-columns: 1fr; }
   }
 
-  /* Így képzeljétek el / A saját esküvőtökhöz alakíthatjátok - kártyák */
-  .timeline {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-    gap: 24px;
-    margin-top: 30px;
-  }
-  .info-card {
-    background: var(--card-bg);
-    border-radius: 16px;
-    padding: 30px 26px;
-    box-shadow: 0 10px 30px -18px rgba(0,0,0,0.12);
-    border-top: 4px solid var(--accent);
-  }
-  .info-card .icon { font-size: 1.5rem; margin-bottom: 12px; }
-  .info-card h3 {
-    font-family: "Cormorant Garamond", serif;
-    font-weight: 600;
-    font-size: 1.25rem;
-    margin: 0 0 10px;
-  }
-  .info-card p {
-    margin: 0;
-    color: var(--muted);
-    font-size: 0.98rem;
-  }
-
-  .steps {
+  /* Így képzeljétek el - egyszerű ikon + szöveg, kártya nélkül */
+  .icon-timeline {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 28px;
+    gap: 34px;
+    margin-top: 34px;
+    text-align: left;
   }
-  .step {
-    background: var(--card-bg);
-    border-radius: 14px;
-    padding: 30px 26px;
-    box-shadow: 0 10px 30px -18px rgba(0,0,0,0.12);
+  .icon-timeline .icon {
+    width: 28px; height: 28px;
+    color: var(--accent-dark);
+    margin-bottom: 14px;
   }
-  .step .num {
+  .icon-timeline h3 {
     font-family: "Cormorant Garamond", serif;
-    font-size: 2.2rem;
-    color: var(--accent);
-    margin-bottom: 10px;
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin: 0 0 8px;
   }
-  .step h3 { margin: 0 0 8px; font-size: 1.1rem; }
-  .step p { margin: 0; color: var(--muted); font-size: 1rem; }
+  .icon-timeline p { margin: 0; color: var(--muted); font-size: 0.98rem; }
 
-  /* Milyen ez a vendégeiteknek - idézet-buborékok */
-  .quote-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    justify-content: center;
-    margin: 32px auto 0;
-    max-width: 680px;
+  /* Hogyan működik - számozott kör + szöveg, kártya nélkül */
+  .flow-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 34px;
+    margin-top: 34px;
+    text-align: left;
   }
-  .quote-bubble {
-    background: var(--card-bg);
-    border-radius: 16px;
-    border-bottom-left-radius: 4px;
-    padding: 13px 20px;
+  .flow-num {
+    width: 36px; height: 36px;
+    border: 1.5px solid var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Cormorant Garamond", serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--accent-dark);
+    margin-bottom: 16px;
+  }
+  .flow-steps h3 { font-size: 1.1rem; margin: 0 0 8px; }
+  .flow-steps p { margin: 0; color: var(--muted); font-size: 0.98rem; }
+
+  /* Milyen ez a vendégeiteknek - idézet-lista */
+  .quote-list {
+    max-width: 580px;
+    margin: 32px auto 0;
+  }
+  .quote-item {
     font-family: "Cormorant Garamond", serif;
     font-style: italic;
-    font-size: 1.1rem;
-    color: var(--muted);
-    box-shadow: 0 8px 20px -14px rgba(0,0,0,0.15);
+    font-size: 1.15rem;
+    color: var(--fg);
+    border-left: 2px solid var(--accent);
+    padding: 3px 0 3px 20px;
+    margin-bottom: 15px;
+    text-align: left;
   }
 
-  /* Milyen ez nektek / Linkkel vagy QR-kóddal is működik - listák */
+  /* Milyen ez nektek / Linkkel vagy QR-kóddal - listák */
   .plain-list {
     max-width: 480px;
     margin: 24px auto 0;
@@ -352,18 +345,16 @@
   }
   .plain-list li {
     position: relative;
-    padding-left: 26px;
+    padding-left: 22px;
     margin-bottom: 10px;
     color: var(--fg);
     font-size: 1.02rem;
   }
   .plain-list li::before {
-    content: "";
+    content: "–";
     position: absolute;
-    left: 2px; top: 10px;
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--accent);
+    left: 0;
+    color: var(--accent-dark);
   }
 
   /* Stílus-galéria - 20 valódi stílus a wizardból */
@@ -449,12 +440,10 @@
     font-weight: 500;
   }
 
-  .styles-note {
-    background: var(--card-bg);
-    border-radius: 16px;
-    padding: 40px 32px;
+  .gift-note {
     text-align: center;
-    box-shadow: 0 10px 30px -18px rgba(0,0,0,0.12);
+    padding-top: 34px;
+    border-top: 1px solid rgba(180,139,86,0.25);
   }
 
   .closing-cta {
@@ -514,82 +503,82 @@
     <div class="check-item"><span class="tick">✓</span>Bármilyen további tartalom</div>
   </div>
 
-  <div class="punch-banner">Egyetlen oldal. Egyetlen link. Egyetlen QR-kód.</div>
+  <div class="punch-line">Egyetlen oldal. Egyetlen link. Egyetlen QR-kód.</div>
 </section>
 
 <section class="wrap">
   <div class="section-title">Így képzeljétek el</div>
-  <div class="timeline">
-    <div class="info-card">
-      <div class="icon">💌</div>
+  <div class="icon-timeline">
+    <div>
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg>
       <h3>Az esküvő előtt</h3>
       <p>Tegyétek rá a programot, a helyszínt, az RSVP-t vagy bármilyen információt, amit a vendégeknek tudniuk kell. Ugyanazt az oldalt már a meghívóban is megoszthatjátok.</p>
     </div>
-    <div class="info-card">
-      <div class="icon">📸</div>
+    <div>
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-2h6l2 2h3v11H4z"></path><circle cx="12" cy="13.5" r="3.3"></circle></svg>
       <h3>Az esküvőn</h3>
       <p>Kerülhet rá a vendégfotók feltöltési linkje, a selfie box galériája vagy bármi más, amit szeretnétek könnyen elérhetővé tenni. A vendég csak beolvassa a QR-kódot, és már ott is van.</p>
     </div>
-    <div class="info-card">
-      <div class="icon">🎬</div>
+    <div>
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 9h18M8 4v5M16 4v5"></path></svg>
       <h3>Az esküvő után</h3>
       <p>Megérkeztek a fotós képei vagy az esküvői videó? Nem kell újabb linkeket küldözgetnetek. Egyszerűen hozzáadjátok őket ugyanahhoz a WedConnect oldalhoz.</p>
     </div>
   </div>
-  <div class="section-body" style="margin-top:30px;">A vendégeitek mindig ugyanoda mennek. Nincs keresgélés Messengerben, WhatsAppon, e-mailben vagy a régi üzenetek között.</div>
+  <div class="section-sub" style="margin-top:34px;">A vendégeitek mindig ugyanoda mennek. Nincs keresgélés Messengerben, WhatsAppon, e-mailben vagy a régi üzenetek között.</div>
 </section>
 
 <section class="wrap" id="hogyan-mukodik">
   <div class="section-title">Hogyan működik?</div>
-  <div class="steps">
-    <div class="step">
-      <div class="num">01</div>
+  <div class="flow-steps">
+    <div>
+      <div class="flow-num">01</div>
       <h3>Elkészítitek a saját esküvői oldalatokat</h3>
       <p>Kiválasztjátok a stílust, megadjátok a neveiteket és az esküvő dátumát, majd hozzáadjátok azt, amit szeretnétek megosztani.</p>
     </div>
-    <div class="step">
-      <div class="num">02</div>
+    <div>
+      <div class="flow-num">02</div>
       <h3>Megosztjátok a vendégekkel</h3>
       <p>Elküldhetitek egyszerű linkként, kitehetitek QR-kóddal a meghívóra, az asztalokra vagy bárhová az esküvőn.</p>
     </div>
-    <div class="step">
-      <div class="num">03</div>
+    <div>
+      <div class="flow-num">03</div>
       <h3>A vendég megnyitja, és mindent egy helyen talál</h3>
       <p>Programot, RSVP-t, fotókat, videókat, galériákat, feltöltési linkeket és minden mást, amit hozzáadtatok.</p>
     </div>
   </div>
-  <div class="section-body" style="margin-top:30px;">Nincs alkalmazás. Nincs vendégregisztráció. Nincs keresgélés.</div>
-  <div class="section-cta" style="margin-top:28px;">
+  <div class="section-sub" style="margin-top:34px;">Nincs alkalmazás. Nincs vendégregisztráció. Nincs keresgélés.</div>
+  <div class="section-cta" style="margin-top:24px;">
     <a class="cta" href="/hu/sajat-oldal">Készítsétek el ingyen →</a>
   </div>
 </section>
 
 <section class="wrap">
   <div class="section-title">Milyen ez a vendégeiteknek?</div>
-  <div class="quote-row">
-    <div class="quote-bubble">„Hova kell feltölteni a képeket?”</div>
-    <div class="quote-bubble">„Hol vannak a fotós képei?”</div>
-    <div class="quote-bubble">„El tudod küldeni még egyszer a videó linkjét?”</div>
-    <div class="quote-bubble">„Hol volt az RSVP?”</div>
+  <div class="quote-list">
+    <div class="quote-item">„Hova kell feltölteni a képeket?”</div>
+    <div class="quote-item">„Hol vannak a fotós képei?”</div>
+    <div class="quote-item">„El tudod küldeni még egyszer a videó linkjét?”</div>
+    <div class="quote-item">„Hol volt az RSVP?”</div>
   </div>
-  <div class="section-body" style="margin-top:30px;">A WedConnecttel ezek helyett elég ennyit tudniuk: minden a WedConnect oldalatokon van. Megnyitják a linket vagy beolvassák a QR-kódot, és azonnal elérnek mindent, amit nekik szántatok.</div>
+  <div class="section-body" style="margin-top:30px; margin-left:auto; margin-right:auto;">A WedConnecttel ezek helyett elég ennyit tudniuk: minden a WedConnect oldalatokon van. Megnyitják a linket vagy beolvassák a QR-kódot, és azonnal elérnek mindent, amit nekik szántatok.</div>
 </section>
 
 <section class="wrap">
   <div class="section-title">Milyen ez nektek?</div>
-  <div class="section-body">A saját WedConnect oldalatokat ti kezelitek. Ti döntitek el:</div>
+  <div class="section-sub">A saját WedConnect oldalatokat ti kezelitek. Ti döntitek el:</div>
   <ul class="plain-list">
     <li>milyen legyen a megjelenése,</li>
     <li>milyen szöveg kerüljön rá,</li>
     <li>milyen tartalmakat szeretnétek megosztani,</li>
     <li>és mikor jelenjen meg rajta valami új.</li>
   </ul>
-  <div class="section-body" style="margin-top:20px;">Ha közben változik a program, megérkeznek az új fotók, vagy szeretnétek hozzáadni egy új linket, egyszerűen frissítitek az oldalt. Nem kell új QR-kódot készítenetek vagy új linket küldenetek a vendégeknek.</div>
+  <div class="section-body" style="margin-top:22px; margin-left:auto; margin-right:auto;">Ha közben változik a program, megérkeznek az új fotók, vagy szeretnétek hozzáadni egy új linket, egyszerűen frissítitek az oldalt. Nem kell új QR-kódot készítenetek vagy új linket küldenetek a vendégeknek.</div>
 </section>
 
 <section class="wrap" id="testreszabas">
   <div class="section-title">Mit tehettek rá?</div>
-  <div class="section-body">Ti döntitek el, mi kerüljön a saját esküvői oldalatokra.</div>
+  <div class="section-sub">Ti döntitek el, mi kerüljön a saját esküvői oldalatokra.</div>
   <div class="chip-row">
     <span class="chip">RSVP</span>
     <span class="chip">program</span>
@@ -602,13 +591,13 @@
     <span class="chip">térkép</span>
     <span class="chip">üzenetek</span>
   </div>
-  <div class="section-body" style="margin-bottom:16px;">Ha pedig valami más szolgáltatást vagy felületet használtok, annak a linkjét is egyszerűen hozzáadhatjátok.</div>
-  <div class="section-body">Írhattok saját üdvözlő szöveget, köszönőüzenetet vagy bármilyen személyes üzenetet is a vendégeiteknek.</div>
+  <div class="section-body" style="margin-left:auto; margin-right:auto;">Ha pedig valami más szolgáltatást vagy felületet használtok, annak a linkjét is egyszerűen hozzáadhatjátok.</div>
+  <div class="section-body" style="margin-left:auto; margin-right:auto;">Írhattok saját üdvözlő szöveget, köszönőüzenetet vagy bármilyen személyes üzenetet is a vendégeiteknek.</div>
 </section>
 
 <section class="wrap">
   <div class="section-title">Egy oldal, ami nem csak az esküvő napjára szól</div>
-  <div class="section-body">A WedConnectet már az esküvő előtt elkezdhetitek használni. A meghívón keresztül megoszthatjátok a programot, a helyszínt vagy az RSVP-t. Az esküvő napján használhatjátok a vendégfotókhoz, galériákhoz és fontos információkhoz. Utána pedig ugyanitt oszthatjátok meg a fotós képeit és az esküvői videót. Ugyanaz az oldal végigkísérheti az egész esküvőtöket.</div>
+  <div class="section-body" style="margin-left:auto; margin-right:auto;">A WedConnectet már az esküvő előtt elkezdhetitek használni. A meghívón keresztül megoszthatjátok a programot, a helyszínt vagy az RSVP-t. Az esküvő napján használhatjátok a vendégfotókhoz, galériákhoz és fontos információkhoz. Utána pedig ugyanitt oszthatjátok meg a fotós képeit és az esküvői videót. Ugyanaz az oldal végigkísérheti az egész esküvőtöket.</div>
 </section>
 
 <section class="wrap" id="stilusok">
@@ -784,27 +773,27 @@
 
 <section class="wrap">
   <div class="section-title">A saját esküvőtökhöz alakíthatjátok</div>
-  <div class="section-body">A neveitek, az esküvő dátuma, a szövegek, a képek és a tartalmak mind a tietek. A WedConnect csak megadja hozzá azt az egy helyet, ahol mindezt a vendégeitek könnyen elérhetik. Nem egy újabb felület, amit meg kell tanulniuk — csak megnyitják az oldalatokat, és használják.</div>
+  <div class="section-body" style="margin-left:auto; margin-right:auto;">A neveitek, az esküvő dátuma, a szövegek, a képek és a tartalmak mind a tietek. A WedConnect csak megadja hozzá azt az egy helyet, ahol mindezt a vendégeitek könnyen elérhetik. Nem egy újabb felület, amit meg kell tanulniuk — csak megnyitják az oldalatokat, és használják.</div>
 </section>
 
 <section class="wrap">
   <div class="section-title">Linkkel vagy QR-kóddal is működik</div>
   <div class="section-sub">A WedConnect oldal önmagában is használható. A linket elküldhetitek üzenetben vagy e-mailben, a QR-kódot pedig rátehetitek például:</div>
-  <ul class="plain-list" style="margin-top:24px;">
+  <ul class="plain-list">
     <li>a meghívóra,</li>
     <li>az asztalkártyára,</li>
     <li>az ültetési rendre,</li>
     <li>egy táblára,</li>
     <li>vagy bármilyen esküvői dekorációra.</li>
   </ul>
-  <div class="section-body" style="margin-top:20px;">A vendég beolvassa, és már meg is nyílik a saját esküvői oldalatok.</div>
+  <div class="section-sub" style="margin-top:20px;">A vendég beolvassa, és már meg is nyílik a saját esküvői oldalatok.</div>
 </section>
 
 <section class="wrap" id="ajandek">
-  <div class="styles-note">
-    <div class="section-title" style="margin-bottom:14px;">Ha szeretnétek, kézzelfogható emlék is lehet belőle</div>
-    <p style="color:var(--muted); max-width:600px; margin:0 auto 22px;">A digitális WedConnect oldal mellé kérhettek gravírozott fa Save the Date naptárat is. A vendégeitek hazavihetik emlékként, és a rajta található QR-kóddal vagy NFC segítségével később is megnyithatják az esküvői oldalatokat.</p>
-    <a class="cta" href="/hu/save-the-date" style="padding:13px 30px; font-size:0.88rem;">Nézzétek meg a Save the Date naptárt →</a>
+  <div class="gift-note">
+    <div class="section-title" style="margin-bottom:16px;">Ha szeretnétek, kézzelfogható emlék is lehet belőle</div>
+    <p style="color:var(--muted); max-width:580px; margin:0 auto 24px;">A digitális WedConnect oldal mellé kérhettek gravírozott fa Save the Date naptárat is. A vendégeitek hazavihetik emlékként, és a rajta található QR-kóddal vagy NFC segítségével később is megnyithatják az esküvői oldalatokat.</p>
+    <a class="cta-outline" href="/hu/save-the-date">Nézzétek meg a Save the Date naptárt →</a>
   </div>
 </section>
 
