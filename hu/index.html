@@ -325,6 +325,134 @@
     box-shadow: 0 10px 30px -18px rgba(0,0,0,0.12);
   }
 
+  /* Fizikai ajándék - fotó-galéria + "érintsd hozzá" bemutató */
+  .std-gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 32px;
+  }
+  .std-gallery img {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    border-radius: 14px;
+    box-shadow: 0 10px 26px -14px rgba(0,0,0,0.22);
+    display: block;
+  }
+  @media (max-width: 640px) {
+    .std-gallery { grid-template-columns: 1fr 1fr; }
+    .std-gallery img:first-child { grid-column: 1 / -1; aspect-ratio: 16/9; }
+  }
+
+  .tap-demo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    flex-wrap: wrap;
+    margin-top: 40px;
+  }
+  .tap-demo-card {
+    width: 210px;
+    flex: none;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 16px 34px -16px rgba(0,0,0,0.28);
+  }
+  .tap-demo-card img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .tap-demo-signal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+    color: var(--accent-dark);
+  }
+  .tap-demo-signal svg { width: 38px; height: 38px; }
+  .tap-demo-signal span {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-align: center;
+    max-width: 90px;
+  }
+  .phone-mock {
+    width: 190px;
+    height: 380px;
+    flex: none;
+    background: #1a1408;
+    border-radius: 32px;
+    padding: 9px;
+    box-shadow: 0 22px 44px -18px rgba(0,0,0,0.4);
+  }
+  .phone-mock-screen {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 23px;
+    background: linear-gradient(165deg, #f7ece9, #f0dbd3);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 34px 14px 16px;
+  }
+  .phone-mock-notch {
+    position: absolute;
+    top: 7px; left: 50%;
+    transform: translateX(-50%);
+    width: 64px; height: 16px;
+    background: #1a1408;
+    border-radius: 9px;
+  }
+  .phone-mock-eyebrow {
+    font-size: 0.55rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: #a3685a;
+    font-weight: 600;
+  }
+  .phone-mock-names {
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: 1.4rem;
+    color: #4a2e26;
+    margin-top: 8px;
+    line-height: 1.15;
+  }
+  .phone-mock-date {
+    font-size: 0.7rem;
+    color: #8a6a5e;
+    margin-top: 5px;
+    letter-spacing: 0.03em;
+  }
+  .phone-mock-msg {
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-size: 0.75rem;
+    color: #6b534a;
+    margin-top: 16px;
+    line-height: 1.4;
+  }
+  .phone-mock-btn {
+    margin-top: 18px;
+    background: #4a2e26;
+    color: #f7ece9;
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  @media (max-width: 640px) {
+    .tap-demo-signal { transform: rotate(90deg); }
+    .tap-demo-signal span { display: none; }
+  }
+
   .closing-cta {
     text-align: center;
   }
@@ -436,10 +564,40 @@
   </div>
 </section>
 
-<section class="wrap">
+<section class="wrap" id="ajandek">
   <div class="styles-note">
     <div class="section-title" style="margin-bottom:14px;">Ha szeretnétek, ennél is tovább mehettek</div>
     <p style="color:var(--muted); max-width:600px; margin:0 auto;">A WedConnect nem csak digitálisan létezik: gravírozott, kézzelfogható esküvői ajándékként is elkészíthető, amit a vendégeitek haza is visznek — és amivel bármikor újra megnyithatják az esküvőtök digitális világát.</p>
+
+    <div class="std-gallery">
+      <img src="/assets/images/std-csoport-arany.jpg" alt="Gravírozott Save the Date naptárak" loading="lazy">
+      <img src="/assets/images/std-emma-bence-makrame.jpg" alt="Save the Date naptár, Emma és Bence" loading="lazy">
+      <img src="/assets/images/std-reni-tibi.jpg" alt="Save the Date naptár, Reni és Tibi" loading="lazy">
+    </div>
+
+    <div class="tap-demo">
+      <div class="tap-demo-card">
+        <img src="/assets/images/std-emma-bence-levendula.jpg" alt="Gravírozott Save the Date naptár, Emma és Bence">
+      </div>
+      <div class="tap-demo-signal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M12 20h.01"></path>
+          <path d="M8.5 16.5a5 5 0 0 1 7 0"></path>
+          <path d="M5 13a10 10 0 0 1 14 0"></path>
+        </svg>
+        <span>Érintsd hozzá a telefont</span>
+      </div>
+      <div class="phone-mock">
+        <div class="phone-mock-screen">
+          <div class="phone-mock-notch"></div>
+          <div class="phone-mock-eyebrow">Esküvő</div>
+          <div class="phone-mock-names">Emma &amp; Bence</div>
+          <div class="phone-mock-date">2024.05.17.</div>
+          <div class="phone-mock-msg">Hálásak vagyunk, hogy itt lehetsz velünk ezen a különleges napon.</div>
+          <div class="phone-mock-btn">Esküvői képek</div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
