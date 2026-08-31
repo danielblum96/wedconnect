@@ -27,7 +27,7 @@
     line-height: 1.6;
     padding-top: 68px;
   }
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+  .wrap { max-width: 1040px; margin: 0 auto; }
 
   /* Fejléc-menü */
   .site-nav {
@@ -196,7 +196,10 @@
     color: var(--muted);
   }
   .section-cta { text-align: center; }
-  section { padding: 76px 0; }
+  section.wrap { padding: 96px 24px; }
+  @media (max-width: 640px) {
+    section.wrap { padding: 64px 24px; }
+  }
   .section-eyebrow {
     text-align: center;
     font-size: 0.8rem;
@@ -211,7 +214,7 @@
     font-weight: 600;
     font-size: 2rem;
     text-align: center;
-    margin-bottom: 22px;
+    margin-bottom: 28px;
   }
   .section-sub {
     text-align: center;
