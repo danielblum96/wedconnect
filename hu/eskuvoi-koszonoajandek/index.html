@@ -8,6 +8,12 @@
 <link rel="canonical" href="https://wedconnect.eu/hu/eskuvoi-koszonoajandek">
 <link rel="alternate" hreflang="hu-HU" href="https://wedconnect.eu/hu/eskuvoi-koszonoajandek">
 <link rel="alternate" hreflang="x-default" href="https://wedconnect.eu/hu/eskuvoi-koszonoajandek">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Esküvői köszönőajándék egy érintéssel | WedConnect">
+<meta property="og:description" content="Személyre szabott, gravírozott fa esküvői köszönőajándék, amely egy érintéssel megnyitja a saját esküvői oldalatokat. 1 990 Ft/db, 50 db-tól az oldal ajándék.">
+<meta property="og:url" content="https://wedconnect.eu/hu/eskuvoi-koszonoajandek">
+<meta property="og:image" content="https://wedconnect.eu/assets/images/std-reni-tibi-telefon.jpg">
+<meta property="og:locale" content="hu_HU">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -58,7 +64,7 @@
   },
   "description": "Személyre szabott, lézervágott és gravírozott fa esküvői köszönőajándék, amely egy érintéssel megnyitja a pár saját WedConnect esküvői oldalát.",
   "material": "Fa",
-  "image": "https://wedconnect.eu/assets/images/std-csoport-arany.jpg",
+  "image": "https://wedconnect.eu/assets/images/std-reni-tibi-telefon.jpg",
   "url": "https://wedconnect.eu/hu/eskuvoi-koszonoajandek",
   "offers": {
     "@type": "Offer",
@@ -428,16 +434,6 @@
     margin-bottom: 12px;
   }
 
-  /* ===== Demo-kártya (fotó + érintés-folyamat egyben) ===== */
-  .demo-card {
-    background: var(--bg);
-    border: 1px solid #ece4d6;
-    border-radius: 20px;
-    padding: 20px 20px 28px;
-  }
-  .demo-card img { display: block; }
-  .demo-card .touch-flow { margin-top: 26px; }
-
   /* ===== Bullet lista (általános) ===== */
   .plain-list {
     max-width: 480px;
@@ -473,8 +469,9 @@
   }
   .reveal-photo img {
     width: 100%;
-    border-radius: 14px;
+    border-radius: 16px;
     display: block;
+    box-shadow: 0 20px 44px -18px rgba(0,0,0,0.3);
   }
   .reveal-text .line {
     font-family: "Cormorant Garamond", serif;
@@ -496,72 +493,6 @@
   @media (max-width: 780px) {
     .reveal-grid { grid-template-columns: 1fr; }
     .reveal-photo { order: -1; max-width: 380px; margin: 0 auto; }
-  }
-
-  /* ===== Érintés-folyamat: ajándék -> érintés -> telefonon megnyílt oldal ===== */
-  .touch-flow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 18px;
-    margin-top: 22px;
-  }
-  .touch-icon {
-    flex: 0 0 auto;
-    color: var(--accent-dark);
-    opacity: 0.7;
-  }
-  .touch-icon svg { display: block; width: 30px; height: 30px; }
-  .phone-mock {
-    flex: 0 0 auto;
-    width: 168px;
-    padding: 10px 10px 14px;
-    background: #1c1712;
-    border-radius: 26px;
-    box-shadow: 0 18px 34px -16px rgba(0,0,0,0.4);
-  }
-  .phone-mock-screen {
-    background: #fbf6ec;
-    border-radius: 18px;
-    padding: 22px 14px 16px;
-    text-align: center;
-  }
-  .pm-eyebrow {
-    font-family: "Poppins", sans-serif;
-    font-size: 0.55rem;
-    font-weight: 600;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--accent-dark);
-    margin-bottom: 6px;
-  }
-  .pm-names {
-    font-family: "Cormorant Garamond", serif;
-    font-weight: 600;
-    font-size: 1.15rem;
-    color: #2b2620;
-    line-height: 1.1;
-  }
-  .pm-date {
-    font-family: "Poppins", sans-serif;
-    font-size: 0.6rem;
-    letter-spacing: 0.08em;
-    color: var(--accent-dark);
-    margin: 4px 0 12px;
-  }
-  .pm-buttons { display: flex; flex-direction: column; gap: 6px; }
-  .pm-btn {
-    background: var(--accent);
-    color: #1a1408;
-    border-radius: 999px;
-    padding: 6px 8px;
-    font-family: "Poppins", sans-serif;
-    font-size: 0.58rem;
-    font-weight: 600;
-  }
-  @media (max-width: 480px) {
-    .touch-flow { gap: 12px; }
-    .phone-mock { width: 140px; }
   }
 
   /* ===== Fotó-galéria ===== */
@@ -813,8 +744,8 @@
       <div class="hero-photo">
         <div class="glow"></div>
         <div class="photo-stack">
-          <img class="photo-main" src="/assets/images/std-csoport-arany.jpg" alt="Személyre szabott gravírozott fa esküvői köszönőajándékok arany dekorral" loading="eager">
-          <img class="photo-accent" src="/assets/images/std-reni-tibi.jpg" alt="Egyedi esküvői köszönőajándék Reni és Tibi nevével" loading="eager">
+          <img class="photo-main" src="/assets/images/std-reni-tibi-telefon.jpg" alt="Gravírozott esküvői köszönőajándék, ahogy a vendég hozzáérinti a telefonját, Reni és Tibi nevével" loading="eager">
+          <img class="photo-accent" src="/assets/images/std-emma-b-telefon.jpg" alt="Esküvői köszönőajándék hozzáérintve a telefonhoz, megnyílt WedConnect esküvői oldallal, Emma és B. nevével" loading="eager">
         </div>
       </div>
     </div>
@@ -874,32 +805,7 @@
       <p class="line strong">Egyetlen érintésre.</p>
     </div>
     <div class="reveal-photo">
-      <div class="demo-card">
-        <img src="/assets/images/std-emma-bence-levendula.jpg" alt="Gravírozott esküvői köszönőajándék levendulás asztaldíszen, Emma és Bence nevével" loading="lazy">
-        <div class="touch-flow">
-          <div class="touch-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 3v7"></path>
-              <path d="M8.5 21c-1.5-2-3-4.2-3-7 0-2 1-3 2.5-3s2.5 1.3 2.5 3"></path>
-              <path d="M8 14v-3.5c0-1 .8-1.8 1.8-1.8s1.7.8 1.7 1.8V13"></path>
-              <path d="M11.5 13v-1.5c0-1 .8-1.8 1.8-1.8s1.7.8 1.7 1.8V14"></path>
-              <path d="M15 14v-1c0-1 .8-1.8 1.7-1.8 1 0 1.8.8 1.8 1.8v2c0 3.5-1.7 6-3.5 8"></path>
-            </svg>
-          </div>
-          <div class="phone-mock">
-            <div class="phone-mock-screen">
-              <div class="pm-eyebrow">Esküvő</div>
-              <div class="pm-names">Anna &amp; Bence</div>
-              <div class="pm-date">2027. 06. 12.</div>
-              <div class="pm-buttons">
-                <span class="pm-btn">Esküvői fotók</span>
-                <span class="pm-btn">Esküvői videó</span>
-                <span class="pm-btn">Vendégfotók</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <img src="/assets/images/std-eszti-miklos-telefon.jpg" alt="Vendég kezében a gravírozott esküvői köszönőajándék és a hozzáérintett telefonon megnyílt WedConnect esküvői oldal, Eszti és Miklós nevével" loading="lazy">
     </div>
   </div>
 </section>
