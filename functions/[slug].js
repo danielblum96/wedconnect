@@ -20,16 +20,25 @@ function notFound() {
 // root index.html at 200 (same platform-wide fallback as an unmatched
 // route), so we detect "no real static asset" by comparing its ETag
 // against root's ETag rather than trusting the 200 status alone.
-async function findRealStaticAsset(env, request, pathWithSlash) {
-  const [targetResp, rootResp] = await Promise.all([
-    env.ASSETS.fetch(new Request(new URL(pathWithSlash, request.url), { method: "GET" })),
+// A top-level slug can be either a folder-style page (real path is
+// "/slug/", serving "slug/index.html") or a plain static FILE at the root
+// (e.g. "/sitemap.xml", "/robots.txt") - appending "/" to a file breaks its
+// asset lookup, so both variants are tried.
+async function findRealStaticAsset(env, request, slug) {
+  const [rootResp, exactResp, folderResp] = await Promise.all([
     env.ASSETS.fetch(new Request(new URL("/", request.url), { method: "GET" })),
+    env.ASSETS.fetch(new Request(new URL(`/${slug}`, request.url), { method: "GET" })),
+    env.ASSETS.fetch(new Request(new URL(`/${slug}/`, request.url), { method: "GET" })),
   ]);
-  if (targetResp.status !== 200) return null;
-  const targetEtag = targetResp.headers.get("etag");
   const rootEtag = rootResp.headers.get("etag");
-  if (targetEtag && rootEtag && targetEtag === rootEtag) return null;
-  return targetResp;
+  const isReal = (resp) => {
+    if (resp.status !== 200) return false;
+    const etag = resp.headers.get("etag");
+    return !(etag && rootEtag && etag === rootEtag);
+  };
+  if (isReal(exactResp)) return exactResp;
+  if (isReal(folderResp)) return folderResp;
+  return null;
 }
 
 export async function onRequestGet(context) {
@@ -41,7 +50,7 @@ export async function onRequestGet(context) {
   // /lili-mark-2026-08-14/, which may have custom content beyond what the
   // dynamic renderer below supports) ALWAYS wins, even if a D1 row with the
   // same slug also happens to exist.
-  const staticResp = await findRealStaticAsset(env, request, `/${slug}/`);
+  const staticResp = await findRealStaticAsset(env, request, slug);
   if (staticResp) return staticResp;
 
   const par = await env.DB.prepare(
