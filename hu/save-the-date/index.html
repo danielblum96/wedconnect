@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Gravírozott, kézzelfogható Save the Date naptár a WedConnect esküvői oldalatokhoz — a vendégeitek egy érintéssel nyitják meg rajta az oldalt.">
-<title>Save the Date naptár — WedConnect</title>
+<meta name="description" content="Esküvői köszönőajándék, ami egy érintéssel megnyitja a saját WedConnect esküvői oldalatokat — próbáljátok ki ingyen, 24 órán keresztül, kötelezettség nélkül.">
+<title>Esküvői köszönőajándék + WedConnect oldal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -24,354 +24,699 @@
     font-family: "Poppins", sans-serif;
     background: var(--bg);
     color: var(--fg);
-    line-height: 1.6;
+    line-height: 1.65;
   }
   .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+  .narrow { max-width: 620px; }
 
   header.top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 20px 28px;
+    padding: 22px 32px;
+    max-width: 1140px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 5;
   }
   .brand {
     font-family: "Cormorant Garamond", serif;
     font-weight: 600;
     font-size: 1.3rem;
-    color: var(--fg);
+    color: #f5efe0;
     text-decoration: none;
   }
   .brand span { color: var(--accent); }
   .back-link {
-    color: var(--muted);
+    color: #cfc4ac;
     text-decoration: none;
-    font-size: 0.92rem;
+    font-size: 0.9rem;
   }
-  .back-link:hover { color: var(--accent-dark); }
+  .back-link:hover { color: #f0c988; }
 
-  header.hero {
-    text-align: center;
-    padding: 30px 24px 60px;
-  }
-  h1 {
+  h1, h2 {
     font-family: "Cormorant Garamond", serif;
     font-weight: 600;
-    font-size: clamp(2rem, 5vw, 3rem);
-    margin: 0 0 20px;
-    line-height: 1.2;
-    max-width: 780px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .lead {
-    max-width: 600px;
-    margin: 0 auto 30px;
-    font-size: 1.1rem;
-    color: var(--muted);
+    line-height: 1.18;
   }
   .cta {
     display: inline-block;
-    padding: 16px 42px;
+    padding: 16px 34px;
     background: linear-gradient(135deg, #f0c988, #b48b56);
     color: #1a1408;
     border-radius: 999px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.92rem;
     letter-spacing: 0.02em;
+    text-decoration: none;
     box-shadow: 0 12px 30px -12px rgba(140,109,52,0.5);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
-  .cta:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 16px 36px -12px rgba(140,109,52,0.65);
-  }
-  section { padding: 40px 0; }
-  .section-title {
-    font-family: "Cormorant Garamond", serif;
+  .cta:hover { transform: translateY(-1px); box-shadow: 0 16px 36px -12px rgba(140,109,52,0.65); }
+  .cta-outline {
+    display: inline-block;
+    padding: 13px 28px;
+    border: 1.5px solid var(--accent);
+    color: var(--accent-dark);
+    border-radius: 999px;
     font-weight: 600;
-    font-size: 1.9rem;
-    text-align: center;
-    margin-bottom: 12px;
+    font-size: 0.88rem;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
   }
-  .section-sub {
-    text-align: center;
-    color: var(--muted);
-    max-width: 620px;
-    margin: 0 auto 20px;
-    font-size: 1.05rem;
+  .cta-outline:hover { background: var(--accent); color: #fff; }
+  .micro-note { font-size: 0.85rem; color: var(--muted); margin-top: 12px; }
+
+  section { padding: 68px 0; }
+  .section-title {
+    font-size: 1.9rem;
+    margin: 0 0 22px;
+  }
+  .section-title.center { text-align: center; }
+  p { margin: 0 0 16px; }
+  .body-text { max-width: 620px; font-size: 1.03rem; }
+  .body-text.center { margin-left: auto; margin-right: auto; text-align: center; }
+
+  /* ===== HERO (dark bold band) ===== */
+  .hero-band {
+    background:
+      radial-gradient(ellipse 900px 500px at 85% -10%, rgba(180,139,86,0.22), transparent 60%),
+      linear-gradient(160deg, #16130f, #221b12 55%, #1a140d);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-band::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(115deg, rgba(240,201,136,0.05) 0 1px, transparent 1px 90px);
+    pointer-events: none;
+  }
+  .hero {
+    padding: 30px 24px 88px;
+    position: relative;
+  }
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #d9b876;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+  }
+  .hero-eyebrow::before {
+    content: "";
+    width: 26px;
+    height: 1px;
+    background: #d9b876;
+  }
+  .hero-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 56px;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+  }
+  .hero h1 {
+    font-size: clamp(2.3rem, 4.4vw, 3.3rem);
+    margin: 0 0 22px;
+    color: #f7f1e2;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: #f0c988;
+  }
+  .hero .lead { font-size: 1.14rem; color: #efe8d6; margin-bottom: 14px; }
+  .hero .lead-sub { font-size: 1rem; color: #b3a68c; margin-bottom: 26px; }
+  .hero-facts {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 30px;
+  }
+  .hero-facts li {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 8px;
+    font-size: 0.96rem;
+    color: #d8cdb5;
+  }
+  .hero-facts li::before { content: "–"; position: absolute; left: 0; color: #d9b876; }
+  .hero .micro-note { color: #8f8368; }
+  .hero-photo { position: relative; }
+  .hero-photo .photo-stack { position: relative; }
+  .hero-photo img.photo-main {
+    width: 88%;
+    display: block;
+    border-radius: 4px;
+    box-shadow: 0 40px 80px -20px rgba(0,0,0,0.65);
+    transform: rotate(3deg);
+    position: relative;
+    z-index: 2;
+    margin-left: auto;
+    border: 6px solid #fdfbf5;
+  }
+  .hero-photo img.photo-accent {
+    width: 46%;
+    display: block;
+    border-radius: 4px;
+    box-shadow: 0 30px 60px -18px rgba(0,0,0,0.6);
+    transform: rotate(-9deg);
+    position: absolute;
+    left: -6%;
+    bottom: -34px;
+    z-index: 3;
+    border: 6px solid #fdfbf5;
+  }
+  .hero-photo .glow {
+    position: absolute;
+    width: 340px;
+    height: 340px;
+    background: radial-gradient(circle, rgba(240,201,136,0.28), transparent 70%);
+    top: -60px;
+    right: -40px;
+    z-index: 1;
+  }
+  @media (max-width: 860px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero-eyebrow, .hero h1, .hero .lead, .hero .lead-sub { text-align: center; }
+    .hero-eyebrow { justify-content: center; }
+    .hero-facts { max-width: 360px; margin: 0 auto 30px; }
+    .hero .cta-wrap { text-align: center; }
+    .hero-photo { max-width: 380px; margin: 50px auto 0; }
+    .hero-photo img.photo-main { width: 90%; transform: rotate(2deg); }
+    .hero-photo img.photo-accent { width: 50%; left: 4%; bottom: -26px; }
   }
 
-  .std-gallery {
+  /* ===== Bullet lista (általános) ===== */
+  .plain-list {
+    max-width: 480px;
+    padding-left: 0;
+    list-style: none;
+    margin: 20px 0;
+  }
+  .plain-list li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 9px;
+    font-size: 1.02rem;
+  }
+  .plain-list li::before { content: "–"; position: absolute; left: 0; color: var(--accent-dark); }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0; }
+  .chip {
+    border: 1px solid #ddd6c9;
+    background: #fff;
+    color: var(--fg);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  /* ===== Staccato reveal (Aztán képzeljétek el) ===== */
+  .reveal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    align-items: center;
+  }
+  .reveal-photo img {
+    width: 100%;
+    border-radius: 16px;
+    box-shadow: 0 20px 44px -18px rgba(0,0,0,0.3);
+  }
+  .reveal-text .line {
+    font-family: "Cormorant Garamond", serif;
+    font-size: 1.15rem;
+    margin: 0 0 8px;
+    color: var(--muted);
+  }
+  .reveal-text .line.strong {
+    color: var(--fg);
+    font-weight: 600;
+  }
+  .reveal-text .line.big {
+    font-size: 1.7rem;
+    font-weight: 600;
+    color: var(--accent-dark);
+    margin-top: 18px;
+    margin-bottom: 6px;
+  }
+  @media (max-width: 780px) {
+    .reveal-grid { grid-template-columns: 1fr; }
+    .reveal-photo { order: -1; max-width: 380px; margin: 0 auto; }
+  }
+
+  /* ===== Fotó-galéria ===== */
+  .gallery {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
-    margin-top: 32px;
+    margin-top: 30px;
   }
-  .std-gallery img {
+  .gallery img {
     width: 100%;
-    aspect-ratio: 3 / 2;
+    aspect-ratio: 3/2;
     object-fit: cover;
     border-radius: 14px;
-    box-shadow: 0 10px 26px -14px rgba(0,0,0,0.22);
-    display: block;
+    box-shadow: 0 10px 26px -16px rgba(0,0,0,0.25);
   }
   @media (max-width: 640px) {
-    .std-gallery { grid-template-columns: 1fr 1fr; }
-    .std-gallery img:first-child { grid-column: 1 / -1; aspect-ratio: 16/9; }
+    .gallery { grid-template-columns: 1fr 1fr; }
+    .gallery img:first-child { grid-column: 1/-1; aspect-ratio: 16/9; }
   }
 
-  .tap-demo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 22px;
-    flex-wrap: wrap;
-    margin-top: 46px;
+  /* ===== Feature-lista (Mit találhatnak a vendégek) ===== */
+  .feature-list { margin-top: 30px; }
+  .feature-row {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 24px;
+    padding: 18px 0;
+    border-top: 1px solid #ece4d6;
   }
-  .tap-demo-card {
-    width: 210px;
-    flex: none;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 16px 34px -16px rgba(0,0,0,0.28);
-  }
-  .tap-demo-card img { display: block; width: 100%; height: 100%; object-fit: cover; }
-  .tap-demo-signal {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    flex: none;
-    color: var(--accent-dark);
-  }
-  .tap-demo-signal svg { width: 38px; height: 38px; }
-  .tap-demo-signal span {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--muted);
-    text-align: center;
-    max-width: 90px;
-  }
-  .phone-mock {
-    width: 204px;
-    height: 434px;
-    flex: none;
-    background: #1a1408;
-    border-radius: 34px;
-    padding: 9px;
-    box-shadow: 0 22px 44px -18px rgba(0,0,0,0.4);
-  }
-  .phone-mock-screen {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    border-radius: 25px;
-    background: linear-gradient(165deg, #fdf4ef, #f6dfd2);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 36px 16px 20px;
-  }
-  .phone-mock-screen::before {
-    content: "";
-    position: absolute;
-    top: -40px; right: -40px;
-    width: 120px; height: 120px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(240,201,136,0.5), transparent 70%);
-  }
-  .phone-mock-notch {
-    position: absolute;
-    top: 7px; left: 50%;
-    transform: translateX(-50%);
-    width: 64px; height: 16px;
-    background: #1a1408;
-    border-radius: 9px;
-  }
-  .phone-mock-heart { color: var(--accent); font-size: 1rem; line-height: 1; }
-  .phone-mock-eyebrow {
-    font-size: 0.56rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--accent-dark);
-    font-weight: 700;
-    margin-top: 6px;
-  }
-  .phone-mock-names {
+  .feature-row:last-child { border-bottom: 1px solid #ece4d6; }
+  .feature-row dt {
     font-family: "Cormorant Garamond", serif;
-    font-style: italic;
     font-weight: 600;
-    font-size: 1.55rem;
-    color: #4a2e26;
-    margin-top: 8px;
-    line-height: 1.1;
+    font-size: 1.15rem;
   }
-  .phone-mock-date {
-    font-size: 0.72rem;
-    color: #8a6a5e;
-    margin-top: 6px;
-    letter-spacing: 0.04em;
-    font-weight: 500;
-  }
-  .phone-mock-divider {
-    width: 36px;
-    height: 2px;
-    border-radius: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    margin: 13px 0;
-    flex: none;
-  }
-  .phone-mock-msg {
-    font-family: "Cormorant Garamond", serif;
-    font-style: italic;
-    font-size: 0.78rem;
-    color: #6b534a;
-    line-height: 1.45;
-    padding: 0 2px;
-  }
-  .phone-mock-spacer { flex: 1; min-height: 10px; }
-  .phone-mock-btn {
-    width: 100%;
-    background: linear-gradient(135deg, #f0c988, #b48b56);
-    color: #3a2418;
-    font-size: 0.64rem;
-    font-weight: 700;
-    padding: 10px 10px;
-    border-radius: 999px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    box-shadow: 0 8px 18px -10px rgba(140,109,52,0.55);
-  }
-  .phone-mock-btn + .phone-mock-btn {
-    margin-top: 9px;
-    background: #fffaf4;
-    color: var(--accent-dark);
-    border: 1.5px solid var(--accent);
-    box-shadow: none;
-  }
+  .feature-row dd { margin: 0; color: var(--muted); font-size: 0.98rem; }
   @media (max-width: 640px) {
-    .tap-demo-signal { transform: rotate(90deg); }
-    .tap-demo-signal span { display: none; }
+    .feature-row { grid-template-columns: 1fr; gap: 6px; }
   }
 
-  .info-strip {
+  /* ===== Előtte/alatta/utána sor ===== */
+  .phase-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 24px;
-    margin-top: 20px;
+    gap: 28px;
+    margin: 30px 0;
   }
-  .info-card {
-    background: var(--card-bg);
-    border-radius: 16px;
-    padding: 28px 24px;
-    box-shadow: 0 10px 30px -18px rgba(0,0,0,0.12);
-    text-align: center;
+  .phase-row .phase-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+    margin-bottom: 8px;
+    display: block;
   }
-  .info-card .icon { font-size: 1.6rem; margin-bottom: 10px; }
-  .info-card h3 {
+  .phase-row .phase-items { color: var(--fg); font-size: 1rem; }
+
+  /* ===== Így működik - flow steps ===== */
+  .flow-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 34px;
+    margin-top: 34px;
+  }
+  .flow-num {
+    width: 38px; height: 38px;
+    border: 1.5px solid var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
     font-family: "Cormorant Garamond", serif;
     font-weight: 600;
-    font-size: 1.2rem;
-    margin: 0 0 8px;
+    font-size: 1.1rem;
+    color: var(--accent-dark);
+    margin-bottom: 16px;
   }
-  .info-card p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+  .flow-steps h3 { font-size: 1.15rem; margin: 0 0 10px; }
+  .flow-steps p { color: var(--muted); font-size: 0.98rem; }
 
-  .closing-cta { text-align: center; }
+  /* ===== Árazás ===== */
+  .price-simple {
+    text-align: center;
+    margin: 34px 0;
+  }
+  .price-simple .amount {
+    font-family: "Cormorant Garamond", serif;
+    font-weight: 600;
+    font-size: 2.6rem;
+    color: var(--accent-dark);
+  }
+  .price-simple .label { font-size: 0.92rem; color: var(--muted); }
+  .price-or {
+    text-align: center;
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    color: var(--muted);
+    margin: 30px 0;
+  }
+  .price-box {
+    max-width: 460px;
+    margin: 0 auto;
+    background: var(--card-bg);
+    border: 1px solid #ece1cc;
+    border-radius: 16px;
+    padding: 30px 30px 26px;
+  }
+  .price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    font-size: 0.98rem;
+    padding: 8px 0;
+  }
+  .price-row .label { color: var(--fg); }
+  .price-row .value { font-weight: 600; white-space: nowrap; }
+  .price-divider { border-top: 1px dashed #ddd2ba; margin: 10px 0; }
+  .price-strike { color: var(--muted); text-decoration: line-through; margin-right: 8px; }
+  .price-free {
+    color: #3a7a4e;
+    font-family: "Poppins", sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+  .price-total-row .value {
+    font-family: "Cormorant Garamond", serif;
+    font-size: 1.3rem;
+    color: var(--accent-dark);
+  }
+  .price-footnote {
+    text-align: center;
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--accent-dark);
+    margin-top: 18px;
+  }
+
+  /* ===== Bullet-checklist (Ha olyat kerestek ami...) ===== */
+  .want-list {
+    max-width: 480px;
+    margin: 26px auto 0;
+    padding-left: 0;
+    list-style: none;
+    text-align: left;
+  }
+  .want-list li {
+    position: relative;
+    padding-left: 24px;
+    margin-bottom: 10px;
+    font-size: 1.02rem;
+  }
+  .want-list li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--accent-dark);
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  .divider-line {
+    border: none;
+    border-top: 1px solid #ece4d6;
+    margin: 0;
+  }
+
+  .section-cta { text-align: center; margin-top: 30px; }
 
   footer {
     text-align: center;
-    padding: 30px 24px 60px;
+    padding: 40px 24px 60px;
     border-top: 1px solid #ece4d6;
     margin-top: 20px;
   }
-  footer p { color: var(--muted); font-size: 0.92rem; margin: 6px 0; }
-  footer a { color: var(--accent-dark); }
+  footer a { color: var(--accent-dark); text-decoration: none; }
 </style>
 </head>
 <body>
 
-<header class="top">
-  <a href="/hu/" class="brand">Wed<span>Connect</span></a>
-  <a href="/hu/" class="back-link">← Vissza a főoldalra</a>
-</header>
+<div class="hero-band">
+  <header class="top">
+    <a href="/hu/" class="brand">Wed<span>Connect</span></a>
+    <a href="/hu/" class="back-link">← Vissza a főoldalra</a>
+  </header>
 
-<header class="hero">
-  <h1>Egy gravírozott naptár, ami megnyitja az esküvői oldalatokat.</h1>
-  <p class="lead">A digitális WedConnect-oldal mellé kérhettek egy kézzelfogható, fa Save the Date naptárat is — a vendégeitek egyetlen érintéssel nyitják meg rajta az oldalt, és utána is megmarad náluk, mint egy szép emlék.</p>
-  <a class="cta" href="/hu/sajat-oldal">Ingyenes kezdés →</a>
-</header>
-
-<section class="wrap">
-  <div class="section-title">Valódi, kézzel gravírozott darabok</div>
-  <div class="section-sub">Minden naptár a ti neveitekkel és dátumotokkal készül, gondosan gravírozva.</div>
-  <div class="std-gallery">
-    <img src="/assets/images/std-csoport-arany.jpg" alt="Gravírozott Save the Date naptárak" loading="lazy">
-    <img src="/assets/images/std-emma-bence-makrame.jpg" alt="Save the Date naptár, Emma és Bence" loading="lazy">
-    <img src="/assets/images/std-reni-tibi.jpg" alt="Save the Date naptár, Reni és Tibi" loading="lazy">
-  </div>
-</section>
-
-<section class="wrap">
-  <div class="section-title">Érintésre megnyílik az oldalatok</div>
-  <div class="section-sub">A naptárba épített NFC-chip miatt elég hozzáérinteni a telefont — nincs alkalmazás, nincs keresgélés, nincs beírandó link.</div>
-  <div class="tap-demo">
-    <div class="tap-demo-card">
-      <img src="/assets/images/std-emma-bence-levendula.jpg" alt="Gravírozott Save the Date naptár, Emma és Bence">
-    </div>
-    <div class="tap-demo-signal">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <path d="M12 20h.01"></path>
-        <path d="M8.5 16.5a5 5 0 0 1 7 0"></path>
-        <path d="M5 13a10 10 0 0 1 14 0"></path>
-      </svg>
-      <span>Érintsd hozzá a telefont</span>
-    </div>
-    <div class="phone-mock">
-      <div class="phone-mock-screen">
-        <div class="phone-mock-notch"></div>
-        <div class="phone-mock-heart">♥</div>
-        <div class="phone-mock-eyebrow">Esküvő</div>
-        <div class="phone-mock-names">Emma &amp; Bence</div>
-        <div class="phone-mock-date">2024. 05. 17.</div>
-        <div class="phone-mock-divider"></div>
-        <div class="phone-mock-msg">Hálásak vagyunk, hogy itt lehetsz velünk ezen a különleges napon. Alig várjuk, hogy együtt ünnepeljünk!</div>
-        <div class="phone-mock-spacer"></div>
-        <div class="phone-mock-btn">Esküvői képek</div>
-        <div class="phone-mock-btn">RSVP</div>
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-grid">
+      <div class="hero-text">
+        <div class="hero-eyebrow">Esküvői köszönőajándék + saját esküvői oldal</div>
+        <h1>Egy érintéssel megnyitja a <em>saját esküvői oldalatokat</em></h1>
+        <p class="lead">Személyre szabott, lézervágott és gravírozott fa esküvői köszönőajándék a neveitekkel és az esküvőtök dátumával.</p>
+        <p class="lead-sub">A vendégetek hozzáérinti a telefonját, és azonnal megnyílik a saját WedConnect esküvői oldalatok, ahol megtalálhatja a fotókat, videókat, galériákat és mindent, amit szeretnétek megosztani vele.</p>
+        <ul class="hero-facts">
+          <li>Először készítsétek el ingyen a saját oldalatokat.</li>
+          <li>Nincs rendelési kötelezettség.</li>
+          <li>Nincs előre fizetés.</li>
+          <li>24 órán keresztül ingyen kipróbálhatjátok.</li>
+        </ul>
+        <div class="cta-wrap">
+          <a class="cta" href="/hu/sajat-oldal">Ingyen elkészítem a saját oldalunkat →</a>
+          <div class="micro-note">Pár perc alatt elkészíthető. 24 órán belül eldönthetitek, szeretnétek-e megtartani.</div>
+        </div>
+      </div>
+      <div class="hero-photo">
+        <div class="glow"></div>
+        <div class="photo-stack">
+          <img class="photo-main" src="/assets/images/std-csoport-arany.jpg" alt="Gravírozott fa esküvői köszönőajándékok" loading="eager">
+          <img class="photo-accent" src="/assets/images/std-reni-tibi.jpg" alt="Gravírozott Save the Date naptár, Reni és Tibi" loading="eager">
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </header>
+</div>
 
+<!-- Előbb nézzétek meg a sajátotokkal -->
 <section class="wrap">
-  <div class="section-title">Nem kötelező, csak egy szép extra</div>
-  <div class="section-sub">A WedConnect oldal önmagában is tökéletesen működik — a linket vagy a QR-kódot bárhova rátehetitek: a meghívóra, egy asztalkártyára, vagy akár egy Instagram-sztoriba is.</div>
-  <div class="info-strip">
-    <div class="info-card">
-      <div class="icon">💌</div>
-      <h3>A meghívóra is mehet</h3>
-      <p>A QR-kódot kinyomtathatjátok a papíralapú meghívóra is — a fa naptár csak egy extra, kézzelfogható lehetőség.</p>
+  <h2 class="section-title">Előbb nézzétek meg a sajátotokkal</h2>
+  <p class="body-text">Ne egy sablon alapján döntsetek. Írjátok be a menyasszony nevét, a vőlegény nevét, az esküvőtök dátumát, válasszátok ki a nektek tetsző szöveget, majd adjátok hozzá azokat a gombokat, amelyeket szeretnétek. Például:</p>
+  <div class="chip-row">
+    <span class="chip">Esküvői fotók</span>
+    <span class="chip">Töltsd fel a képeidet</span>
+    <span class="chip">Esküvői videónk</span>
+    <span class="chip">Selfie box</span>
+    <span class="chip">Helyszín</span>
+    <span class="chip">Útvonal</span>
+    <span class="chip">RSVP</span>
+  </div>
+  <p class="body-text">Minden gomb mögé azt a linket tehetitek, amit szeretnétek. És máris előttetek lesz a saját WedConnect esküvői oldalatok.</p>
+  <div class="section-cta" style="text-align:left;">
+    <a class="cta" href="/hu/sajat-oldal">Megnézem, milyen lenne a sajátunk →</a>
+    <div class="micro-note">Ingyenes regisztráció · Nincs fizetési kötelezettség</div>
+  </div>
+</section>
+
+<!-- Aztán képzeljétek el ezt a vendégeiteknél -->
+<section class="wrap" style="background:var(--card-bg); border-radius:24px; padding:56px 40px;">
+  <h2 class="section-title">Aztán képzeljétek el ezt a vendégeiteknél</h2>
+  <div class="reveal-grid">
+    <div class="reveal-text">
+      <p class="line">Az esküvő végén átadjátok nekik a személyre szabott fa köszönőajándékot.</p>
+      <p class="line strong">Rajta van: Anna &amp; Bence — 2027. 06. 12.</p>
+      <p class="line" style="margin-top:18px;">Hazaviszik emlékbe. Később meglátják. Hozzáérintik a telefonjukat.</p>
+      <p class="line big">És... megnyílik az esküvőtök.</p>
+      <p class="line">A fotók. A videó. A selfie box képei. A vendégek által készített fotók. A köszönőüzenetetek.</p>
+      <p class="line strong">Egyetlen érintésre.</p>
     </div>
-    <div class="info-card">
-      <div class="icon">🎁</div>
-      <h3>Marad emléknek</h3>
-      <p>A vendégek hazaviszik, és bármikor újra elő tudják venni, hogy megnyissák az oldalatokat.</p>
-    </div>
-    <div class="info-card">
-      <div class="icon">🪵</div>
-      <h3>Gondosan gravírozva</h3>
-      <p>Minden darab a ti neveitekkel, dátumotokkal készül — nem gyári, sablonos termék.</p>
+    <div class="reveal-photo">
+      <img src="/assets/images/std-emma-bence-levendula.jpg" alt="Gravírozott Save the Date naptár, Emma és Bence">
     </div>
   </div>
 </section>
 
-<section class="wrap closing-cta">
-  <div class="section-title">Kezdjétek a digitális oldallal.</div>
-  <div class="section-sub" style="margin-bottom:30px;">Készítsétek el ingyen a saját esküvői oldalatokat — a fa naptárt utólag is hozzáadhatjátok.</div>
-  <a class="cta" href="/hu/sajat-oldal">Ingyenes kezdés →</a>
+<!-- Több mint egy esküvői köszönőajándék -->
+<section class="wrap">
+  <h2 class="section-title center">Több mint egy esküvői köszönőajándék</h2>
+  <p class="body-text center">Egy hagyományos esküvői köszönőajándék egy kedves emlék a nagy napról. A WedConnecttel összekapcsolt köszönőajándék ennél tovább él. Nemcsak emlékezteti a vendégeiteket az esküvőtökre — vissza is viszi őket oda.</p>
+  <p class="body-text center">A fizikai emlék összekapcsolódik a saját esküvői oldalatokkal, amit később is frissíthettek. Így az ajándék hónapokkal vagy akár évekkel később is ugyanoda vezethet: a közös emlékeitekhez.</p>
+  <div class="section-cta">
+    <a class="cta" href="/hu/sajat-oldal">Ingyen elkészítjük a saját oldalunkat →</a>
+  </div>
+</section>
+
+<!-- Egyedi esküvői köszönőajándék -->
+<section class="wrap">
+  <h2 class="section-title">Egyedi esküvői köszönőajándék, tényleg a ti esküvőtökre</h2>
+  <p class="body-text">Nem egy általános apróság, amit minden esküvőn ugyanúgy lehet látni. Minden darab személyre szabottan készül: a ti neveitekkel, a ti esküvőtök dátumával, a ti saját WedConnect oldalatokkal.</p>
+  <p class="body-text">Így a vendégeitek egy olyan személyre szabott esküvői köszönőajándékot vihetnek haza, amely valóban hozzátok és a közös napotokhoz tartozik.</p>
+  <div class="gallery">
+    <img src="/assets/images/std-emma-bence-makrame.jpg" alt="Save the Date naptár, Emma és Bence" loading="lazy">
+    <img src="/assets/images/std-reni-tibi.jpg" alt="Save the Date naptár, Reni és Tibi" loading="lazy">
+    <img src="/assets/images/std-viki-dani-kave.jpg" alt="Save the Date naptár, Viki és Dani" loading="lazy">
+  </div>
+</section>
+
+<!-- Mit találhatnak a vendégek -->
+<section class="wrap">
+  <h2 class="section-title center">Mit találhatnak a vendégek az esküvői oldalatokon?</h2>
+  <p class="body-text center">Szinte bármit, amit szeretnétek megosztani velük.</p>
+  <dl class="feature-list">
+    <div class="feature-row">
+      <dt>Esküvői fotók</dt>
+      <dd>Ha elkészül a fotós galériája, adjátok hozzá az oldalhoz.</dd>
+    </div>
+    <div class="feature-row">
+      <dt>Esküvői videó</dt>
+      <dd>Egyetlen gomb, és már indulhat is az esküvői filmetek.</dd>
+    </div>
+    <div class="feature-row">
+      <dt>Vendégfotók</dt>
+      <dd>Tegyétek ki azt a linket, ahová a vendégek feltölthetik a saját képeiket.</dd>
+    </div>
+    <div class="feature-row">
+      <dt>Selfie box</dt>
+      <dd>A teljes selfie box galéria elérhető lehet ugyanarról az oldalról.</dd>
+    </div>
+    <div class="feature-row">
+      <dt>Helyszín és útvonal</dt>
+      <dd>Google Maps vagy bármilyen más térképes link.</dd>
+    </div>
+    <div class="feature-row">
+      <dt>RSVP</dt>
+      <dd>Ha már az esküvő előtt használjátok az oldalt, a visszajelzés is kerülhet ide.</dd>
+    </div>
+    <div class="feature-row">
+      <dt>Saját üzenetek</dt>
+      <dd>Köszöntsétek vagy köszönjétek meg a vendégeiteknek, hogy veletek ünnepeltek. Ha van hozzá link, kitehetitek az oldalatokra.</dd>
+    </div>
+  </dl>
+</section>
+
+<!-- Nem kell, hogy most minden készen legyen -->
+<section class="wrap">
+  <h2 class="section-title">Nem kell, hogy most minden készen legyen</h2>
+  <p class="body-text">Sőt. Valószínűleg még nincs esküvői videótok. Nincsenek kész a fotós képei. A selfie box galériája sem létezik még. Nem baj — a WedConnect oldalatok később is frissíthető.</p>
+  <div class="phase-row">
+    <div>
+      <span class="phase-label">Az esküvő előtt</span>
+      <div class="phase-items">helyszín · program · RSVP</div>
+    </div>
+    <div>
+      <span class="phase-label">Az esküvő napján</span>
+      <div class="phase-items">vendégfotók · selfie box · fontos információk</div>
+    </div>
+    <div>
+      <span class="phase-label">Az esküvő után</span>
+      <div class="phase-items">fotós galéria · esküvői videó · köszönőüzenet</div>
+    </div>
+  </div>
+  <p class="body-text">A vendégeiteknek pedig nem kell újabb és újabb linkeket küldenetek. Ugyanazt az oldalt érik el újra.</p>
+  <div class="section-cta" style="text-align:left;">
+    <a class="cta" href="/hu/sajat-oldal">Elkészítem ingyen a saját oldalunkat →</a>
+    <div class="micro-note">24 órán keresztül ingyenesen kipróbálhatjátok.</div>
+  </div>
+</section>
+
+<!-- Így működik -->
+<section class="wrap">
+  <h2 class="section-title center">Így működik</h2>
+  <div class="flow-steps">
+    <div>
+      <div class="flow-num">01</div>
+      <h3>Ingyen elkészítitek a saját esküvői oldalatokat</h3>
+      <p>Regisztráltok, megadjátok a neveiteket és az esküvő dátumát. Kiválasztjátok a szöveget. Hozzáadjátok a saját gombjaitokat és linkjeiteket. Néhány perc alatt kész.</p>
+    </div>
+    <div>
+      <div class="flow-num">02</div>
+      <h3>24 órán keresztül ingyen kipróbáljátok</h3>
+      <p>Nézzétek meg a saját neveitekkel. Mutassátok meg egymásnak. Próbáljátok ki telefonon. Rakjátok össze úgy, ahogy nektek tetszik. Semmit nem kell előre megvásárolnotok.</p>
+    </div>
+    <div>
+      <div class="flow-num">03</div>
+      <h3>Eldöntitek, szeretnétek-e megtartani</h3>
+      <p>Ha nem tetszik, nem vásároljátok meg. Ennyi. Ha viszont szeretnétek használni, a WedConnect esküvői oldal ára:</p>
+    </div>
+  </div>
+
+  <div class="price-simple">
+    <div class="amount">19 990 Ft</div>
+    <div class="label">a saját WedConnect esküvői oldalatok, egyszeri díj</div>
+  </div>
+
+  <div class="price-or">Vagy… rendeljétek meg hozzá a köszönőajándékokat, és az oldal a mi ajándékunk</div>
+
+  <p class="body-text center" style="margin:0 auto 8px;">A személyre szabott, lézervágott és gravírozott esküvői köszönőajándék ára <strong>1 990 Ft / db</strong>, minimum rendelési mennyiség <strong>50 db</strong>.</p>
+  <p class="body-text center" style="margin-bottom:30px;">Ha legalább 50 darab esküvői köszönőajándékot rendeltek, a 19 990 Ft értékű WedConnect esküvői oldalatokat ajándékba adjuk.</p>
+
+  <div class="price-box">
+    <div class="price-row">
+      <span class="label">50 db személyre szabott köszönőajándék<br><span style="color:var(--muted); font-weight:400;">50 × 1 990 Ft</span></span>
+      <span class="value">99 500 Ft</span>
+    </div>
+    <div class="price-divider"></div>
+    <div class="price-row">
+      <span class="label">WedConnect esküvői oldal</span>
+      <span class="value"><span class="price-strike">19 990 Ft</span><span class="price-free">0 Ft</span></span>
+    </div>
+  </div>
+  <div class="price-footnote">Az esküvői oldal ajándék.</div>
+
+  <div class="section-cta">
+    <a class="cta" href="/hu/sajat-oldal">Először ingyen megtervezem az oldalunkat →</a>
+    <div class="micro-note">Nincs rendelési kötelezettség. Előbb próbáljátok ki.</div>
+  </div>
+</section>
+
+<!-- Miért jó előbb az oldallal kezdeni -->
+<section class="wrap">
+  <h2 class="section-title">Miért jó először az oldallal kezdeni?</h2>
+  <p class="body-text">Mert nem kell elképzelnetek, hogy milyen lenne. Megnézhetitek — a saját neveitekkel, a saját esküvői dátumotokkal, a saját szövegetekkel, a saját gombjaitokkal.</p>
+  <p class="body-text">Mire a köszönőajándékokról döntötök, már pontosan tudjátok, mi fog megnyílni a vendégeitek telefonján. Ezért nálunk nem a vásárlás az első lépés — hanem a tervezés.</p>
+  <div class="section-cta" style="text-align:left;">
+    <a class="cta-outline" href="/hu/sajat-oldal">Kipróbálom ingyen →</a>
+  </div>
+</section>
+
+<!-- Nem csak hazaviszik -->
+<section class="wrap" style="background:var(--card-bg); border-radius:24px; padding:56px 40px;">
+  <h2 class="section-title center">Egy esküvői köszönőajándék, amit nem csak hazavisznek</h2>
+  <p class="body-text center" style="color:var(--muted);">Csokoládé. Méz. Gyertya. Kis üveg. Apró dekoráció. Rengeteg esküvői köszönőajándék létezik.</p>
+  <p class="body-text center">Mi valami olyat szerettünk volna létrehozni, ami nemcsak szép azon az egy napon — hanem később is jelent valamit.</p>
+  <p class="body-text center">A vendégetek ránéz. Látja a neveteket. Látja a dátumot. Hozzáérinti a telefonját. És előtte vannak azok a pillanatok, amelyeket veletek élt át.</p>
+  <p class="body-text center" style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1.3rem; color:var(--accent-dark);">Ez nem csak egy tárgy az esküvőről. Ez egy út vissza az emlékekhez.</p>
+</section>
+
+<!-- Ha olyat kerestek -->
+<section class="wrap">
+  <h2 class="section-title center">Személyre szabott esküvői köszönőajándék a vendégeiteknek</h2>
+  <p class="body-text center">Ha olyan esküvői köszönőajándékot kerestek, ami:</p>
+  <ul class="want-list">
+    <li>személyre szabott,</li>
+    <li>a neveitekkel készül,</li>
+    <li>rajta van az esküvőtök dátuma,</li>
+    <li>valódi emlék marad,</li>
+    <li>mégis van funkciója,</li>
+    <li>és különlegesebb a megszokott köszönőajándékoknál,</li>
+  </ul>
+  <p class="body-text center">akkor pontosan ezért készült a WedConnecttel összekapcsolt esküvői köszönőajándék.</p>
+  <div class="section-cta">
+    <a class="cta" href="/hu/sajat-oldal">Megnézem a saját neveinkkel →</a>
+  </div>
+</section>
+
+<!-- Még nem kell eldöntenetek -->
+<section class="wrap">
+  <h2 class="section-title">Még nem kell eldöntenetek, hogy megveszitek-e</h2>
+  <p class="body-text">Ez fontos: most nem azt kérjük, hogy rendeljetek 50 darabot. Csak azt, hogy próbáljátok ki. Készítsétek el a saját oldalatokat, írjátok be a neveiteket, válasszátok ki a szöveget, rakjátok rá a saját gombjaitokat, és nézzétek meg, milyen lenne a tiétek.</p>
+  <p class="body-text">24 órán keresztül ingyen használhatjátok és kipróbálhatjátok. Ha nem szeretnétek megtartani, nem veszitek meg. Ha beleszerettek, megtarthatjátok önmagában 19 990 Ft-ért, vagy rendelhettek legalább 50 db személyre szabott köszönőajándékot, és az oldalt ajándékba adjuk.</p>
+</section>
+
+<!-- Próbáljátok ki most - záró CTA -->
+<section class="wrap" style="text-align:center;">
+  <h2 class="section-title center">Próbáljátok ki most a saját neveitekkel</h2>
+  <ol style="max-width:420px; margin:0 auto 30px; padding-left:0; list-style:none; text-align:left;">
+    <li style="display:flex; gap:14px; margin-bottom:14px; align-items:flex-start;"><span style="font-family:'Cormorant Garamond',serif; font-weight:600; color:var(--accent-dark); font-size:1.1rem;">1.</span><span>Regisztráljatok ingyen.</span></li>
+    <li style="display:flex; gap:14px; margin-bottom:14px; align-items:flex-start;"><span style="font-family:'Cormorant Garamond',serif; font-weight:600; color:var(--accent-dark); font-size:1.1rem;">2.</span><span>Adjátok meg a neveiteket és az esküvő dátumát.</span></li>
+    <li style="display:flex; gap:14px; margin-bottom:14px; align-items:flex-start;"><span style="font-family:'Cormorant Garamond',serif; font-weight:600; color:var(--accent-dark); font-size:1.1rem;">3.</span><span>Válasszátok ki a szöveget.</span></li>
+    <li style="display:flex; gap:14px; margin-bottom:14px; align-items:flex-start;"><span style="font-family:'Cormorant Garamond',serif; font-weight:600; color:var(--accent-dark); font-size:1.1rem;">4.</span><span>Adjátok hozzá a saját gombjaitokat.</span></li>
+    <li style="display:flex; gap:14px; margin-bottom:14px; align-items:flex-start;"><span style="font-family:'Cormorant Garamond',serif; font-weight:600; color:var(--accent-dark); font-size:1.1rem;">5.</span><span>Nézzétek meg a kész esküvői oldalatokat.</span></li>
+  </ol>
+  <p class="body-text center" style="font-weight:600;">Ingyen. 24 órán keresztül. Vásárlási kötelezettség nélkül.</p>
+  <a class="cta" href="/hu/sajat-oldal">Ingyen elkészítem a saját esküvői oldalunkat →</a>
+  <div class="micro-note">Pár perc az egész. Fizetni csak akkor kell, ha 24 óra után szeretnétek megtartani az oldalt — 50 db köszönőajándék rendelése esetén pedig az oldal ajándék.</div>
 </section>
 
 <footer>
