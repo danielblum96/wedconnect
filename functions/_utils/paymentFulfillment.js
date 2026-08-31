@@ -73,7 +73,10 @@ export async function fulfillStripeOrder(env, rendelesId) {
       .run();
   }
 
-  if (!rendeles.par_id) return true; // önálló oldal-fizetés (couple-pay.js) - nincs email/SVG teendő
+  // Minden jelenlegi rendelés-létrehozási út (couple-pay.js, order-save-the-date.js)
+  // kitölti a par_id-t - ez a védelem csak egy jövőbeli, pár nélküli rendeléstípus
+  // esetére marad meg.
+  if (!rendeles.par_id) return true;
 
   try {
     const reseller = await env.DB.prepare("SELECT ceg_nev, email, fiok_tipus FROM viszontelado WHERE id = ?")

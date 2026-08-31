@@ -33,10 +33,22 @@ export async function onRequestPost(context) {
   const pricing = getPricing(lang, reseller.fiok_tipus);
 
   const insert = await env.DB.prepare(
-    `INSERT INTO rendelesek (viszontelado_id, par_id, csomag, mennyiseg, ar_osszesen, penznem, allapot)
-     VALUES (?, ?, ?, 1, ?, ?, 'Fizetésre vár')`
+    `INSERT INTO rendelesek (viszontelado_id, par_id, csomag, mennyiseg, ar_osszesen, penznem, allapot,
+       adoszam, szamlazasi_utca, szamlazasi_irsz, szamlazasi_varos, szamlazasi_orszag)
+     VALUES (?, ?, ?, 1, ?, ?, 'Fizetésre vár', ?, ?, ?, ?, ?)`
   )
-    .bind(reseller.id, par.id, pricing.pageLabel, pricing.pagePrice, pricing.currency)
+    .bind(
+      reseller.id,
+      par.id,
+      pricing.pageLabel,
+      pricing.pagePrice,
+      pricing.currency,
+      reseller.adoszam || null,
+      reseller.szamlazasi_utca || null,
+      reseller.szamlazasi_irsz || null,
+      reseller.szamlazasi_varos || null,
+      reseller.szamlazasi_orszag || null
+    )
     .run();
 
   const rendelesId = insert.meta.last_row_id;
