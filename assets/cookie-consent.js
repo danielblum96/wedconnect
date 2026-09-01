@@ -153,30 +153,38 @@
   function injectStyles() {
     var style = document.createElement("style");
     style.textContent =
-      "#cc-overlay{position:fixed;inset:0;z-index:9999;background:rgba(43,38,32,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;font-family:'Poppins',sans-serif;color:#2b2620;}" +
-      "#cc-card{width:100%;max-width:460px;max-height:90vh;overflow-y:auto;background:#faf7f2;border-radius:24px;padding:36px 32px;box-shadow:0 30px 80px -20px rgba(0,0,0,0.5);}" +
-      "#cc-title{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.5rem;text-align:center;margin:0 0 14px;}" +
-      "#cc-body{font-size:0.92rem;line-height:1.6;color:#6b6255;margin:0 0 26px;text-align:center;}" +
-      "#cc-actions{display:flex;flex-direction:column;gap:10px;}" +
-      ".cc-btn{font-family:'Poppins',sans-serif;font-size:0.9rem;font-weight:600;padding:13px 22px;border-radius:999px;cursor:pointer;border:1.5px solid transparent;width:100%;}" +
-      ".cc-btn-primary{background:linear-gradient(135deg,#f0c988,#b48b56);color:#1a1408;}" +
-      ".cc-btn-secondary{background:#fff;color:#2b2620;border-color:#ddd6c9;}" +
-      ".cc-btn-link{background:none;color:#8c6d34;text-decoration:underline;padding:8px 4px;font-weight:500;font-size:0.85rem;}" +
-      "#cc-settings{display:none;margin-top:8px;border-top:1px solid #ece4d6;padding-top:20px;}" +
+      "#cc-overlay{position:fixed;inset:0;z-index:9999;background:rgba(10,10,10,0.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;font-family:'Poppins',sans-serif;}" +
+      "#cc-card{width:100%;max-width:32rem;max-height:90vh;overflow-y:auto;background:rgba(23,23,23,0.92);border:1px solid rgba(255,255,255,0.1);border-radius:2rem;padding:40px;box-shadow:0 30px 80px -20px rgba(0,0,0,0.6);}" +
+      "#cc-icon-wrap{display:flex;justify-content:center;margin-bottom:24px;}" +
+      "#cc-icon{display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:16px;background:#fff;color:#0a0a0a;box-shadow:0 8px 20px -8px rgba(0,0,0,0.5);}" +
+      "#cc-title{font-weight:900;font-size:1.5rem;color:#fff;text-align:center;margin:0 0 12px;}" +
+      "#cc-body{font-size:0.875rem;line-height:1.75;color:#d4d4d4;margin:0 0 32px;text-align:center;}" +
+      "#cc-actions{display:flex;flex-direction:column;gap:12px;}" +
+      ".cc-btn{font-family:'Poppins',sans-serif;font-size:0.875rem;font-weight:700;border-radius:999px;cursor:pointer;border:none;width:100%;}" +
+      ".cc-btn-primary{background:#fff;color:#0a0a0a;padding:16px 0;box-shadow:0 20px 40px -16px rgba(0,0,0,0.5);}" +
+      ".cc-btn-secondary{background:rgba(255,255,255,0.05);color:#fff;border:1px solid rgba(255,255,255,0.15);padding:12px 0;}" +
+      ".cc-link{background:none;border:none;color:#d4d4d4;font-family:'Poppins',sans-serif;font-size:0.75rem;text-align:center;margin-top:4px;cursor:pointer;padding:4px;}" +
+      ".cc-link:hover{color:#fff;}" +
+      "#cc-settings{display:none;margin-top:8px;border-top:1px solid rgba(255,255,255,0.1);padding-top:20px;}" +
       "#cc-settings.cc-open{display:block;}" +
       ".cc-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:12px 0;}" +
-      ".cc-row-label{font-weight:600;font-size:0.92rem;}" +
-      ".cc-row-desc{font-size:0.8rem;color:#6b6255;margin-top:2px;}" +
+      ".cc-row-label{font-weight:600;font-size:0.9rem;color:#fff;}" +
+      ".cc-row-desc{font-size:0.78rem;color:#a3a3a3;margin-top:2px;}" +
       ".cc-switch{position:relative;flex:0 0 auto;width:42px;height:24px;}" +
       ".cc-switch input{opacity:0;width:0;height:0;}" +
-      ".cc-slider{position:absolute;inset:0;background:#ddd6c9;border-radius:999px;cursor:pointer;transition:background .15s;}" +
+      ".cc-slider{position:absolute;inset:0;background:rgba(255,255,255,0.15);border-radius:999px;cursor:pointer;transition:background .15s;}" +
       ".cc-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .15s;}" +
       ".cc-switch input:checked + .cc-slider{background:#b48b56;}" +
       ".cc-switch input:checked + .cc-slider:before{transform:translateX(18px);}" +
       ".cc-switch input:disabled + .cc-slider{opacity:0.6;cursor:default;}" +
-      "@media (max-width:520px){#cc-card{padding:28px 22px;border-radius:20px;}}";
+      "@media (max-width:520px){#cc-card{padding:28px 22px;border-radius:1.5rem;}}";
     document.head.appendChild(style);
   }
+
+  var ICON_SVG =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path>' +
+    '<path d="M20 2v4"></path><path d="M22 4h-4"></path><circle cx="4" cy="20" r="2"></circle></svg>';
 
   function buildOverlay() {
     var overlay = document.createElement("div");
@@ -186,12 +194,13 @@
     overlay.setAttribute("aria-label", t.title);
     overlay.innerHTML =
       '<div id="cc-card">' +
+      '<div id="cc-icon-wrap"><div id="cc-icon">' + ICON_SVG + "</div></div>" +
       '<div id="cc-title">' + t.title + "</div>" +
       '<div id="cc-body">' + t.body + "</div>" +
       '<div id="cc-actions">' +
       '<button type="button" class="cc-btn cc-btn-primary" data-cc="accept-all">' + t.acceptAll + "</button>" +
-      '<button type="button" class="cc-btn cc-btn-secondary" data-cc="accept-necessary">' + t.acceptNecessary + "</button>" +
-      '<button type="button" class="cc-btn cc-btn-link" data-cc="toggle-settings" style="margin:2px auto 0;">' + t.settings + "</button>" +
+      '<button type="button" class="cc-btn cc-btn-secondary" data-cc="toggle-settings">' + t.settings + "</button>" +
+      '<button type="button" class="cc-link" data-cc="accept-necessary">' + t.acceptNecessary + "</button>" +
       "</div>" +
       '<div id="cc-settings">' +
       row(t.necessaryLabel, t.necessaryDesc, "necessary", true, true) +
