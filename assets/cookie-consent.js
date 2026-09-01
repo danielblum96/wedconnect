@@ -153,20 +153,20 @@
   function injectStyles() {
     var style = document.createElement("style");
     style.textContent =
-      "#cc-banner{position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#fff;border-top:1px solid #ece4d6;box-shadow:0 -10px 30px -14px rgba(43,38,32,0.25);font-family:'Poppins',sans-serif;color:#2b2620;}" +
-      "#cc-inner{max-width:920px;margin:0 auto;padding:22px 24px;}" +
-      "#cc-title{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.25rem;margin:0 0 8px;}" +
-      "#cc-body{font-size:0.92rem;line-height:1.55;color:#6b6255;margin:0 0 16px;max-width:640px;}" +
-      "#cc-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}" +
-      ".cc-btn{font-family:'Poppins',sans-serif;font-size:0.85rem;font-weight:600;padding:11px 22px;border-radius:999px;cursor:pointer;border:1.5px solid transparent;}" +
+      "#cc-overlay{position:fixed;inset:0;z-index:9999;background:rgba(43,38,32,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;font-family:'Poppins',sans-serif;color:#2b2620;}" +
+      "#cc-card{width:100%;max-width:460px;max-height:90vh;overflow-y:auto;background:#faf7f2;border-radius:24px;padding:36px 32px;box-shadow:0 30px 80px -20px rgba(0,0,0,0.5);}" +
+      "#cc-title{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.5rem;text-align:center;margin:0 0 14px;}" +
+      "#cc-body{font-size:0.92rem;line-height:1.6;color:#6b6255;margin:0 0 26px;text-align:center;}" +
+      "#cc-actions{display:flex;flex-direction:column;gap:10px;}" +
+      ".cc-btn{font-family:'Poppins',sans-serif;font-size:0.9rem;font-weight:600;padding:13px 22px;border-radius:999px;cursor:pointer;border:1.5px solid transparent;width:100%;}" +
       ".cc-btn-primary{background:linear-gradient(135deg,#f0c988,#b48b56);color:#1a1408;}" +
       ".cc-btn-secondary{background:#fff;color:#2b2620;border-color:#ddd6c9;}" +
-      ".cc-btn-link{background:none;color:#8c6d34;text-decoration:underline;padding:11px 4px;}" +
-      "#cc-settings{display:none;margin-top:18px;border-top:1px solid #ece4d6;padding-top:16px;}" +
+      ".cc-btn-link{background:none;color:#8c6d34;text-decoration:underline;padding:8px 4px;font-weight:500;font-size:0.85rem;}" +
+      "#cc-settings{display:none;margin-top:8px;border-top:1px solid #ece4d6;padding-top:20px;}" +
       "#cc-settings.cc-open{display:block;}" +
-      ".cc-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:10px 0;}" +
+      ".cc-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:12px 0;}" +
       ".cc-row-label{font-weight:600;font-size:0.92rem;}" +
-      ".cc-row-desc{font-size:0.82rem;color:#6b6255;margin-top:2px;max-width:520px;}" +
+      ".cc-row-desc{font-size:0.8rem;color:#6b6255;margin-top:2px;}" +
       ".cc-switch{position:relative;flex:0 0 auto;width:42px;height:24px;}" +
       ".cc-switch input{opacity:0;width:0;height:0;}" +
       ".cc-slider{position:absolute;inset:0;background:#ddd6c9;border-radius:999px;cursor:pointer;transition:background .15s;}" +
@@ -174,32 +174,33 @@
       ".cc-switch input:checked + .cc-slider{background:#b48b56;}" +
       ".cc-switch input:checked + .cc-slider:before{transform:translateX(18px);}" +
       ".cc-switch input:disabled + .cc-slider{opacity:0.6;cursor:default;}" +
-      "@media (max-width:640px){#cc-inner{padding:18px 16px;}.cc-btn{flex:1 1 auto;text-align:center;}}";
+      "@media (max-width:520px){#cc-card{padding:28px 22px;border-radius:20px;}}";
     document.head.appendChild(style);
   }
 
-  function buildBanner() {
-    var wrap = document.createElement("div");
-    wrap.id = "cc-banner";
-    wrap.setAttribute("role", "dialog");
-    wrap.setAttribute("aria-label", t.title);
-    wrap.innerHTML =
-      '<div id="cc-inner">' +
+  function buildOverlay() {
+    var overlay = document.createElement("div");
+    overlay.id = "cc-overlay";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    overlay.setAttribute("aria-label", t.title);
+    overlay.innerHTML =
+      '<div id="cc-card">' +
       '<div id="cc-title">' + t.title + "</div>" +
       '<div id="cc-body">' + t.body + "</div>" +
       '<div id="cc-actions">' +
       '<button type="button" class="cc-btn cc-btn-primary" data-cc="accept-all">' + t.acceptAll + "</button>" +
       '<button type="button" class="cc-btn cc-btn-secondary" data-cc="accept-necessary">' + t.acceptNecessary + "</button>" +
-      '<button type="button" class="cc-btn cc-btn-link" data-cc="toggle-settings">' + t.settings + "</button>" +
+      '<button type="button" class="cc-btn cc-btn-link" data-cc="toggle-settings" style="margin:2px auto 0;">' + t.settings + "</button>" +
       "</div>" +
       '<div id="cc-settings">' +
       row(t.necessaryLabel, t.necessaryDesc, "necessary", true, true) +
       row(t.statisticsLabel, t.statisticsDesc, "statistics", false, false) +
       row(t.marketingLabel, t.marketingDesc, "marketing", false, false) +
-      '<button type="button" class="cc-btn cc-btn-primary" data-cc="save-settings" style="margin-top:12px;">' + t.save + "</button>" +
+      '<button type="button" class="cc-btn cc-btn-primary" data-cc="save-settings" style="margin-top:14px;">' + t.save + "</button>" +
       "</div>" +
       "</div>";
-    return wrap;
+    return overlay;
 
     function row(label, desc, key, checked, disabled) {
       var id = "cc-toggle-" + key;
@@ -214,25 +215,25 @@
 
   function showBanner() {
     injectStyles();
-    var banner = buildBanner();
-    document.body.appendChild(banner);
+    var overlay = buildOverlay();
+    document.body.appendChild(overlay);
 
-    banner.addEventListener("click", function (e) {
+    overlay.addEventListener("click", function (e) {
       var action = e.target.getAttribute("data-cc");
       if (!action) return;
       if (action === "accept-all") {
         saveConsent({ statistics: true, marketing: true });
-        banner.remove();
+        overlay.remove();
       } else if (action === "accept-necessary") {
         saveConsent({ statistics: false, marketing: false });
-        banner.remove();
+        overlay.remove();
       } else if (action === "toggle-settings") {
         document.getElementById("cc-settings").classList.toggle("cc-open");
       } else if (action === "save-settings") {
         var statistics = document.getElementById("cc-toggle-statistics").checked;
         var marketing = document.getElementById("cc-toggle-marketing").checked;
         saveConsent({ statistics: statistics, marketing: marketing });
-        banner.remove();
+        overlay.remove();
       }
     });
   }
