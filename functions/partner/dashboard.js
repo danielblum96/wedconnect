@@ -74,6 +74,13 @@ export async function renderDashboard(context, reseller) {
   const now = Date.now();
   const expired = (parokRaw || []).filter((p) => isExpiredUnpaid(p, now));
   for (const p of expired) {
+    // A pár törlése előtt a hozzá kötött rendeléseket (rendelesek.par_id) le
+    // kell választani (NULL-ra állítani) - a par_id egy idegen kulcs, enélkül
+    // a DELETE FOREIGN KEY constraint hibával elszáll (ld. couple-delete.js
+    // azonos mintája).
+    await env.DB.prepare("UPDATE rendelesek SET par_id = NULL WHERE par_id = ? AND viszontelado_id = ?")
+      .bind(p.id, reseller.id)
+      .run();
     await env.DB.prepare("DELETE FROM parok WHERE id = ? AND viszontelado_id = ?").bind(p.id, reseller.id).run();
   }
   const parok = (parokRaw || []).filter((p) => !isExpiredUnpaid(p, now));
