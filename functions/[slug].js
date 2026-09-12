@@ -54,7 +54,7 @@ export async function onRequestGet(context) {
   if (staticResp) return staticResp;
 
   const par = await env.DB.prepare(
-    "SELECT par_neve, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, nyelv, letrehozva, rendeles_id, viszontelado_id FROM parok WHERE slug = ?"
+    "SELECT par_neve, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, nyelv, letrehozva, rendeles_id, viszontelado_id FROM parok WHERE slug = ?"
   )
     .bind(slug)
     .first();
@@ -78,6 +78,13 @@ export async function onRequestGet(context) {
     gombok = [];
   }
 
+  let esemenyek = [];
+  try {
+    esemenyek = par.esemenyek ? JSON.parse(par.esemenyek) : [];
+  } catch (e) {
+    esemenyek = [];
+  }
+
   const dateParts = (par.eskuvo_datuma || "").split("-");
   const displayDate =
     dateParts.length === 3 ? `${dateParts[0]}.${dateParts[1]}.${dateParts[2]}.` : escapeHtml(par.eskuvo_datuma || "");
@@ -91,6 +98,27 @@ export async function onRequestGet(context) {
             `<a class="cta${i > 0 ? " cta-secondary" : ""}" href="${safeHref(g.url)}" target="_blank" rel="noopener">${escapeHtml(g.label)}</a>`
         )
         .join("")}</div>`
+    : "";
+
+  const timelineHtml = esemenyek.length
+    ? `<div class="timeline">
+        <div class="timeline-title">${escapeHtml(copy.programTitle)}</div>
+        <div class="timeline-list">
+          ${esemenyek
+            .map(
+              (ev, i) => `
+            <div class="timeline-item">
+              <div class="timeline-time">${escapeHtml(ev.ido || "")}</div>
+              <div class="timeline-marker">
+                <span class="timeline-dot"></span>
+                ${i < esemenyek.length - 1 ? '<span class="timeline-connector"></span>' : ""}
+              </div>
+              <div class="timeline-name">${escapeHtml(ev.nev)}</div>
+            </div>`
+            )
+            .join("")}
+        </div>
+      </div>`
     : "";
 
   const lang = ["de", "en", "hu"].includes(par.nyelv) ? par.nyelv : "hu";
@@ -219,6 +247,63 @@ export async function onRequestGet(context) {
     box-shadow: none;
     border: 1.5px solid var(--accent);
   }
+  .timeline {
+    margin: 8px 0 30px;
+    text-align: left;
+  }
+  .timeline-title {
+    font-family: "Poppins", sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--accent-text);
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .timeline-item {
+    display: grid;
+    grid-template-columns: 64px 20px 1fr;
+    column-gap: 14px;
+  }
+  .timeline-time {
+    font-family: "Poppins", sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--accent-text);
+    text-align: right;
+    padding-top: 3px;
+    white-space: nowrap;
+  }
+  .timeline-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .timeline-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex: none;
+    margin-top: 6px;
+  }
+  .timeline-connector {
+    width: 1px;
+    flex: 1;
+    min-height: 18px;
+    background: var(--accent);
+    opacity: 0.35;
+    margin-top: 2px;
+  }
+  .timeline-name {
+    font-family: "Cormorant Garamond", serif;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--fg);
+    padding-bottom: 22px;
+  }
 </style>
 </head>
 <body>
@@ -228,6 +313,7 @@ export async function onRequestGet(context) {
     <div class="date">${displayDate}</div>
     <div class="divider"><span class="line"></span><span class="mark">❖</span><span class="line"></span></div>
     <p class="message">${message}</p>
+    ${timelineHtml}
     ${buttonsHtml}
   </div>
 </body>

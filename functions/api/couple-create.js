@@ -18,6 +18,8 @@ export async function onRequestPost(context) {
   const uzenet = (formData.get("egyedi_uzenet") || "").toString().trim();
   const labels = formData.getAll("gomb_label");
   const urls = formData.getAll("gomb_url");
+  const eventTimes = formData.getAll("esemeny_ido");
+  const eventNames = formData.getAll("esemeny_nev");
 
   function backWithError(code) {
     return Response.redirect(`${new URL(dashboardUrl, request.url).href}?error=${code}`, 303);
@@ -60,8 +62,15 @@ export async function onRequestPost(context) {
     if (label && url) gombok.push({ label, url });
   }
 
+  const esemenyek = [];
+  for (let i = 0; i < eventNames.length; i++) {
+    const ido = (eventTimes[i] || "").toString().trim();
+    const nev = (eventNames[i] || "").toString().trim();
+    if (nev) esemenyek.push({ ido, nev });
+  }
+
   await env.DB.prepare(
-    "INSERT INTO parok (par_neve, nev1, nev2, eskuvo_datuma, slug, allapot, valasztott_stilus, viszontelado_id, nyelv, egyedi_uzenet, egyedi_gombok) VALUES (?, ?, ?, ?, ?, 'Aktív', ?, ?, ?, ?, ?)"
+    "INSERT INTO parok (par_neve, nev1, nev2, eskuvo_datuma, slug, allapot, valasztott_stilus, viszontelado_id, nyelv, egyedi_uzenet, egyedi_gombok, esemenyek) VALUES (?, ?, ?, ?, ?, 'Aktív', ?, ?, ?, ?, ?, ?)"
   )
     .bind(
       `${nev1} & ${nev2}`,
@@ -73,7 +82,8 @@ export async function onRequestPost(context) {
       reseller.id,
       reseller.nyelv || "de",
       uzenetToStore,
-      gombok.length ? JSON.stringify(gombok) : null
+      gombok.length ? JSON.stringify(gombok) : null,
+      esemenyek.length ? JSON.stringify(esemenyek) : null
     )
     .run();
 

@@ -188,6 +188,23 @@ export async function renderDashboard(context, reseller) {
         })
         .join("");
 
+      let esemenyek = [];
+      try {
+        esemenyek = p.esemenyek ? JSON.parse(p.esemenyek) : [];
+      } catch (e) {
+        esemenyek = [];
+      }
+      const eventRows = [0, 1, 2, 3, 4, 5, 6, 7]
+        .map((i) => {
+          const ev = esemenyek[i] || { ido: "", nev: "" };
+          return `
+            <div class="event-row">
+              <input type="text" name="esemeny_ido" placeholder="${t.eventTimePlaceholder}" value="${escapeHtml(ev.ido)}" autocomplete="off" class="event-time">
+              <input type="text" name="esemeny_nev" placeholder="${t.eventNamePlaceholder}" value="${escapeHtml(ev.nev)}" autocomplete="off">
+            </div>`;
+        })
+        .join("");
+
       const pageUrl = `https://wedconnect.eu/${p.slug}`;
       const resolvedStyle = resolveStyleByStoredValue(p.valasztott_stilus);
       const styleName = getStyleName(resolvedStyle, lang);
@@ -264,6 +281,13 @@ export async function renderDashboard(context, reseller) {
                 ${t.buttonSuggestions.map((s) => `<button type="button" class="chip" data-fill="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
               </div>
               ${gombRows}
+              <label>${t.program} <span class="hint-inline">${t.programHint}</span></label>
+              <p class="field-explain">${t.programExplain}</p>
+              <div class="chip-row">
+                <span class="chip-row-label">${t.inspirationLabel}</span>
+                ${t.eventSuggestions.map((s) => `<button type="button" class="chip" data-fill-event="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+              </div>
+              ${eventRows}
               <label>${t.editStyleLabel}</label>
               <p class="field-explain">${t.stylePickerHint}</p>
               <div class="style-picker style-picker--edit">${editStylePicker}</div>
@@ -363,6 +387,9 @@ export async function renderDashboard(context, reseller) {
   .style-picker--edit .style-swatch:has(input:checked) .swatch-name { display:block; }
   .btn-row { display:flex; gap:8px; }
   .btn-row input { flex:1; }
+  .event-row { display:flex; gap:8px; margin-bottom:8px; align-items:center; }
+  .event-row input.event-time { flex:0 0 90px; }
+  .event-row input:not(.event-time) { flex:1; }
   .saved-note { color:#3a7a4e; font-size:0.95rem; margin-left:10px; }
   .empty { color:var(--muted); font-size:1rem; }
   .error-box { background:#fdeee7; color:#b1451f; border:1px solid #f3c8b3; padding:10px 14px; border-radius:8px; font-size:0.95rem; margin-bottom:18px; }
@@ -634,6 +661,25 @@ ${
           </div>
         </div>
         <button type="button" class="btn-add-row" id="add-button-row">${t.addButton}</button>
+        <label>${t.program} <span class="hint-inline">${t.programHint}</span></label>
+        <p class="field-explain">${t.programExplain}</p>
+        <div class="chip-row">
+          <span class="chip-row-label">${t.inspirationLabel}</span>
+          ${t.eventSuggestions.map((s) => `<button type="button" class="chip" data-fill-event="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+        </div>
+        <div id="event-rows">
+          ${[0, 1, 2, 3]
+            .map(
+              () => `
+          <div class="event-row">
+            <input type="text" name="esemeny_ido" placeholder="${t.eventTimePlaceholder}" autocomplete="off" class="event-time">
+            <input type="text" name="esemeny_nev" placeholder="${t.eventNamePlaceholder}" autocomplete="off">
+            <button type="button" class="btn-remove-row" aria-label="${t.eventRemoveAria}">×</button>
+          </div>`
+            )
+            .join("")}
+        </div>
+        <button type="button" class="btn-add-row" id="add-event-row">${t.addEvent}</button>
         <div class="wizard-nav">
           <button type="button" class="btn-back" data-back="1">${t.back}</button>
           <button type="button" class="btn-next" data-next="3">${t.next}</button>
@@ -813,6 +859,9 @@ ${
     copied: ${JSON.stringify(t.copied)},
     buttonLabelPlaceholder: ${JSON.stringify(t.buttonLabelPlaceholder)},
     buttonRemoveAria: ${JSON.stringify(t.buttonRemoveAria)},
+    eventTimePlaceholder: ${JSON.stringify(t.eventTimePlaceholder)},
+    eventNamePlaceholder: ${JSON.stringify(t.eventNamePlaceholder)},
+    eventRemoveAria: ${JSON.stringify(t.eventRemoveAria)},
     priceOnce: ${JSON.stringify(t.priceOnce)},
     priceFreeFrom50: ${JSON.stringify(t.priceFreeFrom50)},
     priceOnceUnder50: ${JSON.stringify(t.priceOnceUnder50)},
@@ -909,6 +958,29 @@ ${
       '<button type="button" class="btn-remove-row" aria-label="' + escapeHtml(COPY.buttonRemoveAria) + '">×</button>';
     rowsContainer.appendChild(div);
     bindRemove(div.querySelector(".btn-remove-row"));
+  });
+
+  var eventRowsContainer = document.getElementById("event-rows");
+  var addEventRowBtn = document.getElementById("add-event-row");
+  var MAX_EVENTS = 16;
+
+  function bindRemoveEvent(btn) {
+    btn.addEventListener("click", function () {
+      btn.closest(".event-row").remove();
+    });
+  }
+  eventRowsContainer.querySelectorAll(".btn-remove-row").forEach(bindRemoveEvent);
+
+  addEventRowBtn.addEventListener("click", function () {
+    if (eventRowsContainer.children.length >= MAX_EVENTS) return;
+    var eventDiv = document.createElement("div");
+    eventDiv.className = "event-row";
+    eventDiv.innerHTML =
+      '<input type="text" name="esemeny_ido" placeholder="' + escapeHtml(COPY.eventTimePlaceholder) + '" autocomplete="off" class="event-time">' +
+      '<input type="text" name="esemeny_nev" placeholder="' + escapeHtml(COPY.eventNamePlaceholder) + '" autocomplete="off">' +
+      '<button type="button" class="btn-remove-row" aria-label="' + escapeHtml(COPY.eventRemoveAria) + '">×</button>';
+    eventRowsContainer.appendChild(eventDiv);
+    bindRemoveEvent(eventDiv.querySelector(".btn-remove-row"));
   });
 
   function renderPreviews() {
@@ -1109,6 +1181,25 @@ ${
         textarea.value = chip.getAttribute("data-fill-message");
         textarea.dispatchEvent(new Event("input", { bubbles: true }));
         textarea.focus();
+      }
+      return;
+    }
+
+    if (chip.hasAttribute("data-fill-event")) {
+      var eventNameInputs = form.querySelectorAll('[name="esemeny_nev"]');
+      for (var j = 0; j < eventNameInputs.length; j++) {
+        if (!eventNameInputs[j].value.trim()) {
+          eventNameInputs[j].value = chip.getAttribute("data-fill-event");
+          eventNameInputs[j].dispatchEvent(new Event("input", { bubbles: true }));
+          var eventRow = eventNameInputs[j].closest(".event-row");
+          var timeInput = eventRow ? eventRow.querySelector('[name="esemeny_ido"]') : null;
+          if (timeInput && !timeInput.value.trim()) {
+            timeInput.focus();
+          } else {
+            eventNameInputs[j].focus();
+          }
+          return;
+        }
       }
       return;
     }

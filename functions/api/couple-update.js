@@ -14,6 +14,8 @@ export async function onRequestPost(context) {
   const stilusId = (formData.get("stilus") || "").toString().trim();
   const labels = formData.getAll("gomb_label");
   const urls = formData.getAll("gomb_url");
+  const eventTimes = formData.getAll("esemeny_ido");
+  const eventNames = formData.getAll("esemeny_nev");
 
   if (!parId) return Response.redirect(new URL(dashboardUrl, request.url).href, 303);
 
@@ -29,10 +31,23 @@ export async function onRequestPost(context) {
     if (label && url) gombok.push({ label, url });
   }
 
+  const esemenyek = [];
+  for (let i = 0; i < eventNames.length; i++) {
+    const ido = (eventTimes[i] || "").toString().trim();
+    const nev = (eventNames[i] || "").toString().trim();
+    if (nev) esemenyek.push({ ido, nev });
+  }
+
   const style = getStyle(stilusId);
 
-  await env.DB.prepare("UPDATE parok SET egyedi_uzenet = ?, egyedi_gombok = ?, valasztott_stilus = ? WHERE id = ?")
-    .bind(uzenet || null, gombok.length ? JSON.stringify(gombok) : null, style.id, parId)
+  await env.DB.prepare("UPDATE parok SET egyedi_uzenet = ?, egyedi_gombok = ?, esemenyek = ?, valasztott_stilus = ? WHERE id = ?")
+    .bind(
+      uzenet || null,
+      gombok.length ? JSON.stringify(gombok) : null,
+      esemenyek.length ? JSON.stringify(esemenyek) : null,
+      style.id,
+      parId
+    )
     .run();
 
   return Response.redirect(`${new URL(dashboardUrl, request.url).href}?saved=${parId}`, 303);
