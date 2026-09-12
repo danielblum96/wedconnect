@@ -239,7 +239,7 @@ export async function renderDashboard(context, reseller) {
         <div class="couple${created === p.slug ? " just-created" : ""}" data-search="${escapeHtml(searchText)}">
           <div class="couple-head">
             <div>
-              <div class="couple-name">${escapeHtml(p.par_neve)}</div>
+              <a class="couple-name" href="${safeHref(pageUrl)}" target="_blank" rel="noopener">${escapeHtml(p.par_neve)}</a>
               <div class="couple-meta">${escapeHtml(p.eskuvo_datuma)} · ${escapeHtml(styleName)} · <span class="status">${escapeHtml(statusLabel)}</span></div>
               <a class="couple-link" href="${safeHref(pageUrl)}" target="_blank" rel="noopener">${escapeHtml(pageUrl)}</a>
             </div>
@@ -376,7 +376,8 @@ export async function renderDashboard(context, reseller) {
   .checkout-row { display:flex; justify-content:flex-end; margin-top:18px; }
   .btn-std-open.btn-checkout { background:linear-gradient(135deg,var(--accent),#8f6a3c); color:#fff; text-transform:none; font-weight:700; font-size:1rem; letter-spacing:0.01em; padding:15px 34px; border:none; box-shadow:0 12px 26px -8px rgba(180,139,86,0.65); transition:transform 0.15s ease, box-shadow 0.15s ease; }
   .btn-std-open.btn-checkout:hover { background:linear-gradient(135deg,var(--accent),#8f6a3c); color:#fff; transform:translateY(-1px); box-shadow:0 16px 32px -8px rgba(180,139,86,0.75); }
-  .couple-name { font-weight:600; font-size:1.05rem; }
+  .couple-name { font-weight:600; font-size:1.05rem; color:var(--fg); text-decoration:none; }
+  a.couple-name:hover { color:var(--accent); text-decoration:underline; }
   .couple-meta { font-size:0.9rem; color:var(--muted); margin:2px 0 4px; }
   .status { color:var(--accent); font-weight:600; }
   .couple-link { font-size:0.9rem; color:var(--accent); text-decoration:none; }
