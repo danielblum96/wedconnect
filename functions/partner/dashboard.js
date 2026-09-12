@@ -59,7 +59,7 @@ export async function renderDashboard(context, reseller) {
   }
 
   const { results: parokRaw } = await env.DB.prepare(
-    `SELECT p.id, p.par_neve, p.nev1, p.nev2, p.eskuvo_datuma, p.slug, p.allapot, p.valasztott_stilus, p.egyedi_uzenet, p.egyedi_gombok, p.nyelv, p.letrehozva, p.rendeles_id, p.viszontelado_id,
+    `SELECT p.id, p.par_neve, p.nev1, p.nev2, p.eskuvo_datuma, p.slug, p.allapot, p.valasztott_stilus, p.egyedi_uzenet, p.egyedi_gombok, p.esemenyek, p.nyelv, p.letrehozva, p.rendeles_id, p.viszontelado_id,
             (SELECT 1 FROM rendelesek r2 WHERE r2.par_id = p.id AND r2.allapot = 'Fizetve' AND r2.mennyiseg > 1 LIMIT 1) AS has_std_order
      FROM parok p
      WHERE p.viszontelado_id = ?
