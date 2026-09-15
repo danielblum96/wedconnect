@@ -595,7 +595,21 @@ export async function renderDashboard(context, reseller) {
   .qr-download-btn { display:inline-block; text-decoration:none; padding:10px 24px; border-radius:999px; background:linear-gradient(135deg,#f0c988,#b48b56); color:#1a1408; font-weight:600; font-size:0.95rem; box-shadow:0 6px 16px -8px rgba(139,102,53,0.6); transition:transform 0.15s ease, box-shadow 0.15s ease; }
   .qr-download-btn:hover { transform:translateY(-1px); box-shadow:0 8px 20px -8px rgba(139,102,53,0.75); }
   .qr-long-press-hint { font-size:0.85rem; color:var(--muted); margin-top:14px; }
-  .preview-modal { max-width:440px; }
+  .preview-modal { max-width:560px; }
+  .preview-showcase { display:flex; align-items:center; justify-content:center; gap:8px; margin:6px 0 26px; }
+  .preview-showcase-std { flex:1; max-width:190px; }
+  .preview-showcase-std-bg { position:relative; background:radial-gradient(ellipse at 50% 38%, #ffffff 0%, #f2ead9 65%, #ece0c8 100%); border-radius:14px; padding:14px 12px; box-shadow:inset 0 0 0 1px rgba(180,139,86,0.14); }
+  .preview-showcase-std-bg svg { width:100%; height:auto; display:block; filter:drop-shadow(0 10px 16px -10px rgba(90,65,30,0.4)); }
+  .preview-showcase-arrow { flex:none; color:var(--accent); }
+  .preview-showcase-phone { flex:none; }
+  .preview-showcase-phone-frame { position:relative; width:112px; height:224px; border-radius:20px; border:3px solid #2b2620; background:#fff; box-shadow:0 14px 26px -14px rgba(0,0,0,0.45); overflow:hidden; }
+  .preview-showcase-phone-iframe { position:absolute; top:0; left:0; width:390px; height:780px; border:none; transform:scale(0.287); transform-origin:top left; pointer-events:none; }
+  @media (max-width: 480px) {
+    .preview-showcase { gap:6px; }
+    .preview-showcase-std { max-width:140px; }
+    .preview-showcase-phone-frame { width:88px; height:176px; }
+    .preview-showcase-phone-iframe { transform:scale(0.2256); }
+  }
   .preview-modal-body { padding:0 32px 34px; text-align:center; }
   .preview-modal-subhead { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.3rem; margin:4px 0 10px; color:var(--fg); }
   .preview-modal-text { font-size:0.95rem; color:var(--muted); line-height:1.55; margin:0 0 22px; }
@@ -974,6 +988,19 @@ ${
     <h3 class="std-modal-title">${t.previewModalTitle}</h3>
   </div>
   <div class="preview-modal-body">
+    <div class="preview-showcase">
+      <div class="preview-showcase-std">
+        <div class="preview-showcase-std-bg" id="preview-modal-std-mock"></div>
+      </div>
+      <div class="preview-showcase-arrow" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M4 12h15M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="preview-showcase-phone">
+        <div class="preview-showcase-phone-frame">
+          <iframe id="preview-modal-iframe" class="preview-showcase-phone-iframe" title="${t.previewModalTitle}"></iframe>
+        </div>
+      </div>
+    </div>
     <h4 class="preview-modal-subhead">${t.previewModalStdTitle}</h4>
     <p class="preview-modal-text">${t.previewModalStdText}</p>
     <button type="button" class="btn-next preview-modal-cta" id="preview-modal-std-cta">${t.previewModalStdCta}</button>
@@ -1424,6 +1451,24 @@ ${
       launchConfetti();
       previewLink.href = savedPageUrl;
       if (previewStdCta) previewStdCta.hidden = !previewStdTriggerBtn;
+      var previewStdMock = document.getElementById("preview-modal-std-mock");
+      var previewIframe = document.getElementById("preview-modal-iframe");
+      if (previewIframe) previewIframe.src = savedPageUrl;
+      // A "koppintsd a telefonhoz, és megnyílik az oldal" élményt szemlélteti
+      // egymás mellett: a Save the Date fizikai látványterve (ugyanaz az SVG,
+      // amit a tervező-modál is használ) + a MOST elkészült, éles oldal élő
+      // előnézete egy telefon-keretben (iframe kicsinyítve, hogy a teljes
+      // mobilnézet beleférjen).
+      if (previewStdTriggerBtn && previewStdMock && window.STD && window.STD.generateMockupSVG) {
+        var pNev1 = previewStdTriggerBtn.getAttribute("data-nev1");
+        var pNev2 = previewStdTriggerBtn.getAttribute("data-nev2");
+        var pDatum = previewStdTriggerBtn.getAttribute("data-datum");
+        var pNyelv = previewStdTriggerBtn.getAttribute("data-nyelv");
+        var pParts = (pDatum || "").split("-").map(Number);
+        if (pParts.length === 3) {
+          previewStdMock.innerHTML = window.STD.generateMockupSVG(pNev1, pNev2, pParts[0], pParts[1], pParts[2], pNyelv);
+        }
+      }
       previewModal.showModal();
       trackEvent("wedding_page_completed", { par_id: SAVED_PAR_ID });
       trackEvent("save_the_date_intro_viewed", { par_id: SAVED_PAR_ID });
