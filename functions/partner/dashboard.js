@@ -284,14 +284,19 @@ export async function renderDashboard(context, reseller) {
             </div>
             <div class="std-panel-body">
               <div class="edit-tabs">
-                <div class="edit-tabs-nav">
-                  <button type="button" class="edit-tab-btn active" data-tab="style">${t.tabStyle}</button>
-                  <button type="button" class="edit-tab-btn" data-tab="photo">${t.tabPhoto}</button>
-                  <button type="button" class="edit-tab-btn" data-tab="message">${t.tabMessage}</button>
-                  <button type="button" class="edit-tab-btn" data-tab="buttons">${t.tabButtons}</button>
-                  <button type="button" class="edit-tab-btn" data-tab="program">${t.tabProgram}</button>
+                <div class="wizard-progress">
+                  ${[t.tabStyle, t.tabPhoto, t.tabMessage, t.tabProgram, t.tabButtons]
+                    .map(
+                      (label, i) => `
+                    ${i > 0 ? `<div class="wizard-progress-line" data-progress-line="${i}"></div>` : ""}
+                    <div class="wizard-progress-step" data-progress-step="${i + 1}">
+                      <div class="wizard-progress-circle">${i + 1}</div>
+                      <div class="wizard-progress-label">${escapeHtml(label)}</div>
+                    </div>`
+                    )
+                    .join("")}
                 </div>
-                <div class="edit-tab-panel" data-tab-panel="photo" hidden>
+                <div class="wizard-step" data-step="2" hidden>
                   <div class="photo-edit-block" data-par-id="${p.id}" data-slug="${escapeHtml(p.slug)}">
                     <p class="field-explain">${t.photoExplain}</p>
                     <div class="photo-dropzone">
@@ -308,38 +313,56 @@ export async function renderDashboard(context, reseller) {
                       <span class="photo-upload-status"></span>
                     </div>
                   </div>
+                  <div class="wizard-nav">
+                    <button type="button" class="btn-back" data-back="1">${t.back}</button>
+                    <button type="button" class="btn-next" data-next="3">${t.next}</button>
+                  </div>
                 </div>
                 <form method="POST" action="/api/couple-update" class="edit-form" data-nev1="${escapeHtml(nev1)}" data-nev2="${escapeHtml(nev2)}" data-datetext="${escapeHtml(dateText)}">
                   <input type="hidden" name="par_id" value="${p.id}">
-                  <div class="edit-tab-panel" data-tab-panel="style">
+                  <div class="wizard-step" data-step="1">
                     <p class="field-explain">${t.stylePickerHint}</p>
                     <div class="style-picker style-picker--edit">${editStylePicker}</div>
+                    <div class="wizard-nav">
+                      <button type="button" class="btn-next" data-next="2">${t.next}</button>
+                    </div>
                   </div>
-                  <div class="edit-tab-panel" data-tab-panel="message" hidden>
+                  <div class="wizard-step" data-step="3" hidden>
                     <p class="field-explain">${t.ownMessageExplain}</p>
                     <div class="chip-row">
                       <span class="chip-row-label">${t.inspirationLabel}</span>
                       ${t.messageSuggestions.map((s) => `<button type="button" class="chip" data-fill-message="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
                     </div>
                     <textarea name="egyedi_uzenet" rows="2" placeholder="${t.ownMessagePlaceholder}">${escapeHtml(p.egyedi_uzenet || "")}</textarea>
-                  </div>
-                  <div class="edit-tab-panel" data-tab-panel="buttons" hidden>
-                    <p class="field-explain">${t.buttonsExplain} <span class="hint-inline">${t.buttonsEditHint}</span></p>
-                    <div class="chip-row">
-                      <span class="chip-row-label">${t.inspirationLabel}</span>
-                      ${t.buttonSuggestions.map((s) => `<button type="button" class="chip" data-fill="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+                    <div class="wizard-nav">
+                      <button type="button" class="btn-back" data-back="2">${t.back}</button>
+                      <button type="button" class="btn-next" data-next="4">${t.next}</button>
                     </div>
-                    ${gombRows}
                   </div>
-                  <div class="edit-tab-panel" data-tab-panel="program" hidden>
+                  <div class="wizard-step" data-step="4" hidden>
                     <p class="field-explain">${t.programExplain}</p>
                     <div class="chip-row">
                       <span class="chip-row-label">${t.inspirationLabel}</span>
                       ${t.eventSuggestions.map((s) => `<button type="button" class="chip" data-fill-event="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
                     </div>
                     ${eventRows}
+                    <div class="wizard-nav">
+                      <button type="button" class="btn-back" data-back="3">${t.back}</button>
+                      <button type="button" class="btn-next" data-next="5">${t.next}</button>
+                    </div>
                   </div>
-                  <button type="submit" class="btn-save">${t.save}</button>
+                  <div class="wizard-step" data-step="5" hidden>
+                    <p class="field-explain">${t.buttonsExplain} <span class="hint-inline">${t.buttonsEditHint}</span></p>
+                    <div class="chip-row">
+                      <span class="chip-row-label">${t.inspirationLabel}</span>
+                      ${t.buttonSuggestions.map((s) => `<button type="button" class="chip" data-fill="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+                    </div>
+                    ${gombRows}
+                    <div class="wizard-nav">
+                      <button type="button" class="btn-back" data-back="4">${t.back}</button>
+                      <button type="submit" class="btn-save">${t.save}</button>
+                    </div>
+                  </div>
                   ${saved === String(p.id) ? `<span class="saved-note">${t.saved}</span>` : ""}
                 </form>
               </div>
@@ -505,11 +528,9 @@ export async function renderDashboard(context, reseller) {
   .btn-row { display:flex; gap:8px; align-items:center; }
   .btn-remove-row { flex:none; border:none; background:none; color:var(--muted); font-size:1.2rem; line-height:1; cursor:pointer; padding:0 4px 14px; }
   .btn-add-row { border:1px dashed #ddd6c9; background:none; color:var(--accent); border-radius:8px; padding:9px 14px; font-size:0.95rem; font-weight:600; cursor:pointer; font-family:inherit; margin-bottom:20px; }
-  .edit-tabs-nav { display:flex; gap:0; overflow-x:auto; margin-bottom:16px; border-bottom:1px solid #f0e9d8; -webkit-overflow-scrolling:touch; }
-  .edit-tab-btn { flex:none; font-family:"Poppins",sans-serif; font-size:0.85rem; font-weight:600; color:var(--muted); background:none; border:none; border-bottom:2px solid transparent; padding:8px 4px; margin-right:18px; cursor:pointer; white-space:nowrap; transition:color 0.15s ease, border-color 0.15s ease; }
-  .edit-tab-btn:hover { color:var(--fg); }
-  .edit-tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
-  .edit-tab-panel[hidden] { display:none; }
+  .edit-tabs .wizard-progress { margin-bottom:22px; }
+  .edit-tabs .wizard-progress-step { cursor:default; width:74px; }
+  .edit-tabs .wizard-progress-step.completed, .edit-tabs .wizard-progress-step.active { cursor:pointer; }
   .photo-edit-block { margin-bottom:18px; }
   .photo-dropzone { position:relative; border:1.5px dashed #ddd6c9; border-radius:10px; padding:10px; text-align:center; margin-bottom:10px; transition:border-color 0.15s ease, background 0.15s ease; }
   .photo-dropzone:hover, .photo-dropzone.drag-over { border-color:var(--accent); background:#fbf7ef; }
@@ -1190,34 +1211,65 @@ ${
     });
   });
 
+  // Ugyanaz a lépésről-lépésre "kipipálva/tovább/vissza" minta, mint az új
+  // pár létrehozásának varázslójánál (ld. lejjebb a form.querySelectorAll
+  // "wizard-step"-es blokkot) - itt viszont annyi különálló .edit-tabs
+  // konténer van, ahány pár-kártya, ezért minden lekérdezés a konkrét
+  // `tabs` elemre van szűkítve, nem a teljes dokumentumra.
   document.querySelectorAll(".edit-tabs").forEach(function (tabs) {
-    var tabButtons = tabs.querySelectorAll(".edit-tab-btn");
-    var tabPanels = tabs.querySelectorAll(".edit-tab-panel");
-    function showEditTab(target) {
-      tabButtons.forEach(function (b) {
-        b.classList.toggle("active", b.getAttribute("data-tab") === target);
+    var editSteps = tabs.querySelectorAll(".wizard-step");
+    function showEditStep(n) {
+      editSteps.forEach(function (s) {
+        s.hidden = parseInt(s.getAttribute("data-step"), 10) !== n;
       });
-      tabPanels.forEach(function (panel) {
-        panel.hidden = panel.getAttribute("data-tab-panel") !== target;
+      tabs.querySelectorAll(".wizard-progress-step").forEach(function (el) {
+        var stepNum = parseInt(el.getAttribute("data-progress-step"), 10);
+        var circle = el.querySelector(".wizard-progress-circle");
+        el.classList.remove("active", "completed");
+        if (stepNum < n) {
+          el.classList.add("completed");
+          circle.textContent = "✓";
+        } else {
+          if (stepNum === n) el.classList.add("active");
+          circle.textContent = String(stepNum);
+        }
+      });
+      tabs.querySelectorAll(".wizard-progress-line").forEach(function (el) {
+        el.classList.toggle("completed", parseInt(el.getAttribute("data-progress-line"), 10) < n);
       });
     }
-    tabs.showEditTab = showEditTab;
-    tabButtons.forEach(function (btn) {
+    tabs.showEditStep = showEditStep;
+    tabs.querySelectorAll("[data-next]").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        showEditTab(btn.getAttribute("data-tab"));
+        showEditStep(parseInt(btn.getAttribute("data-next"), 10));
+      });
+    });
+    tabs.querySelectorAll("[data-back]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        showEditStep(parseInt(btn.getAttribute("data-back"), 10));
+      });
+    });
+    // A már bejárt (kipipált) vagy épp aktív lépésre vissza lehet ugrani
+    // közvetlenül a jelző-körre kattintva is, nem csak a Vissza gombbal -
+    // ez a modern checkout-oldalak bevett mintája.
+    tabs.querySelectorAll(".wizard-progress-step").forEach(function (el) {
+      el.addEventListener("click", function () {
+        if (el.classList.contains("completed") || el.classList.contains("active")) {
+          showEditStep(parseInt(el.getAttribute("data-progress-step"), 10));
+        }
       });
     });
   });
 
-  // A Szerkesztés popup mindig a Stílus fülre visszaállítva nyílik meg -
-  // ez a user explicit kérése ("kezdődjön a stílussal") -, nem a legutóbb
-  // megnyitott fület emlékezi vissza.
+  // A Szerkesztés popup mindig az 1. (Stílus) lépésre visszaállítva nyílik
+  // meg - ez a user explicit kérése ("kezdődjön a stílussal") -, nem a
+  // legutóbb megnyitott lépést emlékezi vissza.
   document.querySelectorAll(".btn-edit-open").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var modal = document.getElementById(btn.getAttribute("data-edit-target"));
       if (!modal) return;
       var tabs = modal.querySelector(".edit-tabs");
-      if (tabs && tabs.showEditTab) tabs.showEditTab("style");
+      if (tabs && tabs.showEditStep) tabs.showEditStep(1);
       if (typeof modal.showModal === "function") {
         modal.showModal();
       } else {
