@@ -1215,7 +1215,7 @@ ${
   // pár létrehozásának varázslójánál (ld. lejjebb a form.querySelectorAll
   // "wizard-step"-es blokkot) - itt viszont annyi különálló .edit-tabs
   // konténer van, ahány pár-kártya, ezért minden lekérdezés a konkrét
-  // `tabs` elemre van szűkítve, nem a teljes dokumentumra.
+  // tabs elemre van szűkítve, nem a teljes dokumentumra.
   document.querySelectorAll(".edit-tabs").forEach(function (tabs) {
     var editSteps = tabs.querySelectorAll(".wizard-step");
     function showEditStep(n) {
