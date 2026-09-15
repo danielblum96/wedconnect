@@ -275,7 +275,7 @@ export async function renderDashboard(context, reseller) {
                 </div>`
               : `<div class="settled-banner"><span>${t.settledBanner}</span></div>`
           }
-          <button type="button" class="btn-edit-open" data-edit-target="edit-modal-${p.id}">${t.edit}</button>
+          <button type="button" class="btn-edit-open" data-edit-target="edit-modal-${p.id}" data-page-url="${escapeHtml(pageUrl)}">${t.edit}</button>
           <dialog class="std-modal edit-modal" id="edit-modal-${p.id}">
             <button type="button" class="std-modal-close" aria-label="${t.modalClose}">&times;</button>
             <div class="std-modal-head">
@@ -531,6 +531,10 @@ export async function renderDashboard(context, reseller) {
   .edit-tabs .wizard-progress { margin-bottom:22px; }
   .edit-tabs .wizard-progress-step { cursor:default; width:74px; }
   .edit-tabs .wizard-progress-step.completed, .edit-tabs .wizard-progress-step.active { cursor:pointer; }
+  /* A .std-modal maga a görgethető felület (overflow-y:auto) - a Tovább/Vissza
+     sáv erre "ragad rá" alulra, hogy hosszú tartalomnál (pl. a stílus-rács)
+     se kelljen külön legörgetni hozzá. */
+  .edit-tabs .wizard-nav { position:sticky; bottom:0; background:#fff; padding:14px 0 4px; margin-top:10px; box-shadow:0 -12px 16px -12px rgba(0,0,0,0.12); }
   .photo-edit-block { margin-bottom:18px; }
   .photo-dropzone { position:relative; border:1.5px dashed #ddd6c9; border-radius:10px; padding:10px; text-align:center; margin-bottom:10px; transition:border-color 0.15s ease, background 0.15s ease; }
   .photo-dropzone:hover, .photo-dropzone.drag-over { border-color:var(--accent); background:#fbf7ef; }
@@ -579,6 +583,11 @@ export async function renderDashboard(context, reseller) {
   .qr-download-btn { display:inline-block; text-decoration:none; padding:10px 24px; border-radius:999px; background:linear-gradient(135deg,#f0c988,#b48b56); color:#1a1408; font-weight:600; font-size:0.95rem; box-shadow:0 6px 16px -8px rgba(139,102,53,0.6); transition:transform 0.15s ease, box-shadow 0.15s ease; }
   .qr-download-btn:hover { transform:translateY(-1px); box-shadow:0 8px 20px -8px rgba(139,102,53,0.75); }
   .qr-long-press-hint { font-size:0.85rem; color:var(--muted); margin-top:14px; }
+  .preview-modal { max-width:420px; }
+  .preview-modal-body { padding:0 30px 30px; text-align:center; }
+  .preview-modal-iframe { width:100%; height:65vh; border:none; border-radius:14px; box-shadow:0 10px 30px -14px rgba(0,0,0,0.35); background:var(--bg,#faf7f2); }
+  .preview-modal-link { display:inline-block; margin-top:16px; font-size:0.9rem; color:var(--accent); text-decoration:none; font-weight:600; }
+  .preview-modal-link:hover { text-decoration:underline; }
   .onboarding-modal { max-width:420px; }
   .onboarding-body { padding:40px 36px 36px; text-align:center; }
   .onboarding-emoji { font-size:2.6rem; margin-bottom:10px; }
@@ -945,6 +954,17 @@ ${
   </div>
 </dialog>
 
+<dialog id="preview-modal" class="std-modal preview-modal">
+  <button type="button" class="std-modal-close" id="preview-modal-close" aria-label="${t.modalClose}">&times;</button>
+  <div class="std-modal-head">
+    <h3 class="std-modal-title">${t.previewModalTitle}</h3>
+  </div>
+  <div class="preview-modal-body">
+    <iframe id="preview-modal-iframe" class="preview-modal-iframe" title="${t.previewModalTitle}"></iframe>
+    <a id="preview-modal-link" class="preview-modal-link" href="#" target="_blank" rel="noopener">${t.viewPage} ↗</a>
+  </div>
+</dialog>
+
 <dialog id="onboarding-modal" class="std-modal onboarding-modal">
   <button type="button" class="std-modal-close" id="onboarding-close" aria-label="${t.modalClose}">&times;</button>
   <div class="onboarding-body">
@@ -1290,14 +1310,39 @@ ${
     });
   });
 
-  // Sikeres mentés után a szerver-oldali redirect (?saved=<par_id>) újra
-  // megnyitja PONT azt a popup-ot, amiben a user mentett, hogy lássa a
-  // visszaigazolást - enélkül a dialog zárva töltődne be és a "Mentve"
-  // üzenet sosem válna láthatóvá.
+  // Sikeres mentés után a szerver-oldali redirect (?saved=<par_id>) NEM a
+  // szerkesztő-varázslót nyitja meg újra (azt a user kifejezetten zavarónak
+  // találta - "az elejére megy") - helyette egy ünneplő konfetti + a pár
+  // MOST MENTETT, éles nyilvános oldalának előnézete jelenik meg popupban.
+  var previewModal = document.getElementById("preview-modal");
+  var previewIframe = document.getElementById("preview-modal-iframe");
+  var previewLink = document.getElementById("preview-modal-link");
+  var previewClose = document.getElementById("preview-modal-close");
+
+  function closePreviewModal() {
+    if (!previewModal) return;
+    previewModal.close();
+    previewIframe.removeAttribute("src");
+  }
+
+  if (previewClose) previewClose.addEventListener("click", closePreviewModal);
+  if (previewModal) {
+    previewModal.addEventListener("click", function (e) {
+      if (e.target === previewModal) closePreviewModal();
+    });
+    previewModal.addEventListener("cancel", function () {
+      previewIframe.removeAttribute("src");
+    });
+  }
+
   if (SAVED_PAR_ID) {
-    var savedModal = document.getElementById("edit-modal-" + SAVED_PAR_ID);
-    if (savedModal && typeof savedModal.showModal === "function") {
-      savedModal.showModal();
+    var savedTriggerBtn = document.querySelector('.btn-edit-open[data-edit-target="edit-modal-' + SAVED_PAR_ID + '"]');
+    var savedPageUrl = savedTriggerBtn ? savedTriggerBtn.getAttribute("data-page-url") : null;
+    if (savedPageUrl && previewModal && typeof previewModal.showModal === "function") {
+      launchConfetti();
+      previewIframe.src = savedPageUrl;
+      previewLink.href = savedPageUrl;
+      previewModal.showModal();
     }
   }
 
