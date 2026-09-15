@@ -275,69 +275,76 @@ export async function renderDashboard(context, reseller) {
                 </div>`
               : `<div class="settled-banner"><span>${t.settledBanner}</span></div>`
           }
-          <details class="couple-edit">
-            <summary>${t.edit}</summary>
-            <div class="edit-tabs">
-              <div class="edit-tabs-nav">
-                <button type="button" class="edit-tab-btn active" data-tab="photo">${t.tabPhoto}</button>
-                <button type="button" class="edit-tab-btn" data-tab="message">${t.tabMessage}</button>
-                <button type="button" class="edit-tab-btn" data-tab="buttons">${t.tabButtons}</button>
-                <button type="button" class="edit-tab-btn" data-tab="program">${t.tabProgram}</button>
-                <button type="button" class="edit-tab-btn" data-tab="style">${t.tabStyle}</button>
-              </div>
-              <div class="edit-tab-panel" data-tab-panel="photo">
-                <div class="photo-edit-block" data-par-id="${p.id}" data-slug="${escapeHtml(p.slug)}">
-                  <p class="field-explain">${t.photoExplain}</p>
-                  <div class="photo-dropzone">
-                    ${
-                      p.fenykep_frissitve
-                        ? `<img src="/foto/${escapeHtml(p.slug)}?v=${escapeHtml(p.fenykep_frissitve)}" alt="" class="photo-preview">`
-                        : `<img alt="" class="photo-preview" hidden>`
-                    }
-                    <div class="photo-drop-hint"${p.fenykep_frissitve ? " hidden" : ""}>${t.photoDropHint}</div>
-                    <input type="file" accept="image/*" class="photo-file-input">
-                  </div>
-                  <div class="photo-actions">
-                    <button type="button" class="btn-photo-remove"${p.fenykep_frissitve ? "" : " hidden"}>${t.photoRemove}</button>
-                    <span class="photo-upload-status"></span>
-                  </div>
-                </div>
-              </div>
-              <form method="POST" action="/api/couple-update" class="edit-form" data-nev1="${escapeHtml(nev1)}" data-nev2="${escapeHtml(nev2)}" data-datetext="${escapeHtml(dateText)}">
-                <input type="hidden" name="par_id" value="${p.id}">
-                <div class="edit-tab-panel" data-tab-panel="message" hidden>
-                  <p class="field-explain">${t.ownMessageExplain}</p>
-                  <div class="chip-row">
-                    <span class="chip-row-label">${t.inspirationLabel}</span>
-                    ${t.messageSuggestions.map((s) => `<button type="button" class="chip" data-fill-message="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
-                  </div>
-                  <textarea name="egyedi_uzenet" rows="2" placeholder="${t.ownMessagePlaceholder}">${escapeHtml(p.egyedi_uzenet || "")}</textarea>
-                </div>
-                <div class="edit-tab-panel" data-tab-panel="buttons" hidden>
-                  <p class="field-explain">${t.buttonsExplain} <span class="hint-inline">${t.buttonsEditHint}</span></p>
-                  <div class="chip-row">
-                    <span class="chip-row-label">${t.inspirationLabel}</span>
-                    ${t.buttonSuggestions.map((s) => `<button type="button" class="chip" data-fill="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
-                  </div>
-                  ${gombRows}
-                </div>
-                <div class="edit-tab-panel" data-tab-panel="program" hidden>
-                  <p class="field-explain">${t.programExplain}</p>
-                  <div class="chip-row">
-                    <span class="chip-row-label">${t.inspirationLabel}</span>
-                    ${t.eventSuggestions.map((s) => `<button type="button" class="chip" data-fill-event="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
-                  </div>
-                  ${eventRows}
-                </div>
-                <div class="edit-tab-panel" data-tab-panel="style" hidden>
-                  <p class="field-explain">${t.stylePickerHint}</p>
-                  <div class="style-picker style-picker--edit">${editStylePicker}</div>
-                </div>
-                <button type="submit" class="btn-save">${t.save}</button>
-                ${saved === String(p.id) ? `<span class="saved-note">${t.saved}</span>` : ""}
-              </form>
+          <button type="button" class="btn-edit-open" data-edit-target="edit-modal-${p.id}">${t.edit}</button>
+          <dialog class="std-modal edit-modal" id="edit-modal-${p.id}">
+            <button type="button" class="std-modal-close" aria-label="${t.modalClose}">&times;</button>
+            <div class="std-modal-head">
+              <h3 class="std-modal-title">${t.edit}</h3>
+              <p class="std-modal-subtitle">${escapeHtml(nev1)} &amp; ${escapeHtml(nev2)}</p>
             </div>
-          </details>
+            <div class="std-panel-body">
+              <div class="edit-tabs">
+                <div class="edit-tabs-nav">
+                  <button type="button" class="edit-tab-btn active" data-tab="style">${t.tabStyle}</button>
+                  <button type="button" class="edit-tab-btn" data-tab="photo">${t.tabPhoto}</button>
+                  <button type="button" class="edit-tab-btn" data-tab="message">${t.tabMessage}</button>
+                  <button type="button" class="edit-tab-btn" data-tab="buttons">${t.tabButtons}</button>
+                  <button type="button" class="edit-tab-btn" data-tab="program">${t.tabProgram}</button>
+                </div>
+                <div class="edit-tab-panel" data-tab-panel="photo" hidden>
+                  <div class="photo-edit-block" data-par-id="${p.id}" data-slug="${escapeHtml(p.slug)}">
+                    <p class="field-explain">${t.photoExplain}</p>
+                    <div class="photo-dropzone">
+                      ${
+                        p.fenykep_frissitve
+                          ? `<img src="/foto/${escapeHtml(p.slug)}?v=${escapeHtml(p.fenykep_frissitve)}" alt="" class="photo-preview">`
+                          : `<img alt="" class="photo-preview" hidden>`
+                      }
+                      <div class="photo-drop-hint"${p.fenykep_frissitve ? " hidden" : ""}>${t.photoDropHint}</div>
+                      <input type="file" accept="image/*" class="photo-file-input">
+                    </div>
+                    <div class="photo-actions">
+                      <button type="button" class="btn-photo-remove"${p.fenykep_frissitve ? "" : " hidden"}>${t.photoRemove}</button>
+                      <span class="photo-upload-status"></span>
+                    </div>
+                  </div>
+                </div>
+                <form method="POST" action="/api/couple-update" class="edit-form" data-nev1="${escapeHtml(nev1)}" data-nev2="${escapeHtml(nev2)}" data-datetext="${escapeHtml(dateText)}">
+                  <input type="hidden" name="par_id" value="${p.id}">
+                  <div class="edit-tab-panel" data-tab-panel="style">
+                    <p class="field-explain">${t.stylePickerHint}</p>
+                    <div class="style-picker style-picker--edit">${editStylePicker}</div>
+                  </div>
+                  <div class="edit-tab-panel" data-tab-panel="message" hidden>
+                    <p class="field-explain">${t.ownMessageExplain}</p>
+                    <div class="chip-row">
+                      <span class="chip-row-label">${t.inspirationLabel}</span>
+                      ${t.messageSuggestions.map((s) => `<button type="button" class="chip" data-fill-message="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+                    </div>
+                    <textarea name="egyedi_uzenet" rows="2" placeholder="${t.ownMessagePlaceholder}">${escapeHtml(p.egyedi_uzenet || "")}</textarea>
+                  </div>
+                  <div class="edit-tab-panel" data-tab-panel="buttons" hidden>
+                    <p class="field-explain">${t.buttonsExplain} <span class="hint-inline">${t.buttonsEditHint}</span></p>
+                    <div class="chip-row">
+                      <span class="chip-row-label">${t.inspirationLabel}</span>
+                      ${t.buttonSuggestions.map((s) => `<button type="button" class="chip" data-fill="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+                    </div>
+                    ${gombRows}
+                  </div>
+                  <div class="edit-tab-panel" data-tab-panel="program" hidden>
+                    <p class="field-explain">${t.programExplain}</p>
+                    <div class="chip-row">
+                      <span class="chip-row-label">${t.inspirationLabel}</span>
+                      ${t.eventSuggestions.map((s) => `<button type="button" class="chip" data-fill-event="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+                    </div>
+                    ${eventRows}
+                  </div>
+                  <button type="submit" class="btn-save">${t.save}</button>
+                  ${saved === String(p.id) ? `<span class="saved-note">${t.saved}</span>` : ""}
+                </form>
+              </div>
+            </div>
+          </dialog>
           ${
             hasStdOrder
               ? ""
@@ -414,13 +421,12 @@ export async function renderDashboard(context, reseller) {
   .couple-meta { font-size:0.9rem; color:var(--muted); margin:2px 0 4px; }
   .status { color:var(--accent); font-weight:600; }
   .couple-link { font-size:0.9rem; color:var(--accent); text-decoration:none; }
-  details { margin:14px 0 0; padding-top:14px; border-top:1px solid #f0e9d8; }
-  summary { cursor:pointer; font-size:0.88rem; color:var(--muted); font-weight:600; list-style:none; display:flex; align-items:center; gap:5px; }
-  summary::-webkit-details-marker { display:none; }
-  summary::before { content:"▸"; font-size:0.75rem; transition:transform 0.15s ease; }
-  details[open] summary::before { transform:rotate(90deg); }
-  summary:hover { color:var(--fg); }
-  .edit-form { margin-top:14px; }
+  .btn-edit-open { margin-top:14px; padding-top:14px; border-top:1px solid #f0e9d8; width:100%; text-align:left; cursor:pointer; font-family:inherit; font-size:0.88rem; color:var(--muted); font-weight:600; background:none; border-left:none; border-right:none; border-bottom:none; display:flex; align-items:center; gap:5px; }
+  .btn-edit-open::before { content:"✎"; font-size:0.85rem; }
+  .btn-edit-open:hover { color:var(--fg); }
+  .edit-modal .std-modal-head { padding:30px 40px 0; }
+  .edit-modal .std-panel-body { padding:22px 40px 34px; }
+  .edit-form { margin-top:0; }
   .edit-form .style-picker--edit { margin-top:6px; margin-bottom:16px; }
   .style-picker--edit .style-swatch:has(input:checked) .swatch-name { display:block; }
   .btn-row { display:flex; gap:8px; }
@@ -939,6 +945,7 @@ ${
   var FONT_RECIPES = ${fontRecipesForClient};
   var MAX_BUTTONS = 5;
   var CREATED_PAR_ID = ${createdCouple ? JSON.stringify(String(createdCouple.id)) : "null"};
+  var SAVED_PAR_ID = ${saved ? JSON.stringify(String(saved)) : "null"};
   var HAS_NO_COUPLES = ${JSON.stringify(!parok || parok.length === 0)};
   var DEFAULT_BILLING = ${JSON.stringify(defaultBilling)};
   var DEFAULT_SHIPPING = ${JSON.stringify(defaultShipping)};
@@ -1186,18 +1193,61 @@ ${
   document.querySelectorAll(".edit-tabs").forEach(function (tabs) {
     var tabButtons = tabs.querySelectorAll(".edit-tab-btn");
     var tabPanels = tabs.querySelectorAll(".edit-tab-panel");
+    function showEditTab(target) {
+      tabButtons.forEach(function (b) {
+        b.classList.toggle("active", b.getAttribute("data-tab") === target);
+      });
+      tabPanels.forEach(function (panel) {
+        panel.hidden = panel.getAttribute("data-tab-panel") !== target;
+      });
+    }
+    tabs.showEditTab = showEditTab;
     tabButtons.forEach(function (btn) {
       btn.addEventListener("click", function () {
-        var target = btn.getAttribute("data-tab");
-        tabButtons.forEach(function (b) {
-          b.classList.toggle("active", b === btn);
-        });
-        tabPanels.forEach(function (panel) {
-          panel.hidden = panel.getAttribute("data-tab-panel") !== target;
-        });
+        showEditTab(btn.getAttribute("data-tab"));
       });
     });
   });
+
+  // A Szerkesztés popup mindig a Stílus fülre visszaállítva nyílik meg -
+  // ez a user explicit kérése ("kezdődjön a stílussal") -, nem a legutóbb
+  // megnyitott fület emlékezi vissza.
+  document.querySelectorAll(".btn-edit-open").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var modal = document.getElementById(btn.getAttribute("data-edit-target"));
+      if (!modal) return;
+      var tabs = modal.querySelector(".edit-tabs");
+      if (tabs && tabs.showEditTab) tabs.showEditTab("style");
+      if (typeof modal.showModal === "function") {
+        modal.showModal();
+      } else {
+        modal.setAttribute("open", "");
+      }
+    });
+  });
+
+  document.querySelectorAll(".edit-modal").forEach(function (modal) {
+    var closeBtn = modal.querySelector(".std-modal-close");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", function () {
+        modal.close();
+      });
+    }
+    modal.addEventListener("click", function (e) {
+      if (e.target === modal) modal.close();
+    });
+  });
+
+  // Sikeres mentés után a szerver-oldali redirect (?saved=<par_id>) újra
+  // megnyitja PONT azt a popup-ot, amiben a user mentett, hogy lássa a
+  // visszaigazolást - enélkül a dialog zárva töltődne be és a "Mentve"
+  // üzenet sosem válna láthatóvá.
+  if (SAVED_PAR_ID) {
+    var savedModal = document.getElementById("edit-modal-" + SAVED_PAR_ID);
+    if (savedModal && typeof savedModal.showModal === "function") {
+      savedModal.showModal();
+    }
+  }
 
   document.querySelectorAll(".photo-edit-block").forEach(function (block) {
     var parId = block.getAttribute("data-par-id");
