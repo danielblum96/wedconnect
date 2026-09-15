@@ -1435,7 +1435,7 @@ ${
   // se szóljon tovább.
   function resetStdVideo() {
     if (!stdVideoFrameWrap) return;
-    stdVideoIframe.src = "";
+    stdVideoIframe.removeAttribute("src");
     stdVideoFrameWrap.hidden = true;
     stdVideoTeaser.hidden = false;
   }
