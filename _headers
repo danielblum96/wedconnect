@@ -3,3 +3,4 @@
 
 /assets/cookie-consent.js
   Cache-Control: no-cache
+  X-Frame-Options: SAMEORIGIN
