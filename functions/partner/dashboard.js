@@ -327,20 +327,7 @@ export async function renderDashboard(context, reseller) {
           ${
             hasStdOrder
               ? ""
-              : `<button
-                  type="button"
-                  class="btn-std-open"
-                  data-par-id="${p.id}"
-                  data-nev1="${escapeHtml(nev1)}"
-                  data-nev2="${escapeHtml(nev2)}"
-                  data-datum="${escapeHtml(p.eskuvo_datuma)}"
-                  data-nyelv="${escapeHtml(p.nyelv || "hu")}"
-                  data-url="${escapeHtml(pageUrl)}"
-                  data-stilus="${escapeHtml(resolvedStyle.id)}"
-                  data-uzenet="${escapeHtml(p.egyedi_uzenet || defaultMessage)}"
-                  data-gombok='${escapeHtml(JSON.stringify(mockGombok))}'
-                >${t.createStd}</button>
-                <div class="checkout-row">
+              : `<div class="checkout-row">
                   <button
                     type="button"
                     class="btn-std-open btn-checkout"
@@ -353,7 +340,7 @@ export async function renderDashboard(context, reseller) {
                     data-stilus="${escapeHtml(resolvedStyle.id)}"
                     data-uzenet="${escapeHtml(p.egyedi_uzenet || defaultMessage)}"
                     data-gombok='${escapeHtml(JSON.stringify(mockGombok))}'
-                  >${t.checkout}</button>
+                  >${t.createStd}</button>
                 </div>`
           }
         </div>`;
@@ -404,7 +391,8 @@ export async function renderDashboard(context, reseller) {
   }
   button.btn-save:hover, .new-couple button[type=submit]:hover { transform:translateY(-1px); box-shadow:0 8px 20px -8px rgba(139,102,53,0.75); }
   .couple { background:var(--card); border-radius:12px; padding:18px 22px; margin-bottom:14px; box-shadow:0 6px 20px -16px rgba(0,0,0,0.15); }
-  .checkout-row { display:flex; justify-content:flex-end; margin-top:18px; }
+  .checkout-row { display:flex; justify-content:center; margin-top:16px; }
+  .checkout-row .btn-checkout { width:100%; max-width:360px; }
   .btn-std-open.btn-checkout { background:linear-gradient(135deg,var(--accent),#8f6a3c); color:#fff; text-transform:none; font-weight:700; font-size:1rem; letter-spacing:0.01em; padding:15px 34px; border:none; box-shadow:0 12px 26px -8px rgba(180,139,86,0.65); transition:transform 0.15s ease, box-shadow 0.15s ease; }
   .btn-std-open.btn-checkout:hover { background:linear-gradient(135deg,var(--accent),#8f6a3c); color:#fff; transform:translateY(-1px); box-shadow:0 16px 32px -8px rgba(180,139,86,0.75); }
   .couple-name { font-weight:600; font-size:1.05rem; color:var(--fg); text-decoration:none; }
@@ -412,8 +400,12 @@ export async function renderDashboard(context, reseller) {
   .couple-meta { font-size:0.9rem; color:var(--muted); margin:2px 0 4px; }
   .status { color:var(--accent); font-weight:600; }
   .couple-link { font-size:0.9rem; color:var(--accent); text-decoration:none; }
-  details { margin:10px 0 18px; }
-  summary { cursor:pointer; font-size:0.95rem; color:var(--accent); font-weight:600; }
+  details { margin:14px 0 0; padding-top:14px; border-top:1px solid #f0e9d8; }
+  summary { cursor:pointer; font-size:0.88rem; color:var(--muted); font-weight:600; list-style:none; display:flex; align-items:center; gap:5px; }
+  summary::-webkit-details-marker { display:none; }
+  summary::before { content:"▸"; font-size:0.75rem; transition:transform 0.15s ease; }
+  details[open] summary::before { transform:rotate(90deg); }
+  summary:hover { color:var(--fg); }
   .edit-form { margin-top:14px; }
   .edit-form .style-picker--edit { margin-top:6px; margin-bottom:16px; }
   .style-picker--edit .style-swatch:has(input:checked) .swatch-name { display:block; }
