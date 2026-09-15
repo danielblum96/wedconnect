@@ -384,6 +384,7 @@ export async function renderDashboard(context, reseller) {
                     data-stilus="${escapeHtml(resolvedStyle.id)}"
                     data-uzenet="${escapeHtml(p.egyedi_uzenet || defaultMessage)}"
                     data-gombok='${escapeHtml(JSON.stringify(mockGombok))}'
+                    data-fenykep="${p.fenykep_frissitve ? escapeHtml(`/foto/${p.slug}?v=${p.fenykep_frissitve}`) : ""}"
                   >${t.createStd}</button>
                 </div>`
           }
@@ -465,6 +466,7 @@ export async function renderDashboard(context, reseller) {
   .style-swatch input { position:absolute; opacity:0; width:0; height:0; margin:0; }
   .swatch-mock { background:var(--bg); color:var(--fg); min-height:230px; padding:22px 18px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:8px; }
   .mock-eyebrow { font-family:"Poppins",sans-serif; font-size:0.62rem; font-weight:600; letter-spacing:0.28em; text-transform:uppercase; color:var(--accent-text); }
+  .mock-cover-photo { width:100%; height:auto; display:block; border-radius:8px; }
   .mock-names { line-height:1.15; max-width:100%; overflow-wrap:break-word; word-break:break-word; }
   .mock-date { font-family:"Poppins",sans-serif; font-size:0.75rem; font-weight:500; letter-spacing:0.1em; color:var(--accent-text); }
   .mock-message { font-family:"Cormorant Garamond",serif; font-style:italic; font-size:0.85rem; line-height:1.4; max-width:100%; margin-top:4px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
@@ -593,11 +595,13 @@ export async function renderDashboard(context, reseller) {
   .qr-download-btn { display:inline-block; text-decoration:none; padding:10px 24px; border-radius:999px; background:linear-gradient(135deg,#f0c988,#b48b56); color:#1a1408; font-weight:600; font-size:0.95rem; box-shadow:0 6px 16px -8px rgba(139,102,53,0.6); transition:transform 0.15s ease, box-shadow 0.15s ease; }
   .qr-download-btn:hover { transform:translateY(-1px); box-shadow:0 8px 20px -8px rgba(139,102,53,0.75); }
   .qr-long-press-hint { font-size:0.85rem; color:var(--muted); margin-top:14px; }
-  .preview-modal { max-width:420px; }
-  .preview-modal-body { padding:0 30px 30px; text-align:center; }
-  .preview-modal-iframe { width:100%; height:65vh; border:none; border-radius:14px; box-shadow:0 10px 30px -14px rgba(0,0,0,0.35); background:var(--bg,#faf7f2); }
-  .preview-modal-link { display:inline-block; margin-top:16px; font-size:0.9rem; color:var(--accent); text-decoration:none; font-weight:600; }
-  .preview-modal-link:hover { text-decoration:underline; }
+  .preview-modal { max-width:440px; }
+  .preview-modal-body { padding:0 32px 34px; text-align:center; }
+  .preview-modal-subhead { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.3rem; margin:4px 0 10px; color:var(--fg); }
+  .preview-modal-text { font-size:0.95rem; color:var(--muted); line-height:1.55; margin:0 0 22px; }
+  .preview-modal-cta { width:100%; }
+  .preview-modal-link { display:inline-block; margin-top:16px; font-size:0.88rem; color:var(--muted); text-decoration:none; font-weight:600; }
+  .preview-modal-link:hover { color:var(--accent); text-decoration:underline; }
   .onboarding-modal { max-width:420px; }
   .onboarding-body { padding:40px 36px 36px; text-align:center; }
   .onboarding-emoji { font-size:2.6rem; margin-bottom:10px; }
@@ -970,7 +974,9 @@ ${
     <h3 class="std-modal-title">${t.previewModalTitle}</h3>
   </div>
   <div class="preview-modal-body">
-    <iframe id="preview-modal-iframe" class="preview-modal-iframe" title="${t.previewModalTitle}"></iframe>
+    <h4 class="preview-modal-subhead">${t.previewModalStdTitle}</h4>
+    <p class="preview-modal-text">${t.previewModalStdText}</p>
+    <button type="button" class="btn-next preview-modal-cta" id="preview-modal-std-cta">${t.previewModalStdCta}</button>
     <a id="preview-modal-link" class="preview-modal-link" href="#" target="_blank" rel="noopener">${t.viewPage} ↗</a>
   </div>
 </dialog>
@@ -1357,17 +1363,19 @@ ${
 
   // Sikeres mentés után a szerver-oldali redirect (?saved=<par_id>) NEM a
   // szerkesztő-varázslót nyitja meg újra (azt a user kifejezetten zavarónak
-  // találta - "az elejére megy") - helyette egy ünneplő konfetti + a pár
-  // MOST MENTETT, éles nyilvános oldalának előnézete jelenik meg popupban.
+  // találta - "az elejére megy") - helyette egy ünneplő konfetti + egy rövid
+  // összegző popup jelenik meg, ami NEM előnézetet mutat (a user szerint ez
+  // nem a popup célja), hanem megerősíti a kész oldalt és a meglévő Save the
+  // Date tervezőre vezeti tovább a usert.
   var previewModal = document.getElementById("preview-modal");
-  var previewIframe = document.getElementById("preview-modal-iframe");
   var previewLink = document.getElementById("preview-modal-link");
   var previewClose = document.getElementById("preview-modal-close");
+  var previewStdCta = document.getElementById("preview-modal-std-cta");
+  var previewStdTriggerBtn = null;
 
   function closePreviewModal() {
     if (!previewModal) return;
     previewModal.close();
-    previewIframe.removeAttribute("src");
   }
 
   if (previewClose) previewClose.addEventListener("click", closePreviewModal);
@@ -1375,18 +1383,29 @@ ${
     previewModal.addEventListener("click", function (e) {
       if (e.target === previewModal) closePreviewModal();
     });
-    previewModal.addEventListener("cancel", function () {
-      previewIframe.removeAttribute("src");
+  }
+  if (previewStdCta) {
+    previewStdCta.addEventListener("click", function () {
+      closePreviewModal();
+      // Ugyanaz a gomb/adatforrás nyitja meg a Save the Date tervezőt, amit a
+      // pár-kártyán is használunk - így a névvel/dátummal/linkkel MÁR
+      // előtöltve nyílik meg, nem kell duplikálni azt a logikát.
+      if (previewStdTriggerBtn) {
+        setTimeout(function () {
+          previewStdTriggerBtn.click();
+        }, 200);
+      }
     });
   }
 
   if (SAVED_PAR_ID) {
     var savedTriggerBtn = document.querySelector('.btn-edit-open[data-edit-target="edit-modal-' + SAVED_PAR_ID + '"]');
     var savedPageUrl = savedTriggerBtn ? savedTriggerBtn.getAttribute("data-page-url") : null;
+    previewStdTriggerBtn = document.querySelector('.btn-std-open[data-par-id="' + SAVED_PAR_ID + '"]');
     if (savedPageUrl && previewModal && typeof previewModal.showModal === "function") {
       launchConfetti();
-      previewIframe.src = savedPageUrl;
       previewLink.href = savedPageUrl;
+      if (previewStdCta) previewStdCta.hidden = !previewStdTriggerBtn;
       previewModal.showModal();
     }
   }
@@ -1731,7 +1750,7 @@ ${
     return new Intl.NumberFormat(PRICE_LOCALE, opts).format(n);
   }
 
-  function renderPageMock(nev1, nev2, datum, stilusId, uzenet, gombokJson) {
+  function renderPageMock(nev1, nev2, datum, stilusId, uzenet, gombokJson, fenykepUrl) {
     var style = STYLES.filter(function (s) {
       return s.id === stilusId;
     })[0] || STYLES[0];
@@ -1761,8 +1780,10 @@ ${
       : "";
     var varsStyle =
       "--bg:" + style.bg + ";--fg:" + style.fg + ";--accent:" + style.accent + ";--accent-text:" + style.accentText + ";--btn-fg:" + style.btnFg + ";";
+    var photoHtml = fenykepUrl ? '<img class="mock-cover-photo" src="' + escapeHtml(fenykepUrl) + '" alt="">' : "";
     stdModalPreview.innerHTML =
       '<div class="swatch-mock std-preview-page" style="' + varsStyle + '">' +
+      photoHtml +
       '<span class="mock-eyebrow">' + escapeHtml(COPY.mockEyebrow) + '</span>' +
       '<span class="mock-names" style="' + recipe + " font-size:" + namesFontSize + ';">' + escapeHtml(namesText) + "</span>" +
       (dateText ? '<span class="mock-date">' + escapeHtml(dateText) + "</span>" : "") +
@@ -1777,7 +1798,7 @@ ${
     if (wantStd) {
       renderStdPreview(currentCouple.nev1, currentCouple.nev2, currentCouple.datum, currentCouple.nyelv);
     } else {
-      renderPageMock(currentCouple.nev1, currentCouple.nev2, currentCouple.datum, currentCouple.stilus, currentCouple.uzenet, currentCouple.gombok);
+      renderPageMock(currentCouple.nev1, currentCouple.nev2, currentCouple.datum, currentCouple.stilus, currentCouple.uzenet, currentCouple.gombok, currentCouple.fenykep);
     }
   }
 
@@ -1945,6 +1966,7 @@ ${
         stilus: btn.getAttribute("data-stilus"),
         uzenet: btn.getAttribute("data-uzenet"),
         gombok: btn.getAttribute("data-gombok"),
+        fenykep: btn.getAttribute("data-fenykep"),
       };
       stdModalParId.value = btn.getAttribute("data-par-id");
       stdModalSubtitle.textContent = nev1 + " & " + nev2;
