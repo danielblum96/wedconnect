@@ -174,8 +174,7 @@ export async function onRequestGet(context) {
   .cover-photo {
     display: block;
     width: 100%;
-    height: 220px;
-    object-fit: cover;
+    height: auto;
     border-radius: 4px;
     margin-bottom: 26px;
   }

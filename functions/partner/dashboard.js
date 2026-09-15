@@ -277,19 +277,22 @@ export async function renderDashboard(context, reseller) {
           }
           <details class="couple-edit">
             <summary>${t.edit}</summary>
-            <div class="photo-edit-block">
+            <div class="photo-edit-block" data-par-id="${p.id}" data-slug="${escapeHtml(p.slug)}">
               <label>${t.photoLabel} <span class="hint-inline">${t.photoHint}</span></label>
               <p class="field-explain">${t.photoExplain}</p>
-              ${
-                p.fenykep_frissitve
-                  ? `<div class="photo-current">
-                      <img src="/foto/${escapeHtml(p.slug)}?v=${escapeHtml(p.fenykep_frissitve)}" alt="" class="photo-preview">
-                      <button type="button" class="btn-photo-remove" data-par-id="${p.id}">${t.photoRemove}</button>
-                    </div>`
-                  : ""
-              }
-              <input type="file" accept="image/*" class="photo-file-input" data-par-id="${p.id}" id="photo-file-${p.id}">
-              <span class="photo-upload-status" data-status-for="${p.id}"></span>
+              <div class="photo-dropzone">
+                ${
+                  p.fenykep_frissitve
+                    ? `<img src="/foto/${escapeHtml(p.slug)}?v=${escapeHtml(p.fenykep_frissitve)}" alt="" class="photo-preview">`
+                    : `<img alt="" class="photo-preview" hidden>`
+                }
+                <div class="photo-drop-hint"${p.fenykep_frissitve ? " hidden" : ""}>${t.photoDropHint}</div>
+                <input type="file" accept="image/*" class="photo-file-input">
+              </div>
+              <div class="photo-actions">
+                <button type="button" class="btn-photo-remove"${p.fenykep_frissitve ? "" : " hidden"}>${t.photoRemove}</button>
+                <span class="photo-upload-status"></span>
+              </div>
             </div>
             <form method="POST" action="/api/couple-update" class="edit-form" data-nev1="${escapeHtml(nev1)}" data-nev2="${escapeHtml(nev2)}" data-datetext="${escapeHtml(dateText)}">
               <input type="hidden" name="par_id" value="${p.id}">
@@ -491,11 +494,14 @@ export async function renderDashboard(context, reseller) {
   .btn-remove-row { flex:none; border:none; background:none; color:var(--muted); font-size:1.2rem; line-height:1; cursor:pointer; padding:0 4px 14px; }
   .btn-add-row { border:1px dashed #ddd6c9; background:none; color:var(--accent); border-radius:8px; padding:9px 14px; font-size:0.95rem; font-weight:600; cursor:pointer; font-family:inherit; margin-bottom:20px; }
   .photo-edit-block { margin-bottom:18px; }
-  .photo-current { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
-  .photo-preview { width:100px; height:70px; object-fit:cover; border-radius:6px; flex:none; }
+  .photo-dropzone { position:relative; border:1.5px dashed #ddd6c9; border-radius:10px; padding:10px; text-align:center; margin-bottom:10px; transition:border-color 0.15s ease, background 0.15s ease; }
+  .photo-dropzone:hover, .photo-dropzone.drag-over { border-color:var(--accent); background:#fbf7ef; }
+  .photo-preview { display:block; width:100%; max-height:220px; object-fit:contain; border-radius:6px; margin:0 auto; }
+  .photo-drop-hint { font-size:0.9rem; color:var(--muted); padding:22px 8px; pointer-events:none; }
+  .photo-dropzone .photo-file-input { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; }
+  .photo-actions { display:flex; align-items:center; gap:12px; }
   .btn-photo-remove { border:1px solid #e0b8ac; background:none; color:#b1451f; border-radius:999px; padding:6px 14px; font-size:0.85rem; font-weight:600; cursor:pointer; font-family:inherit; }
-  .photo-file-input { display:block; font-size:0.9rem; }
-  .photo-upload-status { display:inline-block; font-size:0.85rem; color:var(--muted); margin-top:6px; }
+  .photo-upload-status { display:inline-block; font-size:0.85rem; color:var(--muted); }
   .photo-upload-status.error { color:#b1451f; }
   .info-box { background:#eaf5ee; color:#3a7a4e; border:1px solid #bfe0cb; padding:10px 14px; border-radius:8px; font-size:0.95rem; margin-bottom:18px; }
   .urgent-banner { display:flex; align-items:center; justify-content:space-between; gap:14px; background:linear-gradient(135deg,#fff0e0,#ffe0c2); border:1.5px solid #e8a15c; border-radius:10px; padding:12px 16px; margin-top:12px; font-size:0.92rem; font-weight:600; color:#8a4a0f; flex-wrap:wrap; animation:urgentPulse 2.2s ease-in-out infinite; }
@@ -1130,16 +1136,44 @@ ${
     });
   });
 
-  document.querySelectorAll(".photo-file-input").forEach(function (input) {
-    input.addEventListener("change", function () {
-      var file = input.files && input.files[0];
-      if (!file) return;
-      var parId = input.getAttribute("data-par-id");
-      var status = document.querySelector('.photo-upload-status[data-status-for="' + parId + '"]');
-      if (status) {
-        status.classList.remove("error");
-        status.textContent = COPY.photoUploading;
+  document.querySelectorAll(".photo-edit-block").forEach(function (block) {
+    var parId = block.getAttribute("data-par-id");
+    var slug = block.getAttribute("data-slug");
+    var dropzone = block.querySelector(".photo-dropzone");
+    var input = block.querySelector(".photo-file-input");
+    var img = block.querySelector(".photo-preview");
+    var hint = block.querySelector(".photo-drop-hint");
+    var removeBtn = block.querySelector(".btn-photo-remove");
+    var status = block.querySelector(".photo-upload-status");
+
+    function setStatus(text, isError) {
+      status.textContent = text || "";
+      status.classList.toggle("error", !!isError);
+    }
+
+    function showPhoto(url) {
+      img.src = url;
+      img.hidden = false;
+      hint.hidden = true;
+      removeBtn.hidden = false;
+    }
+
+    function hidePhoto() {
+      img.removeAttribute("src");
+      img.hidden = true;
+      hint.hidden = false;
+      removeBtn.hidden = true;
+    }
+
+    // Nem natív form-submit + oldal-újratöltés, hanem fetch + DOM-frissítés -
+    // a user jelezte, hogy a korábbi teljes reload zavaróan "kidobta" a
+    // szerkesztő panelból feltöltés/törlés után.
+    function uploadFile(file) {
+      if (!file || file.type.indexOf("image/") !== 0) {
+        setStatus(COPY.photoUploadError, true);
+        return;
       }
+      setStatus(COPY.photoUploading, false);
       window.PhotoUpload.resizeImageToWebp(file)
         .then(function (blob) {
           var body = new FormData();
@@ -1149,30 +1183,48 @@ ${
         })
         .then(function (res) {
           if (!res.ok) throw new Error("upload failed");
-          window.location.reload();
+          return res.json();
+        })
+        .then(function (data) {
+          showPhoto("/foto/" + encodeURIComponent(slug) + "?v=" + encodeURIComponent(data.version));
+          setStatus("", false);
         })
         .catch(function () {
-          if (status) {
-            status.classList.add("error");
-            status.textContent = COPY.photoUploadError;
-          }
+          setStatus(COPY.photoUploadError, true);
         });
-    });
-  });
+    }
 
-  document.querySelectorAll(".btn-photo-remove").forEach(function (btn) {
-    btn.addEventListener("click", function () {
+    // A natív <input type="file"> önmagában is fogad drag&drop-ot (a
+    // "change" esemény ugyanúgy tüzel, akár tallózással, akár ráejtéssel
+    // került bele a fájl) - csak a vizuális "húzd ide" kiemeléshez kell
+    // külön dragenter/dragleave kezelés.
+    input.addEventListener("change", function () {
+      var file = input.files && input.files[0];
+      if (file) uploadFile(file);
+      input.value = "";
+    });
+    dropzone.addEventListener("dragenter", function () {
+      dropzone.classList.add("drag-over");
+    });
+    dropzone.addEventListener("dragleave", function () {
+      dropzone.classList.remove("drag-over");
+    });
+    dropzone.addEventListener("drop", function () {
+      dropzone.classList.remove("drag-over");
+    });
+
+    removeBtn.addEventListener("click", function () {
       if (!window.confirm(COPY.photoRemoveConfirm)) return;
-      var parId = btn.getAttribute("data-par-id");
       var body = new FormData();
       body.append("par_id", parId);
       fetch("/api/couple-photo-delete", { method: "POST", body: body })
         .then(function (res) {
           if (!res.ok) throw new Error("delete failed");
-          window.location.reload();
+          hidePhoto();
+          setStatus("", false);
         })
         .catch(function () {
-          window.alert(COPY.photoUploadError);
+          setStatus(COPY.photoUploadError, true);
         });
     });
   });
