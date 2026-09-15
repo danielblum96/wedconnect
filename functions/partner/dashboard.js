@@ -534,7 +534,7 @@ export async function renderDashboard(context, reseller) {
   /* A .std-modal maga a görgethető felület (overflow-y:auto) - a Tovább/Vissza
      sáv erre "ragad rá" alulra, hogy hosszú tartalomnál (pl. a stílus-rács)
      se kelljen külön legörgetni hozzá. */
-  .edit-tabs .wizard-nav { position:sticky; bottom:0; background:#fff; padding:14px 0 4px; margin-top:10px; box-shadow:0 -12px 16px -12px rgba(0,0,0,0.12); }
+  .edit-tabs .wizard-nav { position:sticky; bottom:0; background:#fff; padding:14px 0 4px; margin-top:10px; box-shadow:0 -12px 16px -12px rgba(0,0,0,0.12); justify-content:flex-end; }
   .photo-edit-block { margin-bottom:18px; }
   .photo-dropzone { position:relative; border:1.5px dashed #ddd6c9; border-radius:10px; padding:10px; text-align:center; margin-bottom:10px; transition:border-color 0.15s ease, background 0.15s ease; }
   .photo-dropzone:hover, .photo-dropzone.drag-over { border-color:var(--accent); background:#fbf7ef; }
