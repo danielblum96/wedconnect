@@ -324,7 +324,7 @@ export async function renderDashboard(context, reseller) {
                     <p class="field-explain">${t.stylePickerHint}</p>
                     <div class="style-picker style-picker--edit">${editStylePicker}</div>
                     <div class="wizard-nav">
-                      <button type="button" class="btn-next" data-next="2">${t.next}</button>
+                      <button type="button" class="btn-next edit-style-next" data-next="2">${t.next}</button>
                     </div>
                   </div>
                   <div class="wizard-step" data-step="3" hidden>
@@ -521,20 +521,30 @@ export async function renderDashboard(context, reseller) {
   .wizard-progress-step.completed .wizard-progress-label { color:var(--accent); font-weight:600; }
   .wizard-progress-line.completed { background:linear-gradient(90deg,#f0c988,#b48b56); }
   .hint-inline { font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted); font-size:0.88rem; }
-  .wizard-nav { display:flex; gap:12px; margin-top:8px; }
-  .btn-back { padding:10px 24px; border:1px solid #ddd6c9; border-radius:999px; background:none; color:var(--fg); font-weight:600; font-size:0.95rem; cursor:pointer; font-family:inherit; }
-  .btn-next { padding:10px 24px; border:none; border-radius:999px; background:linear-gradient(135deg,#f0c988,#b48b56); color:#1a1408; font-weight:600; font-size:0.95rem; cursor:pointer; font-family:inherit; box-shadow:0 6px 16px -8px rgba(139,102,53,0.6); transition:transform 0.15s ease, box-shadow 0.15s ease; }
-  .btn-next:hover { transform:translateY(-1px); box-shadow:0 8px 20px -8px rgba(139,102,53,0.75); }
+  /* A wizard-nav sáv MINDIG a felület alján marad görgetéskor - popup-oknál
+     (.std-modal, ami maga a görgethető felület) a dialoghoz, a normál
+     lapfolyamban élő új-pár varázslónál a böngésző-viewporthoz "ragad". Fehér
+     háttér + finom felső árnyék választja el a mögötte görgő tartalomtól. */
+  .wizard-nav { display:flex; gap:10px; align-items:center; justify-content:flex-end; position:sticky; bottom:0; width:100%; background:#fff; padding:14px 0 4px; margin-top:10px; box-shadow:0 -12px 16px -12px rgba(0,0,0,0.12); }
+  .btn-back { display:inline-flex; align-items:center; justify-content:center; min-height:54px; padding:14px 30px; border:none; background:none; color:var(--muted); font-weight:600; font-size:1rem; cursor:pointer; font-family:inherit; border-radius:16px; transition:color 0.15s ease, background 0.15s ease; }
+  .btn-back:hover { color:var(--fg); background:#f6f1e6; }
+  .btn-back:active { transform:scale(0.98); }
+  .btn-next { display:inline-flex; align-items:center; justify-content:center; min-height:54px; padding:14px 32px; border:none; border-radius:16px; background:linear-gradient(135deg,#f0c988,#b48b56); color:#1a1408; font-weight:600; font-size:1rem; cursor:pointer; font-family:inherit; box-shadow:0 4px 10px -6px rgba(139,102,53,0.5); transition:background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease; }
+  .btn-next:hover { background:linear-gradient(135deg,#ecc27d,#a87f4d); box-shadow:0 6px 14px -6px rgba(139,102,53,0.6); }
+  .btn-next:active { transform:scale(0.97); }
+  .btn-next:disabled { background:#e7e0cd; color:#a99b7e; cursor:not-allowed; box-shadow:none; }
+  .btn-next:disabled:hover { background:#e7e0cd; }
+  @media (max-width: 480px) {
+    .wizard-nav { padding-bottom:calc(4px + env(safe-area-inset-bottom)); }
+    .wizard-nav:has(.btn-back) .btn-next { flex:1; }
+    .wizard-nav:not(:has(.btn-back)) .btn-next { width:100%; }
+  }
   .btn-row { display:flex; gap:8px; align-items:center; }
   .btn-remove-row { flex:none; border:none; background:none; color:var(--muted); font-size:1.2rem; line-height:1; cursor:pointer; padding:0 4px 14px; }
   .btn-add-row { border:1px dashed #ddd6c9; background:none; color:var(--accent); border-radius:8px; padding:9px 14px; font-size:0.95rem; font-weight:600; cursor:pointer; font-family:inherit; margin-bottom:20px; }
   .edit-tabs .wizard-progress { margin-bottom:22px; }
   .edit-tabs .wizard-progress-step { cursor:default; width:74px; }
   .edit-tabs .wizard-progress-step.completed, .edit-tabs .wizard-progress-step.active { cursor:pointer; }
-  /* A .std-modal maga a görgethető felület (overflow-y:auto) - a Tovább/Vissza
-     sáv erre "ragad rá" alulra, hogy hosszú tartalomnál (pl. a stílus-rács)
-     se kelljen külön legörgetni hozzá. */
-  .edit-tabs .wizard-nav { position:sticky; bottom:0; background:#fff; padding:14px 0 4px; margin-top:10px; box-shadow:0 -12px 16px -12px rgba(0,0,0,0.12); justify-content:flex-end; }
   .photo-edit-block { margin-bottom:18px; }
   .photo-dropzone { position:relative; border:1.5px dashed #ddd6c9; border-radius:10px; padding:10px; text-align:center; margin-bottom:10px; transition:border-color 0.15s ease, background 0.15s ease; }
   .photo-dropzone:hover, .photo-dropzone.drag-over { border-color:var(--accent); background:#fbf7ef; }
@@ -798,7 +808,7 @@ ${
         <div class="style-picker" id="style-picker">${stylePicker}</div>
         <div class="wizard-nav">
           <button type="button" class="btn-back" data-back="2">${t.back}</button>
-          <button type="submit">${t.createPage}</button>
+          <button type="submit" class="btn-next" id="new-couple-style-submit" disabled>${t.createPage}</button>
         </div>
       </div>
     </form>
@@ -1024,6 +1034,24 @@ ${
       });
     }
   });
+
+  // A "Tovább"/"Oldal létrehozása" gomb csak akkor válik aktívvá, ha már van
+  // kiválasztott stílus - a gomb helye/mérete NEM változik, csak az
+  // engedélyezett/letiltott állapota, hogy ne ugráljon a felület.
+  var newCoupleStyleSubmit = document.getElementById("new-couple-style-submit");
+  if (newCoupleStyleSubmit) {
+    var newCoupleStyleRadios = form.querySelectorAll('input[name="stilus"]');
+    function refreshNewCoupleStyleSubmit() {
+      var anyChecked = Array.prototype.some.call(newCoupleStyleRadios, function (r) {
+        return r.checked;
+      });
+      newCoupleStyleSubmit.disabled = !anyChecked;
+    }
+    newCoupleStyleRadios.forEach(function (r) {
+      r.addEventListener("change", refreshNewCoupleStyleSubmit);
+    });
+    refreshNewCoupleStyleSubmit();
+  }
 
   function escapeHtml(s) {
     return String(s == null ? "" : s)
@@ -1279,6 +1307,23 @@ ${
         }
       });
     });
+    // Ugyanaz a "csak kiválasztott stílussal aktív a Tovább" védelem, mint az
+    // új pár varázslójánál - itt gyakorlatilag mindig van már kiválasztott
+    // stílus (meglévő pár szerkesztése), de a védelem így is konzisztens.
+    var editStyleNext = tabs.querySelector(".edit-style-next");
+    if (editStyleNext) {
+      var editStyleRadios = tabs.querySelectorAll('input[name="stilus"]');
+      function refreshEditStyleNext() {
+        var anyChecked = Array.prototype.some.call(editStyleRadios, function (r) {
+          return r.checked;
+        });
+        editStyleNext.disabled = !anyChecked;
+      }
+      editStyleRadios.forEach(function (r) {
+        r.addEventListener("change", refreshEditStyleNext);
+      });
+      refreshEditStyleNext();
+    }
   });
 
   // A Szerkesztés popup mindig az 1. (Stílus) lépésre visszaállítva nyílik
