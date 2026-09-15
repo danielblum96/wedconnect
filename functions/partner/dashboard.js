@@ -277,52 +277,66 @@ export async function renderDashboard(context, reseller) {
           }
           <details class="couple-edit">
             <summary>${t.edit}</summary>
-            <div class="photo-edit-block" data-par-id="${p.id}" data-slug="${escapeHtml(p.slug)}">
-              <label>${t.photoLabel} <span class="hint-inline">${t.photoHint}</span></label>
-              <p class="field-explain">${t.photoExplain}</p>
-              <div class="photo-dropzone">
-                ${
-                  p.fenykep_frissitve
-                    ? `<img src="/foto/${escapeHtml(p.slug)}?v=${escapeHtml(p.fenykep_frissitve)}" alt="" class="photo-preview">`
-                    : `<img alt="" class="photo-preview" hidden>`
-                }
-                <div class="photo-drop-hint"${p.fenykep_frissitve ? " hidden" : ""}>${t.photoDropHint}</div>
-                <input type="file" accept="image/*" class="photo-file-input">
+            <div class="edit-tabs">
+              <div class="edit-tabs-nav">
+                <button type="button" class="edit-tab-btn active" data-tab="photo">${t.tabPhoto}</button>
+                <button type="button" class="edit-tab-btn" data-tab="message">${t.tabMessage}</button>
+                <button type="button" class="edit-tab-btn" data-tab="buttons">${t.tabButtons}</button>
+                <button type="button" class="edit-tab-btn" data-tab="program">${t.tabProgram}</button>
+                <button type="button" class="edit-tab-btn" data-tab="style">${t.tabStyle}</button>
               </div>
-              <div class="photo-actions">
-                <button type="button" class="btn-photo-remove"${p.fenykep_frissitve ? "" : " hidden"}>${t.photoRemove}</button>
-                <span class="photo-upload-status"></span>
+              <div class="edit-tab-panel" data-tab-panel="photo">
+                <div class="photo-edit-block" data-par-id="${p.id}" data-slug="${escapeHtml(p.slug)}">
+                  <p class="field-explain">${t.photoExplain}</p>
+                  <div class="photo-dropzone">
+                    ${
+                      p.fenykep_frissitve
+                        ? `<img src="/foto/${escapeHtml(p.slug)}?v=${escapeHtml(p.fenykep_frissitve)}" alt="" class="photo-preview">`
+                        : `<img alt="" class="photo-preview" hidden>`
+                    }
+                    <div class="photo-drop-hint"${p.fenykep_frissitve ? " hidden" : ""}>${t.photoDropHint}</div>
+                    <input type="file" accept="image/*" class="photo-file-input">
+                  </div>
+                  <div class="photo-actions">
+                    <button type="button" class="btn-photo-remove"${p.fenykep_frissitve ? "" : " hidden"}>${t.photoRemove}</button>
+                    <span class="photo-upload-status"></span>
+                  </div>
+                </div>
               </div>
+              <form method="POST" action="/api/couple-update" class="edit-form" data-nev1="${escapeHtml(nev1)}" data-nev2="${escapeHtml(nev2)}" data-datetext="${escapeHtml(dateText)}">
+                <input type="hidden" name="par_id" value="${p.id}">
+                <div class="edit-tab-panel" data-tab-panel="message" hidden>
+                  <p class="field-explain">${t.ownMessageExplain}</p>
+                  <div class="chip-row">
+                    <span class="chip-row-label">${t.inspirationLabel}</span>
+                    ${t.messageSuggestions.map((s) => `<button type="button" class="chip" data-fill-message="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+                  </div>
+                  <textarea name="egyedi_uzenet" rows="2" placeholder="${t.ownMessagePlaceholder}">${escapeHtml(p.egyedi_uzenet || "")}</textarea>
+                </div>
+                <div class="edit-tab-panel" data-tab-panel="buttons" hidden>
+                  <p class="field-explain">${t.buttonsExplain} <span class="hint-inline">${t.buttonsEditHint}</span></p>
+                  <div class="chip-row">
+                    <span class="chip-row-label">${t.inspirationLabel}</span>
+                    ${t.buttonSuggestions.map((s) => `<button type="button" class="chip" data-fill="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+                  </div>
+                  ${gombRows}
+                </div>
+                <div class="edit-tab-panel" data-tab-panel="program" hidden>
+                  <p class="field-explain">${t.programExplain}</p>
+                  <div class="chip-row">
+                    <span class="chip-row-label">${t.inspirationLabel}</span>
+                    ${t.eventSuggestions.map((s) => `<button type="button" class="chip" data-fill-event="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+                  </div>
+                  ${eventRows}
+                </div>
+                <div class="edit-tab-panel" data-tab-panel="style" hidden>
+                  <p class="field-explain">${t.stylePickerHint}</p>
+                  <div class="style-picker style-picker--edit">${editStylePicker}</div>
+                </div>
+                <button type="submit" class="btn-save">${t.save}</button>
+                ${saved === String(p.id) ? `<span class="saved-note">${t.saved}</span>` : ""}
+              </form>
             </div>
-            <form method="POST" action="/api/couple-update" class="edit-form" data-nev1="${escapeHtml(nev1)}" data-nev2="${escapeHtml(nev2)}" data-datetext="${escapeHtml(dateText)}">
-              <input type="hidden" name="par_id" value="${p.id}">
-              <label>${t.ownMessage} <span class="hint-inline">${t.ownMessageEditHint}</span></label>
-              <p class="field-explain">${t.ownMessageExplain}</p>
-              <div class="chip-row">
-                <span class="chip-row-label">${t.inspirationLabel}</span>
-                ${t.messageSuggestions.map((s) => `<button type="button" class="chip" data-fill-message="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
-              </div>
-              <textarea name="egyedi_uzenet" rows="2" placeholder="${t.ownMessagePlaceholder}">${escapeHtml(p.egyedi_uzenet || "")}</textarea>
-              <label>${t.buttons} <span class="hint-inline">${t.buttonsEditHint}</span></label>
-              <p class="field-explain">${t.buttonsExplain}</p>
-              <div class="chip-row">
-                <span class="chip-row-label">${t.inspirationLabel}</span>
-                ${t.buttonSuggestions.map((s) => `<button type="button" class="chip" data-fill="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
-              </div>
-              ${gombRows}
-              <label>${t.program} <span class="hint-inline">${t.programHint}</span></label>
-              <p class="field-explain">${t.programExplain}</p>
-              <div class="chip-row">
-                <span class="chip-row-label">${t.inspirationLabel}</span>
-                ${t.eventSuggestions.map((s) => `<button type="button" class="chip" data-fill-event="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
-              </div>
-              ${eventRows}
-              <label>${t.editStyleLabel}</label>
-              <p class="field-explain">${t.stylePickerHint}</p>
-              <div class="style-picker style-picker--edit">${editStylePicker}</div>
-              <button type="submit" class="btn-save">${t.save}</button>
-              ${saved === String(p.id) ? `<span class="saved-note">${t.saved}</span>` : ""}
-            </form>
           </details>
           ${
             hasStdOrder
@@ -485,6 +499,11 @@ export async function renderDashboard(context, reseller) {
   .btn-row { display:flex; gap:8px; align-items:center; }
   .btn-remove-row { flex:none; border:none; background:none; color:var(--muted); font-size:1.2rem; line-height:1; cursor:pointer; padding:0 4px 14px; }
   .btn-add-row { border:1px dashed #ddd6c9; background:none; color:var(--accent); border-radius:8px; padding:9px 14px; font-size:0.95rem; font-weight:600; cursor:pointer; font-family:inherit; margin-bottom:20px; }
+  .edit-tabs-nav { display:flex; gap:0; overflow-x:auto; margin-bottom:16px; border-bottom:1px solid #f0e9d8; -webkit-overflow-scrolling:touch; }
+  .edit-tab-btn { flex:none; font-family:"Poppins",sans-serif; font-size:0.85rem; font-weight:600; color:var(--muted); background:none; border:none; border-bottom:2px solid transparent; padding:8px 4px; margin-right:18px; cursor:pointer; white-space:nowrap; transition:color 0.15s ease, border-color 0.15s ease; }
+  .edit-tab-btn:hover { color:var(--fg); }
+  .edit-tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
+  .edit-tab-panel[hidden] { display:none; }
   .photo-edit-block { margin-bottom:18px; }
   .photo-dropzone { position:relative; border:1.5px dashed #ddd6c9; border-radius:10px; padding:10px; text-align:center; margin-bottom:10px; transition:border-color 0.15s ease, background 0.15s ease; }
   .photo-dropzone:hover, .photo-dropzone.drag-over { border-color:var(--accent); background:#fbf7ef; }
@@ -1160,6 +1179,22 @@ ${
         setTimeout(function () {
           btn.textContent = original;
         }, 1500);
+      });
+    });
+  });
+
+  document.querySelectorAll(".edit-tabs").forEach(function (tabs) {
+    var tabButtons = tabs.querySelectorAll(".edit-tab-btn");
+    var tabPanels = tabs.querySelectorAll(".edit-tab-panel");
+    tabButtons.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var target = btn.getAttribute("data-tab");
+        tabButtons.forEach(function (b) {
+          b.classList.toggle("active", b === btn);
+        });
+        tabPanels.forEach(function (panel) {
+          panel.hidden = panel.getAttribute("data-tab-panel") !== target;
+        });
       });
     });
   });
