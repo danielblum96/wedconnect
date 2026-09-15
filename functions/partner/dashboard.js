@@ -521,6 +521,17 @@ export async function renderDashboard(context, reseller) {
   .wizard-progress-step.active .wizard-progress-label { color:var(--fg); font-weight:700; }
   .wizard-progress-step.completed .wizard-progress-circle { background:linear-gradient(135deg,#f0c988,#b48b56); border-color:transparent; color:#1a1408; }
   .wizard-progress-step.completed .wizard-progress-label { color:var(--accent); font-weight:600; }
+  /* A lépésjelző körök alapból FIX szélességűek (nem zsugorodnak) - 4-5
+     lépésnél ez keskeny mobil-viewporton szélesebb, mint maga a popup,
+     vízszintes kilógást/törést okozva. Mobilon ehelyett rugalmasan osztozzanak
+     a rendelkezésre álló helyen, hogy garantáltan beleférjenek. */
+  @media (max-width: 480px) {
+    .wizard-progress { gap:0; }
+    .wizard-progress-step { width:auto; flex:1 1 0; min-width:0; }
+    .wizard-progress-circle { width:26px; height:26px; font-size:0.78rem; }
+    .wizard-progress-label { font-size:0.64rem; margin-top:5px; padding:0 2px; }
+    .wizard-progress-line { margin-top:12px; }
+  }
   .wizard-progress-line.completed { background:linear-gradient(90deg,#f0c988,#b48b56); }
   .hint-inline { font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted); font-size:0.88rem; }
   /* A wizard-nav sáv MINDIG a felület alján marad görgetéskor - popup-oknál
