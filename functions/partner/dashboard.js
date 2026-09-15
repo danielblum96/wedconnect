@@ -551,6 +551,16 @@ export async function renderDashboard(context, reseller) {
   .std-modal-head { padding:34px 44px 0; text-align:center; }
   .std-modal-title { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.7rem; margin:0; color:var(--fg); }
   .std-modal-subtitle { font-size:0.95rem; color:var(--muted); margin-top:5px; min-height:1.2em; }
+  .std-video-teaser { display:flex; align-items:center; gap:14px; background:#faf6ee; border:1px solid #ece1cc; border-radius:12px; padding:10px 14px; margin:16px 0 0; text-align:left; cursor:pointer; transition:border-color 0.15s ease, background 0.15s ease; }
+  .std-video-teaser:hover { border-color:var(--accent); background:#f7f0dd; }
+  .std-video-thumb { position:relative; width:58px; aspect-ratio:9/16; flex:none; border-radius:8px; overflow:hidden; background:#1a1408; }
+  .std-video-thumb-img { width:100%; height:100%; object-fit:cover; object-position:center; display:block; }
+  .std-video-play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(20,14,6,0.28); }
+  .std-video-play svg { color:#fff; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+  .std-video-caption { font-size:0.9rem; color:var(--fg); line-height:1.4; margin:0; }
+  .std-video-caption strong { color:var(--accent); }
+  .std-video-frame-wrap { position:relative; width:100%; max-width:230px; aspect-ratio:9/16; margin:16px auto 0; border-radius:14px; overflow:hidden; box-shadow:0 14px 30px -12px rgba(30,20,8,0.4); }
+  .std-video-frame-wrap iframe { position:absolute; inset:0; width:100%; height:100%; border:none; }
   .std-modal .std-panel-body { padding:26px 44px 40px; }
   .std-panel-body { display:flex; gap:36px; flex-wrap:wrap; align-items:flex-start; }
   .std-stage { flex:none; width:300px; max-width:100%; }
@@ -763,6 +773,20 @@ ${
   <div class="std-modal-head">
     <h3 class="std-modal-title">${t.modalTitle}</h3>
     <p class="std-modal-subtitle" id="std-modal-subtitle"></p>
+    ${
+      lang === "hu"
+        ? `<div class="std-video-teaser" id="std-video-teaser" role="button" tabindex="0" aria-label="Videó lejátszása: mi is a Save the Date + WedConnect">
+            <div class="std-video-thumb">
+              <img src="https://i.ytimg.com/vi/L49pti5ixxA/hq2.jpg" alt="" class="std-video-thumb-img" loading="lazy">
+              <span class="std-video-play"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>
+            </div>
+            <p class="std-video-caption">Nézd meg <strong>30 másodpercben</strong>: mi is pontosan a Save the Date + WedConnect?</p>
+          </div>
+          <div class="std-video-frame-wrap" id="std-video-frame-wrap" hidden>
+            <iframe id="std-video-iframe" src="" title="Save the Date + WedConnect" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          </div>`
+        : ""
+    }
   </div>
   <div class="std-panel-body">
     <div class="std-stage">
@@ -1391,6 +1415,40 @@ ${
     }
   }
 
+  var STD_VIDEO_SRC = "https://www.youtube-nocookie.com/embed/L49pti5ixxA?autoplay=1&rel=0";
+  var stdVideoTeaser = document.getElementById("std-video-teaser");
+  var stdVideoFrameWrap = document.getElementById("std-video-frame-wrap");
+  var stdVideoIframe = document.getElementById("std-video-iframe");
+
+  function playStdVideo() {
+    if (!stdVideoFrameWrap) return;
+    stdVideoIframe.src = STD_VIDEO_SRC;
+    stdVideoTeaser.hidden = true;
+    stdVideoFrameWrap.hidden = false;
+  }
+
+  // A modál egyetlen, megosztott <dialog> (nem párononként duplikált), ezért
+  // minden megnyitáskor/bezáráskor vissza kell állítani a "still image +
+  // lejátszás gomb" állapotra - egyrészt hogy egy másik pár megnyitásakor ne
+  // maradjon lejátszva az előző videó, másrészt hogy bezáráskor a háttérben
+  // se szóljon tovább.
+  function resetStdVideo() {
+    if (!stdVideoFrameWrap) return;
+    stdVideoIframe.src = "";
+    stdVideoFrameWrap.hidden = true;
+    stdVideoTeaser.hidden = false;
+  }
+
+  if (stdVideoTeaser) {
+    stdVideoTeaser.addEventListener("click", playStdVideo);
+    stdVideoTeaser.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        playStdVideo();
+      }
+    });
+  }
+
   var stdModal = document.getElementById("std-modal");
   var stdModalPreview = document.getElementById("std-modal-preview");
   var stdModalParId = document.getElementById("std-modal-par-id");
@@ -1650,6 +1708,7 @@ ${
       stdModalSubtitle.textContent = nev1 + " & " + nev2;
       stdModalLink.textContent = btn.getAttribute("data-url");
       hideStdFormError();
+      resetStdVideo();
       if (stdInfoPopover) stdInfoPopover.hidden = true;
       if (stdWantStd) stdWantStd.checked = true;
       if (stdModalMenge) stdModalMenge.value = "50";
@@ -1675,10 +1734,17 @@ ${
   if (stdModal) {
     stdModal.querySelector(".std-modal-close").addEventListener("click", function () {
       stdModal.close();
+      resetStdVideo();
     });
     stdModal.addEventListener("click", function (e) {
-      if (e.target === stdModal) stdModal.close();
+      if (e.target === stdModal) {
+        stdModal.close();
+        resetStdVideo();
+      }
     });
+    // Az Escape billentyű a <dialog> saját, natív bezárása - erre nem fut le
+    // a fenti két kattintás-alapú handler, ezért külön kell figyelni.
+    stdModal.addEventListener("cancel", resetStdVideo);
   }
 
   if (stdInfoBtn && stdInfoPopover) {
