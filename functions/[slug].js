@@ -9,7 +9,7 @@ function notFound() {
 <title>Oldal nem található — WedConnect</title>
 <style>body{font-family:sans-serif;background:#faf7f2;color:#2b2620;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center;}</style>
 </head><body><div><h1>404</h1><p>Ez az oldal nem található.</p></div></body></html>`;
-  return new Response(html, { status: 404, headers: { "Content-Type": "text/html; charset=utf-8" } });
+  return new Response(html, { status: 404, headers: { "Content-Type": "text/html; charset=utf-8", "X-Frame-Options": "SAMEORIGIN" } });
 }
 
 // Cloudflare Pages routes this single-segment catch-all BEFORE resolving a
@@ -332,5 +332,5 @@ export async function onRequestGet(context) {
 </body>
 </html>`;
 
-  return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+  return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8", "X-Frame-Options": "SAMEORIGIN" } });
 }
