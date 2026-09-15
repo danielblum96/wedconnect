@@ -424,17 +424,17 @@ export async function renderDashboard(context, reseller) {
   }
   main { max-width:820px; margin:0 auto; padding:36px 24px 80px; }
   h2 { font-family:"Cormorant Garamond",serif; font-size:1.5rem; margin:0 0 18px; }
-  .new-couple { background:var(--card); border-radius:14px; padding:26px 28px; margin-bottom:40px; box-shadow:0 10px 30px -20px rgba(0,0,0,0.15); }
+  .new-couple-cta { margin-bottom:32px; }
   .field-row { display:flex; gap:14px; flex-wrap:wrap; }
   .field-row > div { flex:1; min-width:160px; }
   label { display:block; font-size:0.9rem; font-weight:500; margin-bottom:5px; }
   input, select, textarea { width:100%; padding:9px 12px; border:1px solid #ddd6c9; border-radius:8px; font-family:inherit; font-size:1rem; margin-bottom:14px; }
-  button.btn-save, .new-couple button[type=submit] {
+  button.btn-save {
     padding:10px 24px; border:none; border-radius:999px; background:linear-gradient(135deg,#f0c988,#b48b56); color:#1a1408;
     font-weight:600; font-size:0.95rem; cursor:pointer; font-family:inherit;
     box-shadow:0 6px 16px -8px rgba(139,102,53,0.6); transition:transform 0.15s ease, box-shadow 0.15s ease;
   }
-  button.btn-save:hover, .new-couple button[type=submit]:hover { transform:translateY(-1px); box-shadow:0 8px 20px -8px rgba(139,102,53,0.75); }
+  button.btn-save:hover { transform:translateY(-1px); box-shadow:0 8px 20px -8px rgba(139,102,53,0.75); }
   .couple { background:var(--card); border-radius:12px; padding:18px 22px; margin-bottom:14px; box-shadow:0 6px 20px -16px rgba(0,0,0,0.15); }
   .checkout-row { display:flex; justify-content:center; margin-top:16px; }
   .checkout-row .btn-checkout { width:100%; max-width:360px; }
@@ -448,8 +448,8 @@ export async function renderDashboard(context, reseller) {
   .btn-edit-open { margin-top:14px; padding-top:14px; border-top:1px solid #f0e9d8; width:100%; text-align:left; cursor:pointer; font-family:inherit; font-size:0.88rem; color:var(--muted); font-weight:600; background:none; border-left:none; border-right:none; border-bottom:none; display:flex; align-items:center; gap:5px; }
   .btn-edit-open::before { content:"✎"; font-size:0.85rem; }
   .btn-edit-open:hover { color:var(--fg); }
-  .edit-modal .std-modal-head { padding:30px 40px 0; }
-  .edit-modal .std-panel-body { padding:22px 40px 34px; }
+  .edit-modal .std-modal-head, .new-couple-modal .std-modal-head { padding:30px 40px 0; }
+  .edit-modal .std-panel-body, .new-couple-modal .std-panel-body { padding:22px 40px 34px; }
   .edit-form { margin-top:0; }
   .edit-form .style-picker--edit { margin-top:6px; margin-bottom:16px; }
   .style-picker--edit .style-swatch:has(input:checked) .swatch-name { display:block; }
@@ -555,8 +555,8 @@ export async function renderDashboard(context, reseller) {
   .btn-row { display:flex; gap:8px; align-items:center; }
   .btn-remove-row { flex:none; border:none; background:none; color:var(--muted); font-size:1.2rem; line-height:1; cursor:pointer; padding:0 4px 14px; }
   .btn-add-row { border:1px dashed #ddd6c9; background:none; color:var(--accent); border-radius:8px; padding:9px 14px; font-size:0.95rem; font-weight:600; cursor:pointer; font-family:inherit; margin-bottom:20px; }
-  .edit-tabs { min-width:0; flex:1; }
-  .edit-tabs .wizard-progress { margin-bottom:22px; }
+  .edit-tabs, .new-couple-tabs { min-width:0; flex:1; }
+  .edit-tabs .wizard-progress, .new-couple-tabs .wizard-progress { margin-bottom:22px; }
   .edit-tabs .wizard-progress-step { cursor:default; width:74px; }
   .edit-tabs .wizard-progress-step.completed, .edit-tabs .wizard-progress-step.active { cursor:pointer; }
   .photo-edit-block { margin-bottom:18px; }
@@ -760,92 +760,102 @@ ${
   ${
     isIndividual && parok && parok.length >= 1
       ? ""
-      : `<div class="new-couple">
-    <h2>${t.newCoupleHeading}</h2>
-    <div class="wizard-progress" id="wizard-progress">
-      ${t.progressSteps
-        .map(
-          (label, i) => `
-        ${i > 0 ? `<div class="wizard-progress-line" data-progress-line="${i}"></div>` : ""}
-        <div class="wizard-progress-step" data-progress-step="${i + 1}">
-          <div class="wizard-progress-circle">${i + 1}</div>
-          <div class="wizard-progress-label">${escapeHtml(label)}</div>
-        </div>`
-        )
-        .join("")}
+      : `<div class="new-couple-cta">
+    <button type="button" class="btn-next" id="new-couple-open">+ ${t.newCoupleHeading}</button>
+  </div>
+  <dialog class="std-modal new-couple-modal" id="new-couple-modal">
+    <button type="button" class="std-modal-close" aria-label="${t.modalClose}">&times;</button>
+    <div class="std-modal-head">
+      <h3 class="std-modal-title">${t.newCoupleHeading}</h3>
     </div>
-    <form method="POST" action="/api/couple-create" id="new-couple-form" novalidate>
-      <div class="wizard-step" data-step="1">
-        <div class="field-row">
-          <div><label>${t.brideName}</label><input type="text" name="nev1" id="f-nev1" required></div>
-          <div><label>${t.groomName}</label><input type="text" name="nev2" id="f-nev2" required></div>
-        </div>
-        <div class="field-row">
-          <div><label>${t.weddingDate}</label><input type="date" name="eskuvo_datuma" id="f-datum" required></div>
-        </div>
-        <div class="wizard-nav">
-          <button type="button" class="btn-next" data-next="2">${t.next}</button>
-        </div>
-      </div>
-
-      <div class="wizard-step" data-step="2" hidden>
-        <label>${t.ownMessage} <span class="hint-inline">${t.ownMessageHint}</span></label>
-        <p class="field-explain">${t.ownMessageExplain}</p>
-        <div class="chip-row">
-          <span class="chip-row-label">${t.inspirationLabel}</span>
-          ${t.messageSuggestions.map((s) => `<button type="button" class="chip" data-fill-message="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
-        </div>
-        <textarea name="egyedi_uzenet" id="f-uzenet" rows="3">${escapeHtml(defaultMessage)}</textarea>
-        <label>${t.buttons} <span class="hint-inline">${t.buttonsHint}</span></label>
-        <p class="field-explain">${t.buttonsExplain}</p>
-        <div class="chip-row">
-          <span class="chip-row-label">${t.inspirationLabel}</span>
-          ${t.buttonSuggestions.map((s) => `<button type="button" class="chip" data-fill="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
-        </div>
-        <div id="button-rows">
-          <div class="btn-row">
-            <input type="text" name="gomb_label" placeholder="${t.buttonLabelPlaceholder}" autocomplete="off">
-            <input type="text" name="gomb_url" placeholder="https://..." autocomplete="off">
-            <button type="button" class="btn-remove-row" aria-label="${t.buttonRemoveAria}">×</button>
-          </div>
-        </div>
-        <button type="button" class="btn-add-row" id="add-button-row">${t.addButton}</button>
-        <label>${t.program} <span class="hint-inline">${t.programHint}</span></label>
-        <p class="field-explain">${t.programExplain}</p>
-        <div class="chip-row">
-          <span class="chip-row-label">${t.inspirationLabel}</span>
-          ${t.eventSuggestions.map((s) => `<button type="button" class="chip" data-fill-event="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
-        </div>
-        <div id="event-rows">
-          ${[0, 1, 2, 3]
+    <div class="std-panel-body">
+      <div class="new-couple-tabs">
+        <div class="wizard-progress" id="wizard-progress">
+          ${t.progressSteps
             .map(
-              () => `
-          <div class="event-row">
-            <input type="text" name="esemeny_ido" placeholder="${t.eventTimePlaceholder}" autocomplete="off" class="event-time">
-            <input type="text" name="esemeny_nev" placeholder="${t.eventNamePlaceholder}" autocomplete="off">
-            <button type="button" class="btn-remove-row" aria-label="${t.eventRemoveAria}">×</button>
-          </div>`
+              (label, i) => `
+            ${i > 0 ? `<div class="wizard-progress-line" data-progress-line="${i}"></div>` : ""}
+            <div class="wizard-progress-step" data-progress-step="${i + 1}">
+              <div class="wizard-progress-circle">${i + 1}</div>
+              <div class="wizard-progress-label">${escapeHtml(label)}</div>
+            </div>`
             )
             .join("")}
         </div>
-        <button type="button" class="btn-add-row" id="add-event-row">${t.addEvent}</button>
-        <div class="wizard-nav">
-          <button type="button" class="btn-back" data-back="1">${t.back}</button>
-          <button type="button" class="btn-next" data-next="3">${t.next}</button>
-        </div>
-      </div>
+        <form method="POST" action="/api/couple-create" id="new-couple-form" novalidate>
+          <div class="wizard-step" data-step="1">
+            <div class="field-row">
+              <div><label>${t.brideName}</label><input type="text" name="nev1" id="f-nev1" required></div>
+              <div><label>${t.groomName}</label><input type="text" name="nev2" id="f-nev2" required></div>
+            </div>
+            <div class="field-row">
+              <div><label>${t.weddingDate}</label><input type="date" name="eskuvo_datuma" id="f-datum" required></div>
+            </div>
+            <div class="wizard-nav">
+              <button type="button" class="btn-next" data-next="2">${t.next}</button>
+            </div>
+          </div>
 
-      <div class="wizard-step" data-step="3" hidden>
-        <p class="style-picker-hint">${t.stylePickerHint}</p>
-        <p class="price-note">${t.priceNote(formatPrice(PAGE_PRICE, lang))}</p>
-        <div class="style-picker" id="style-picker">${stylePicker}</div>
-        <div class="wizard-nav">
-          <button type="button" class="btn-back" data-back="2">${t.back}</button>
-          <button type="submit" class="btn-next" id="new-couple-style-submit" disabled>${t.createPage}</button>
-        </div>
+          <div class="wizard-step" data-step="2" hidden>
+            <label>${t.ownMessage} <span class="hint-inline">${t.ownMessageHint}</span></label>
+            <p class="field-explain">${t.ownMessageExplain}</p>
+            <div class="chip-row">
+              <span class="chip-row-label">${t.inspirationLabel}</span>
+              ${t.messageSuggestions.map((s) => `<button type="button" class="chip" data-fill-message="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+            </div>
+            <textarea name="egyedi_uzenet" id="f-uzenet" rows="3">${escapeHtml(defaultMessage)}</textarea>
+            <label>${t.buttons} <span class="hint-inline">${t.buttonsHint}</span></label>
+            <p class="field-explain">${t.buttonsExplain}</p>
+            <div class="chip-row">
+              <span class="chip-row-label">${t.inspirationLabel}</span>
+              ${t.buttonSuggestions.map((s) => `<button type="button" class="chip" data-fill="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+            </div>
+            <div id="button-rows">
+              <div class="btn-row">
+                <input type="text" name="gomb_label" placeholder="${t.buttonLabelPlaceholder}" autocomplete="off">
+                <input type="text" name="gomb_url" placeholder="https://..." autocomplete="off">
+                <button type="button" class="btn-remove-row" aria-label="${t.buttonRemoveAria}">×</button>
+              </div>
+            </div>
+            <button type="button" class="btn-add-row" id="add-button-row">${t.addButton}</button>
+            <label>${t.program} <span class="hint-inline">${t.programHint}</span></label>
+            <p class="field-explain">${t.programExplain}</p>
+            <div class="chip-row">
+              <span class="chip-row-label">${t.inspirationLabel}</span>
+              ${t.eventSuggestions.map((s) => `<button type="button" class="chip" data-fill-event="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+            </div>
+            <div id="event-rows">
+              ${[0, 1, 2, 3]
+                .map(
+                  () => `
+              <div class="event-row">
+                <input type="text" name="esemeny_ido" placeholder="${t.eventTimePlaceholder}" autocomplete="off" class="event-time">
+                <input type="text" name="esemeny_nev" placeholder="${t.eventNamePlaceholder}" autocomplete="off">
+                <button type="button" class="btn-remove-row" aria-label="${t.eventRemoveAria}">×</button>
+              </div>`
+                )
+                .join("")}
+            </div>
+            <button type="button" class="btn-add-row" id="add-event-row">${t.addEvent}</button>
+            <div class="wizard-nav">
+              <button type="button" class="btn-back" data-back="1">${t.back}</button>
+              <button type="button" class="btn-next" data-next="3">${t.next}</button>
+            </div>
+          </div>
+
+          <div class="wizard-step" data-step="3" hidden>
+            <p class="style-picker-hint">${t.stylePickerHint}</p>
+            <p class="price-note">${t.priceNote(formatPrice(PAGE_PRICE, lang))}</p>
+            <div class="style-picker" id="style-picker">${stylePicker}</div>
+            <div class="wizard-nav">
+              <button type="button" class="btn-back" data-back="2">${t.back}</button>
+              <button type="submit" class="btn-next" id="new-couple-style-submit" disabled>${t.createPage}</button>
+            </div>
+          </div>
+        </form>
       </div>
-    </form>
-  </div>`
+    </div>
+  </dialog>`
   }
 
   <h2>${t.yourCouples}</h2>
@@ -1079,6 +1089,7 @@ ${
   var MAX_BUTTONS = 5;
   var CREATED_PAR_ID = ${createdCouple ? JSON.stringify(String(createdCouple.id)) : "null"};
   var SAVED_PAR_ID = ${saved ? JSON.stringify(String(saved)) : "null"};
+  var NEW_COUPLE_ERROR = ${error ? "true" : "false"};
   var HAS_NO_COUPLES = ${JSON.stringify(!parok || parok.length === 0)};
   var DEFAULT_BILLING = ${JSON.stringify(defaultBilling)};
   var DEFAULT_SHIPPING = ${JSON.stringify(defaultShipping)};
@@ -1275,6 +1286,46 @@ ${
 
   renderPreviews();
   showStep(1);
+  form.showStep = showStep;
+  }
+
+  // Az "Új pár hozzáadása" varázsló - az edit-popupokhoz hasonlóan - most
+  // egy valódi <dialog>-ban nyílik meg egy gombra kattintva, nem a lapon
+  // mindig látható, helyfoglaló kártyaként. A varázsló-logika maga (fent, a
+  // "form" változónál) változatlan, csak a megnyitás/bezárás popup-os.
+  var newCoupleOpenBtn = document.getElementById("new-couple-open");
+  var newCoupleModal = document.getElementById("new-couple-modal");
+  if (newCoupleOpenBtn && newCoupleModal) {
+    newCoupleOpenBtn.addEventListener("click", function () {
+      if (form && form.showStep) form.showStep(1);
+      if (typeof newCoupleModal.showModal === "function") {
+        newCoupleModal.showModal();
+      } else {
+        newCoupleModal.setAttribute("open", "");
+      }
+    });
+  }
+  if (newCoupleModal) {
+    var newCoupleCloseBtn = newCoupleModal.querySelector(".std-modal-close");
+    if (newCoupleCloseBtn) {
+      newCoupleCloseBtn.addEventListener("click", function () {
+        newCoupleModal.close();
+      });
+    }
+    newCoupleModal.addEventListener("click", function (e) {
+      if (e.target === newCoupleModal) newCoupleModal.close();
+    });
+    // Ha a mentés a szerver oldalán hibával tért vissza (pl. hiányzó
+    // kötelező mező), a varázsló popup automatikusan újranyílik, hogy a user
+    // ne a listát lássa, hanem rögtön a hibás formot - ugyanaz a "vidd
+    // vissza oda, ahol a user tartott" elv, mint a SAVED_PAR_ID-nál.
+    if (NEW_COUPLE_ERROR) {
+      if (typeof newCoupleModal.showModal === "function") {
+        newCoupleModal.showModal();
+      } else {
+        newCoupleModal.setAttribute("open", "");
+      }
+    }
   }
 
   var searchInput = document.getElementById("couple-search");
