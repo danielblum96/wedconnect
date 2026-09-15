@@ -1011,6 +1011,19 @@ ${
       .replace(/'/g, "&#39;");
   }
 
+  // Analitikai esemény-küldés előkészítve, de MÉG NEM AKTÍV - a projektnek
+  // jelenleg nincs bekötött analitikai háttérrendszere (GA4/Cloudflare Web
+  // Analytics), a user kifejezett kérésére csak a kiváltási pontok vannak
+  // bedrótozva. Amint lesz háttérrendszer (pl. a cookie-consent.js-ben már
+  // előkészített GA4_ID kitöltésével gtag.js is betöltődik), ez a függvény
+  // automatikusan élesbe áll, semmit nem kell hozzányúlni a hívási pontokhoz.
+  function trackEvent(name, params) {
+    if (typeof window.gtag === "function") {
+      window.gtag("event", name, params || {});
+    }
+  }
+
+  var STRIPE_BANNER_TYPE = ${JSON.stringify(stripeBannerType)};
   var DEFAULT_MESSAGE = ${defaultMessageForClient};
   var STYLES = ${stylesForClient};
   var FONT_RECIPES = ${fontRecipesForClient};
@@ -1412,7 +1425,19 @@ ${
       previewLink.href = savedPageUrl;
       if (previewStdCta) previewStdCta.hidden = !previewStdTriggerBtn;
       previewModal.showModal();
+      trackEvent("wedding_page_completed", { par_id: SAVED_PAR_ID });
+      trackEvent("save_the_date_intro_viewed", { par_id: SAVED_PAR_ID });
     }
+  }
+
+  if (previewLink) {
+    previewLink.addEventListener("click", function () {
+      trackEvent("wedding_page_preview_opened", { par_id: SAVED_PAR_ID });
+    });
+  }
+
+  if (STRIPE_BANNER_TYPE === "std" || STRIPE_BANNER_TYPE === "oldal") {
+    trackEvent("save_the_date_purchase", { type: STRIPE_BANNER_TYPE });
   }
 
   document.querySelectorAll(".photo-edit-block").forEach(function (block) {
@@ -1854,6 +1879,7 @@ ${
       if (stdWantStd.checked) {
         var qty = parseInt(stdModalMenge.value, 10);
         if (!qty || qty < 50) stdModalMenge.value = "50";
+        trackEvent("save_the_date_order_started", { par_id: stdModalParId ? stdModalParId.value : null });
       }
       updateStdPricing();
     });
@@ -1959,6 +1985,7 @@ ${
 
   document.querySelectorAll(".btn-std-open").forEach(function (btn) {
     btn.addEventListener("click", function () {
+      trackEvent("save_the_date_designer_clicked", { par_id: btn.getAttribute("data-par-id") });
       var nev1 = btn.getAttribute("data-nev1");
       var nev2 = btn.getAttribute("data-nev2");
       var datum = btn.getAttribute("data-datum");
@@ -1997,6 +2024,7 @@ ${
       } else {
         stdModal.setAttribute("open", "");
       }
+      trackEvent("save_the_date_designer_opened", { par_id: btn.getAttribute("data-par-id") });
     });
   });
 
