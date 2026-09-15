@@ -600,7 +600,10 @@ export async function renderDashboard(context, reseller) {
   .preview-showcase-std { flex:1; max-width:190px; }
   .preview-showcase-std-bg { position:relative; background:radial-gradient(ellipse at 50% 38%, #ffffff 0%, #f2ead9 65%, #ece0c8 100%); border-radius:14px; padding:14px 12px; box-shadow:inset 0 0 0 1px rgba(180,139,86,0.14); }
   .preview-showcase-std-bg svg { width:100%; height:auto; display:block; filter:drop-shadow(0 10px 16px -10px rgba(90,65,30,0.4)); }
-  .preview-showcase-arrow { flex:none; color:var(--accent); }
+  .preview-showcase-signal { position:relative; flex:none; width:30px; height:30px; display:flex; align-items:center; justify-content:center; color:var(--accent); }
+  .preview-showcase-signal svg { width:22px; height:22px; }
+  .preview-showcase-signal::before, .preview-showcase-signal::after { content:""; position:absolute; inset:0; border-radius:50%; border:1.5px solid var(--accent); opacity:0; animation:std-nfc-pulse 2.2s ease-out infinite; }
+  .preview-showcase-signal::after { animation-delay:0.6s; }
   .preview-showcase-phone { flex:none; }
   .preview-showcase-phone-frame { position:relative; width:112px; height:224px; border-radius:20px; border:3px solid #2b2620; background:#fff; box-shadow:0 14px 26px -14px rgba(0,0,0,0.45); overflow:hidden; }
   .preview-showcase-phone-iframe { position:absolute; top:0; left:0; width:390px; height:780px; border:none; transform:scale(0.287); transform-origin:top left; pointer-events:none; }
@@ -992,8 +995,15 @@ ${
       <div class="preview-showcase-std">
         <div class="preview-showcase-std-bg" id="preview-modal-std-mock"></div>
       </div>
-      <div class="preview-showcase-arrow" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M4 12h15M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="preview-showcase-signal" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(0,-3.9)">
+            <circle cx="7.2" cy="16.8" r="1.4" fill="currentColor"/>
+            <path d="M10.6 13.4a5 5 0 0 1 0 7.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M13.4 10.6a9 9 0 0 1 0 12.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M16.2 7.8a13 13 0 0 1 0 18.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </g>
+        </svg>
       </div>
       <div class="preview-showcase-phone">
         <div class="preview-showcase-phone-frame">
