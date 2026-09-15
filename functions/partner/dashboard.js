@@ -1458,8 +1458,18 @@ ${
       // egymás mellett: a Save the Date fizikai látványterve (ugyanaz az SVG,
       // amit a tervező-modál is használ) + a MOST elkészült, éles oldal élő
       // előnézete egy telefon-keretben (iframe kicsinyítve, hogy a teljes
-      // mobilnézet beleférjen).
-      if (previewStdTriggerBtn && previewStdMock && window.STD && window.STD.generateMockupSVG) {
+      // mobilnézet beleférjen). A window.STD egy ES modulból érkezik, ami
+      // ASZINKRON töltődik be - ez a natív (nem-module) script viszont
+      // azonnal, szinkron lefut, tehát window.STD ezen a ponton még
+      // könnyen hiányozhat -> ugyanaz az újrapróbálkozós minta kell, mint
+      // amit a renderStdPreview() már használ, különben a mock csendben
+      // üresen marad.
+      (function renderPreviewStdMock() {
+        if (!previewStdTriggerBtn || !previewStdMock) return;
+        if (!window.STD || !window.STD.generateMockupSVG) {
+          setTimeout(renderPreviewStdMock, 150);
+          return;
+        }
         var pNev1 = previewStdTriggerBtn.getAttribute("data-nev1");
         var pNev2 = previewStdTriggerBtn.getAttribute("data-nev2");
         var pDatum = previewStdTriggerBtn.getAttribute("data-datum");
@@ -1468,7 +1478,7 @@ ${
         if (pParts.length === 3) {
           previewStdMock.innerHTML = window.STD.generateMockupSVG(pNev1, pNev2, pParts[0], pParts[1], pParts[2], pNyelv);
         }
-      }
+      })();
       previewModal.showModal();
       trackEvent("wedding_page_completed", { par_id: SAVED_PAR_ID });
       trackEvent("save_the_date_intro_viewed", { par_id: SAVED_PAR_ID });
