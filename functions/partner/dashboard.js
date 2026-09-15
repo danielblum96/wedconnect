@@ -560,8 +560,14 @@ export async function renderDashboard(context, reseller) {
   .std-video-play svg { color:#fff; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
   .std-video-caption { font-size:0.9rem; color:var(--fg); line-height:1.4; margin:0; }
   .std-video-caption strong { color:var(--accent); }
-  .std-video-frame-wrap { position:relative; width:100%; max-width:230px; aspect-ratio:9/16; margin:16px auto 0; border-radius:14px; overflow:hidden; box-shadow:0 14px 30px -12px rgba(30,20,8,0.4); }
-  .std-video-frame-wrap iframe { position:absolute; inset:0; width:100%; height:100%; border:none; }
+  .std-video-popup { position:fixed; inset:0; z-index:50; background:rgba(20,14,6,0.75); display:flex; align-items:center; justify-content:center; padding:30px 24px; }
+  .std-video-popup[hidden] { display:none; }
+  .std-video-popup-inner { position:relative; width:100%; max-width:280px; animation:std-video-pop-in 0.2s ease; }
+  @keyframes std-video-pop-in { from { opacity:0; transform:scale(0.94); } to { opacity:1; transform:scale(1); } }
+  .std-video-popup-frame { position:relative; width:100%; aspect-ratio:9/16; border-radius:16px; overflow:hidden; box-shadow:0 24px 60px -16px rgba(0,0,0,0.65); background:#000; }
+  .std-video-popup-frame iframe { position:absolute; inset:0; width:100%; height:100%; border:none; }
+  .std-video-popup-close { position:absolute; top:-14px; right:-14px; width:32px; height:32px; border-radius:50%; border:none; background:#fff; color:#2b2620; font-size:1.25rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px -2px rgba(0,0,0,0.4); z-index:2; }
+  .std-video-popup-close:hover { background:#f4efe2; }
   .std-modal .std-panel-body { padding:26px 44px 40px; }
   .std-panel-body { display:flex; gap:36px; flex-wrap:wrap; align-items:flex-start; }
   .std-stage { flex:none; width:300px; max-width:100%; }
@@ -783,8 +789,13 @@ ${
             </div>
             <p class="std-video-caption">Nézd meg <strong>30 másodpercben</strong>: mi is pontosan a Save the Date + WedConnect?</p>
           </div>
-          <div class="std-video-frame-wrap" id="std-video-frame-wrap" hidden>
-            <iframe id="std-video-iframe" src="" title="Save the Date + WedConnect" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          <div class="std-video-popup" id="std-video-frame-wrap" hidden>
+            <div class="std-video-popup-inner">
+              <button type="button" class="std-video-popup-close" id="std-video-popup-close" aria-label="Bezárás">&times;</button>
+              <div class="std-video-popup-frame">
+                <iframe id="std-video-iframe" src="" title="Save the Date + WedConnect" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+              </div>
+            </div>
           </div>`
         : ""
     }
@@ -1420,24 +1431,35 @@ ${
   var stdVideoTeaser = document.getElementById("std-video-teaser");
   var stdVideoFrameWrap = document.getElementById("std-video-frame-wrap");
   var stdVideoIframe = document.getElementById("std-video-iframe");
+  var stdVideoPopupClose = document.getElementById("std-video-popup-close");
 
+  // A videó egy fix-pozíciós popup-ként úszik a teljes tartalom FÖLÉ (nem a
+  // szerkesztő-form helyén, azt eltolva) - a teaser a háttérben változatlanul
+  // ott marad, csak eltakarja a popup.
   function playStdVideo() {
     if (!stdVideoFrameWrap) return;
     stdVideoIframe.src = STD_VIDEO_SRC;
-    stdVideoTeaser.hidden = true;
     stdVideoFrameWrap.hidden = false;
   }
 
   // A modál egyetlen, megosztott <dialog> (nem párononként duplikált), ezért
-  // minden megnyitáskor/bezáráskor vissza kell állítani a "still image +
-  // lejátszás gomb" állapotra - egyrészt hogy egy másik pár megnyitásakor ne
-  // maradjon lejátszva az előző videó, másrészt hogy bezáráskor a háttérben
-  // se szóljon tovább.
+  // minden megnyitáskor/bezáráskor vissza kell állítani a "popup zárva"
+  // állapotra - egyrészt hogy egy másik pár megnyitásakor ne maradjon
+  // lejátszva az előző videó, másrészt hogy bezáráskor a háttérben se szóljon
+  // tovább.
   function resetStdVideo() {
     if (!stdVideoFrameWrap) return;
     stdVideoIframe.removeAttribute("src");
     stdVideoFrameWrap.hidden = true;
-    stdVideoTeaser.hidden = false;
+  }
+
+  if (stdVideoPopupClose) {
+    stdVideoPopupClose.addEventListener("click", resetStdVideo);
+  }
+  if (stdVideoFrameWrap) {
+    stdVideoFrameWrap.addEventListener("click", function (e) {
+      if (e.target === stdVideoFrameWrap) resetStdVideo();
+    });
   }
 
   if (stdVideoTeaser) {
