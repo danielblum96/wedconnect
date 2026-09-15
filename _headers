@@ -1,2 +1,5 @@
+/*
+  X-Frame-Options: SAMEORIGIN
+
 /assets/cookie-consent.js
   Cache-Control: no-cache
