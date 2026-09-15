@@ -552,6 +552,7 @@ export async function renderDashboard(context, reseller) {
   .std-modal-title { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.7rem; margin:0; color:var(--fg); }
   .std-modal-subtitle { font-size:0.95rem; color:var(--muted); margin-top:5px; min-height:1.2em; }
   .std-video-teaser { display:flex; align-items:center; gap:14px; background:#faf6ee; border:1px solid #ece1cc; border-radius:12px; padding:10px 14px; margin:16px 0 0; text-align:left; cursor:pointer; transition:border-color 0.15s ease, background 0.15s ease; }
+  .std-video-teaser[hidden] { display:none; }
   .std-video-teaser:hover { border-color:var(--accent); background:#f7f0dd; }
   .std-video-thumb { position:relative; width:58px; aspect-ratio:9/16; flex:none; border-radius:8px; overflow:hidden; background:#1a1408; }
   .std-video-thumb-img { width:100%; height:100%; object-fit:cover; object-position:center; display:block; }
