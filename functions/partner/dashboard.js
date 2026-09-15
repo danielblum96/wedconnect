@@ -997,6 +997,20 @@ ${
 </dialog>
 <script>
 (function () {
+  // Globálisan kell elérhetőnek lennie (nem csak az új-pár varázslón belül),
+  // mert a Save the Date modál előnézet-renderelése (renderPageMock) is
+  // használja - magánszemélyes fiókoknál, ha már van egy meglévő párjuk, az
+  // új-pár varázsló szekció egyáltalán nincs a DOM-ban, tehát az azon belül
+  // definiált segédfüggvények sem futnának le.
+  function escapeHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   var DEFAULT_MESSAGE = ${defaultMessageForClient};
   var STYLES = ${stylesForClient};
   var FONT_RECIPES = ${fontRecipesForClient};
@@ -1057,15 +1071,6 @@ ${
       r.addEventListener("change", refreshNewCoupleStyleSubmit);
     });
     refreshNewCoupleStyleSubmit();
-  }
-
-  function escapeHtml(s) {
-    return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
   }
 
   function showStep(n) {
