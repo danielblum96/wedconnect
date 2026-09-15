@@ -82,6 +82,18 @@ export async function renderDashboard(context, reseller) {
       .bind(p.id, reseller.id)
       .run();
     await env.DB.prepare("DELETE FROM parok WHERE id = ? AND viszontelado_id = ?").bind(p.id, reseller.id).run();
+    // Ugyanaz a "ne szemeteljünk az R2-ben" ok, mint a couple-delete.js-nél -
+    // ez a MÁSIK törlési útvonal (automatikus lejárat-takarítás), ami ugyanúgy
+    // felejtette volna el a borítóképet, ahogy korábban az FK-leválasztást is
+    // (ld. Error 1101 tanulság) - ha ez a mező itt is kimaradna, minden lejárt,
+    // ki nem fizetett oldal képe örökre bent maradna az R2-ben.
+    if (p.slug) {
+      try {
+        await env.PHOTOS.delete(`parok/${p.slug}.webp`);
+      } catch (e) {
+        console.error(`dashboard lazy-cleanup: borítókép törlése sikertelen (slug=${p.slug}): ${e.message}`);
+      }
+    }
   }
   const parok = (parokRaw || []).filter((p) => !isExpiredUnpaid(p, now));
 

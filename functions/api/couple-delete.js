@@ -10,6 +10,10 @@ export async function onRequestPost(context) {
   const parId = parseInt((formData.get("par_id") || "").toString(), 10);
   if (!parId) return Response.redirect(new URL(dashboardUrl, request.url).href, 303);
 
+  const par = await env.DB.prepare("SELECT slug FROM parok WHERE id = ? AND viszontelado_id = ?")
+    .bind(parId, reseller.id)
+    .first();
+
   try {
     // A pár törlése előtt a hozzá kötött rendeléseket (rendelesek.par_id)
     // le kell választani (NULL-ra állítani) - a par_id egy idegen kulcs a
@@ -25,6 +29,18 @@ export async function onRequestPost(context) {
   } catch (e) {
     console.error(`couple-delete: törlés sikertelen (par_id=${parId}): ${e.message}`);
     return Response.redirect(`${new URL(dashboardUrl, request.url).href}?error=delete_failed`, 303);
+  }
+
+  // A pár borítóképe (ha volt) az R2-ben marad, ha itt nem töröljük - ez NEM
+  // idegen kulcsos hiba (nem dobna kivételt), csak árva, felesleges tárhelyet
+  // foglaló fájl maradna örökre. A törlés best-effort: ha sikertelen, a pár
+  // törlése akkor is végbement, csak egy log-sor jelzi a problémát.
+  if (par && par.slug) {
+    try {
+      await env.PHOTOS.delete(`parok/${par.slug}.webp`);
+    } catch (e) {
+      console.error(`couple-delete: borítókép törlése sikertelen (slug=${par.slug}): ${e.message}`);
+    }
   }
 
   return Response.redirect(`${new URL(dashboardUrl, request.url).href}?deleted=1`, 303);

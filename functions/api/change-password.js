@@ -1,4 +1,8 @@
 import { getSessionReseller, verifyPassword, hashPassword, accountHref } from "../_utils/auth.js";
+import { checkRateLimit, clientIp } from "../_utils/rateLimit.js";
+
+const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_WINDOW_SECONDS = 15 * 60;
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -14,6 +18,18 @@ export async function onRequestPost(context) {
   function backWithError(code) {
     return Response.redirect(`${new URL(accountUrl, request.url).href}?pwerror=${code}`, 303);
   }
+
+  // A jelenlegi jelszó ellenőrzése itt egy visszaélhető "tippelős" pont: egy
+  // ellopott/eltérített session-cookie birtokában (pl. XSS), de a jelszó
+  // ismerete nélkül valaki brute-force-olhatná ezt a mezőt - ugyanaz a
+  // rate-limit minta, mint a login-végpontoknál.
+  const allowed = await checkRateLimit(
+    env,
+    `change-password:${clientIp(request)}`,
+    RATE_LIMIT_MAX,
+    RATE_LIMIT_WINDOW_SECONDS
+  );
+  if (!allowed) return backWithError("rate_limited");
 
   const user = await env.DB.prepare("SELECT jelszo_hash FROM viszontelado WHERE id = ?").bind(reseller.id).first();
   const ok = await verifyPassword(jelenlegi, user.jelszo_hash);

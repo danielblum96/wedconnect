@@ -13,6 +13,10 @@ export async function onRequestGet(context) {
     headers: {
       "Content-Type": "image/webp",
       "Cache-Control": "public, max-age=3600",
+      // A böngésző MINDIG image/webp-ként kezelje ezt a választ, sose próbálja
+      // a tartalom alapján "kitalálni" a típust (pl. HTML-ként értelmezni egy
+      // rosszindulatú feltöltést) - védelem a content-type sniffing ellen.
+      "X-Content-Type-Options": "nosniff",
     },
   });
 }
