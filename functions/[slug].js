@@ -54,7 +54,7 @@ export async function onRequestGet(context) {
   if (staticResp) return staticResp;
 
   const par = await env.DB.prepare(
-    "SELECT par_neve, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, nyelv, letrehozva, rendeles_id, viszontelado_id FROM parok WHERE slug = ?"
+    "SELECT par_neve, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id FROM parok WHERE slug = ?"
   )
     .bind(slug)
     .first();
@@ -90,6 +90,10 @@ export async function onRequestGet(context) {
     dateParts.length === 3 ? `${dateParts[0]}.${dateParts[1]}.${dateParts[2]}.` : escapeHtml(par.eskuvo_datuma || "");
 
   const message = escapeHtml(par.egyedi_uzenet || copy.defaultMessage);
+
+  const photoHtml = par.fenykep_frissitve
+    ? `<img class="cover-photo" src="/foto/${encodeURIComponent(slug)}?v=${encodeURIComponent(par.fenykep_frissitve)}" alt="">`
+    : "";
 
   const buttonsHtml = gombok.length
     ? `<div class="cta-row">${gombok
@@ -166,6 +170,14 @@ export async function onRequestGet(context) {
     border: 1px solid var(--accent);
     opacity: 0.55;
     pointer-events: none;
+  }
+  .cover-photo {
+    display: block;
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 26px;
   }
   .card::after {
     content: "";
@@ -308,6 +320,7 @@ export async function onRequestGet(context) {
 </head>
 <body>
   <div class="card">
+    ${photoHtml}
     <div class="eyebrow">${escapeHtml(copy.eyebrow)}</div>
     <h1 class="names">${escapeHtml(par.par_neve)}</h1>
     <div class="date">${displayDate}</div>

@@ -59,7 +59,7 @@ export async function renderDashboard(context, reseller) {
   }
 
   const { results: parokRaw } = await env.DB.prepare(
-    `SELECT p.id, p.par_neve, p.nev1, p.nev2, p.eskuvo_datuma, p.slug, p.allapot, p.valasztott_stilus, p.egyedi_uzenet, p.egyedi_gombok, p.esemenyek, p.nyelv, p.letrehozva, p.rendeles_id, p.viszontelado_id,
+    `SELECT p.id, p.par_neve, p.nev1, p.nev2, p.eskuvo_datuma, p.slug, p.allapot, p.valasztott_stilus, p.egyedi_uzenet, p.egyedi_gombok, p.esemenyek, p.fenykep_frissitve, p.nyelv, p.letrehozva, p.rendeles_id, p.viszontelado_id,
             (SELECT 1 FROM rendelesek r2 WHERE r2.par_id = p.id AND r2.allapot = 'Fizetve' AND r2.mennyiseg > 1 LIMIT 1) AS has_std_order
      FROM parok p
      WHERE p.viszontelado_id = ?
@@ -265,6 +265,20 @@ export async function renderDashboard(context, reseller) {
           }
           <details class="couple-edit">
             <summary>${t.edit}</summary>
+            <div class="photo-edit-block">
+              <label>${t.photoLabel} <span class="hint-inline">${t.photoHint}</span></label>
+              <p class="field-explain">${t.photoExplain}</p>
+              ${
+                p.fenykep_frissitve
+                  ? `<div class="photo-current">
+                      <img src="/foto/${escapeHtml(p.slug)}?v=${escapeHtml(p.fenykep_frissitve)}" alt="" class="photo-preview">
+                      <button type="button" class="btn-photo-remove" data-par-id="${p.id}">${t.photoRemove}</button>
+                    </div>`
+                  : ""
+              }
+              <input type="file" accept="image/*" class="photo-file-input" data-par-id="${p.id}" id="photo-file-${p.id}">
+              <span class="photo-upload-status" data-status-for="${p.id}"></span>
+            </div>
             <form method="POST" action="/api/couple-update" class="edit-form" data-nev1="${escapeHtml(nev1)}" data-nev2="${escapeHtml(nev2)}" data-datetext="${escapeHtml(dateText)}">
               <input type="hidden" name="par_id" value="${p.id}">
               <label>${t.ownMessage} <span class="hint-inline">${t.ownMessageEditHint}</span></label>
@@ -344,7 +358,9 @@ export async function renderDashboard(context, reseller) {
 <script src="/assets/qrcode.min.js"></script>
 <script type="module">
   import { generateMockupSVG } from "/assets/save-the-date.js?v=9";
+  import { resizeImageToWebp } from "/assets/photo-upload.js?v=1";
   window.STD = { generateMockupSVG };
+  window.PhotoUpload = { resizeImageToWebp };
 </script>
 <style>
   :root { --bg:#faf7f2; --fg:#2b2620; --muted:#7a7266; --accent:#b48b56; --card:#ffffff; }
@@ -462,6 +478,13 @@ export async function renderDashboard(context, reseller) {
   .btn-row { display:flex; gap:8px; align-items:center; }
   .btn-remove-row { flex:none; border:none; background:none; color:var(--muted); font-size:1.2rem; line-height:1; cursor:pointer; padding:0 4px 14px; }
   .btn-add-row { border:1px dashed #ddd6c9; background:none; color:var(--accent); border-radius:8px; padding:9px 14px; font-size:0.95rem; font-weight:600; cursor:pointer; font-family:inherit; margin-bottom:20px; }
+  .photo-edit-block { margin-bottom:18px; }
+  .photo-current { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+  .photo-preview { width:100px; height:70px; object-fit:cover; border-radius:6px; flex:none; }
+  .btn-photo-remove { border:1px solid #e0b8ac; background:none; color:#b1451f; border-radius:999px; padding:6px 14px; font-size:0.85rem; font-weight:600; cursor:pointer; font-family:inherit; }
+  .photo-file-input { display:block; font-size:0.9rem; }
+  .photo-upload-status { display:inline-block; font-size:0.85rem; color:var(--muted); margin-top:6px; }
+  .photo-upload-status.error { color:#b1451f; }
   .info-box { background:#eaf5ee; color:#3a7a4e; border:1px solid #bfe0cb; padding:10px 14px; border-radius:8px; font-size:0.95rem; margin-bottom:18px; }
   .urgent-banner { display:flex; align-items:center; justify-content:space-between; gap:14px; background:linear-gradient(135deg,#fff0e0,#ffe0c2); border:1.5px solid #e8a15c; border-radius:10px; padding:12px 16px; margin-top:12px; font-size:0.92rem; font-weight:600; color:#8a4a0f; flex-wrap:wrap; animation:urgentPulse 2.2s ease-in-out infinite; }
   .settled-banner { display:flex; align-items:center; background:linear-gradient(135deg,#eef8ec,#dbf0d3); border:1.5px solid #a3d494; border-radius:10px; padding:12px 16px; margin-top:12px; font-size:0.92rem; font-weight:600; color:#2f6b28; }
@@ -868,6 +891,9 @@ ${
     priceOnceUnder50: ${JSON.stringify(t.priceOnceUnder50)},
     missingBillingError: ${JSON.stringify(t.stdError.missing_billing)},
     missingAddressError: ${JSON.stringify(t.stdError.missing_address)},
+    photoUploading: ${JSON.stringify(t.photoUploading)},
+    photoUploadError: ${JSON.stringify(t.photoUploadError)},
+    photoRemoveConfirm: ${JSON.stringify(t.photoRemoveConfirm)},
   };
 
   var form = document.getElementById("new-couple-form");
@@ -1089,6 +1115,53 @@ ${
           btn.textContent = original;
         }, 1500);
       });
+    });
+  });
+
+  document.querySelectorAll(".photo-file-input").forEach(function (input) {
+    input.addEventListener("change", function () {
+      var file = input.files && input.files[0];
+      if (!file) return;
+      var parId = input.getAttribute("data-par-id");
+      var status = document.querySelector('.photo-upload-status[data-status-for="' + parId + '"]');
+      if (status) {
+        status.classList.remove("error");
+        status.textContent = COPY.photoUploading;
+      }
+      window.PhotoUpload.resizeImageToWebp(file)
+        .then(function (blob) {
+          var body = new FormData();
+          body.append("par_id", parId);
+          body.append("fenykep", blob, "photo.webp");
+          return fetch("/api/couple-photo-upload", { method: "POST", body: body });
+        })
+        .then(function (res) {
+          if (!res.ok) throw new Error("upload failed");
+          window.location.reload();
+        })
+        .catch(function () {
+          if (status) {
+            status.classList.add("error");
+            status.textContent = COPY.photoUploadError;
+          }
+        });
+    });
+  });
+
+  document.querySelectorAll(".btn-photo-remove").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      if (!window.confirm(COPY.photoRemoveConfirm)) return;
+      var parId = btn.getAttribute("data-par-id");
+      var body = new FormData();
+      body.append("par_id", parId);
+      fetch("/api/couple-photo-delete", { method: "POST", body: body })
+        .then(function (res) {
+          if (!res.ok) throw new Error("delete failed");
+          window.location.reload();
+        })
+        .catch(function () {
+          window.alert(COPY.photoUploadError);
+        });
     });
   });
 
