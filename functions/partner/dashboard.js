@@ -351,6 +351,10 @@ export async function renderDashboard(context, reseller) {
                         <span class="chip-row-label">${t.inspirationLabel}</span>
                         ${t.eventSuggestions.map((s) => `<button type="button" class="chip" data-fill-event="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
                       </div>
+                      <div class="event-row-header">
+                        <span class="event-row-header-time">${t.eventTimeLabel}</span>
+                        <span class="event-row-header-name">${t.eventNamePlaceholder}</span>
+                      </div>
                       ${eventRows}
                     </div>
                     <div class="wizard-nav">
@@ -472,6 +476,14 @@ export async function renderDashboard(context, reseller) {
   .event-row { display:flex; gap:8px; margin-bottom:8px; align-items:center; }
   .event-row input.event-time { flex:0 0 90px; }
   .event-row input:not(.event-time) { flex:1; }
+  /* Az időpont-mező natív időválasztóként jelenik meg (type=time), de iOS
+     Safarin üresen, ikon/szöveg nélkül, sima szürke dobozként renderel,
+     mielőtt megérintenék - emiatt nem volt egyértelmű, hogy oda kattintani
+     kell. Egy explicit felirat-sor a mezők FÖLÖTT pótolja ezt a hiányzó
+     vizuális jelzést, böngészőtől függetlenül. */
+  .event-row-header { display:flex; gap:8px; margin-bottom:6px; }
+  .event-row-header-time { flex:0 0 90px; font-size:0.78rem; font-weight:600; color:var(--muted); }
+  .event-row-header-name { flex:1; font-size:0.78rem; font-weight:600; color:var(--muted); }
   .saved-note { color:#3a7a4e; font-size:0.95rem; margin-left:10px; }
   .empty { color:var(--muted); font-size:1rem; }
   .error-box { background:#fdeee7; color:#b1451f; border:1px solid #f3c8b3; padding:10px 14px; border-radius:8px; font-size:0.95rem; margin-bottom:18px; }
@@ -864,6 +876,10 @@ ${
               <div class="chip-row">
                 <span class="chip-row-label">${t.inspirationLabel}</span>
                 ${t.eventSuggestions.map((s) => `<button type="button" class="chip" data-fill-event="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+              </div>
+              <div class="event-row-header">
+                <span class="event-row-header-time">${t.eventTimeLabel}</span>
+                <span class="event-row-header-name">${t.eventNamePlaceholder}</span>
               </div>
               <div id="event-rows">
                 ${[0, 1, 2, 3]
