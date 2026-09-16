@@ -210,7 +210,7 @@ export async function renderDashboard(context, reseller) {
           const ev = esemenyek[i] || { ido: "", nev: "" };
           return `
             <div class="event-row">
-              <input type="text" name="esemeny_ido" placeholder="${t.eventTimePlaceholder}" value="${escapeHtml(ev.ido)}" autocomplete="off" class="event-time">
+              <input type="time" name="esemeny_ido" placeholder="${t.eventTimePlaceholder}" value="${escapeHtml(ev.ido)}" autocomplete="off" class="event-time">
               <input type="text" name="esemeny_nev" placeholder="${t.eventNamePlaceholder}" value="${escapeHtml(ev.nev)}" autocomplete="off">
             </div>`;
         })
@@ -870,7 +870,7 @@ ${
                   .map(
                     () => `
                 <div class="event-row">
-                  <input type="text" name="esemeny_ido" placeholder="${t.eventTimePlaceholder}" autocomplete="off" class="event-time">
+                  <input type="time" name="esemeny_ido" placeholder="${t.eventTimePlaceholder}" autocomplete="off" class="event-time">
                   <input type="text" name="esemeny_nev" placeholder="${t.eventNamePlaceholder}" autocomplete="off">
                   <button type="button" class="btn-remove-row" aria-label="${t.eventRemoveAria}">×</button>
                 </div>`
@@ -1213,6 +1213,12 @@ ${
     form.parentElement.querySelectorAll(".wizard-progress-line").forEach(function (el) {
       el.classList.toggle("completed", parseInt(el.getAttribute("data-progress-line"), 10) < n);
     });
+    // A dialog maga görget (position:sticky nav-val) - lépésváltáskor a
+    // görgetési pozíció enélkül megmaradna az előző lépésről, ezért úgy
+    // tűnhetne, mintha az új lépés "az aljára ugorna" (valójában csak a régi
+    // scrollTop mutat egy, az új lépés tetejétől távoli pontra).
+    var modal = form.closest("dialog");
+    if (modal) modal.scrollTop = 0;
     if (n === 2) renderPreviews();
   }
 
@@ -1276,7 +1282,7 @@ ${
     var eventDiv = document.createElement("div");
     eventDiv.className = "event-row";
     eventDiv.innerHTML =
-      '<input type="text" name="esemeny_ido" placeholder="' + escapeHtml(COPY.eventTimePlaceholder) + '" autocomplete="off" class="event-time">' +
+      '<input type="time" name="esemeny_ido" placeholder="' + escapeHtml(COPY.eventTimePlaceholder) + '" autocomplete="off" class="event-time">' +
       '<input type="text" name="esemeny_nev" placeholder="' + escapeHtml(COPY.eventNamePlaceholder) + '" autocomplete="off">' +
       '<button type="button" class="btn-remove-row" aria-label="' + escapeHtml(COPY.eventRemoveAria) + '">×</button>';
     eventRowsContainer.appendChild(eventDiv);
@@ -1457,6 +1463,11 @@ ${
       tabs.querySelectorAll(".wizard-progress-line").forEach(function (el) {
         el.classList.toggle("completed", parseInt(el.getAttribute("data-progress-line"), 10) < n);
       });
+      // A dialog maga görget (position:sticky nav-val) - lépésváltáskor a
+      // görgetési pozíció enélkül megmaradna az előző lépésről, ezért úgy
+      // tűnhetne, mintha az új lépés "az aljára ugorna".
+      var modal = tabs.closest("dialog");
+      if (modal) modal.scrollTop = 0;
     }
     tabs.showEditStep = showEditStep;
     tabs.querySelectorAll("[data-next]").forEach(function (btn) {
@@ -1579,7 +1590,6 @@ ${
       if (previewStdCta) previewStdCta.hidden = !previewStdTriggerBtn;
       var previewStdMock = document.getElementById("preview-modal-std-mock");
       var previewIframe = document.getElementById("preview-modal-iframe");
-      if (previewIframe) previewIframe.src = savedPageUrl;
       // A "koppintsd a telefonhoz, és megnyílik az oldal" élményt szemlélteti
       // egymás mellett: a Save the Date fizikai látványterve (ugyanaz az SVG,
       // amit a tervező-modál is használ) + a MOST elkészült, éles oldal élő
@@ -1605,9 +1615,20 @@ ${
           previewStdMock.innerHTML = window.STD.generateMockupSVG(pNev1, pNev2, pParts[0], pParts[1], pParts[2], pNyelv);
         }
       })();
-      previewModal.showModal();
-      trackEvent("wedding_page_completed", { par_id: CONFIRM_PAR_ID });
-      trackEvent("save_the_date_intro_viewed", { par_id: CONFIRM_PAR_ID });
+      // Ha épp most jött létre a pár és volt feltöltendő borítókép (a
+      // Borítókép lépésen kiválasztva, de a par_id hiánya miatt a feltöltés
+      // halasztva lett), MEGVÁRJUK a feltöltés befejezését, mielőtt az
+      // iframe-et a friss oldalra irányítjuk és megnyitjuk a popupot -
+      // különben a user egy MÉG FOTÓ NÉLKÜLI oldalt látna, mert a feltöltés a
+      // háttérben, aszinkron módon fut, és korábban simán megelőzhette a
+      // popup megnyitását. Szerkesztés-mentésnél (SAVED_PAR_ID) ez a promise
+      // azonnal, teendő nélkül lezárul, nincs látható késés.
+      uploadPendingNewCouplePhotoIfAny().then(function () {
+        if (previewIframe) previewIframe.src = savedPageUrl;
+        previewModal.showModal();
+        trackEvent("wedding_page_completed", { par_id: CONFIRM_PAR_ID });
+        trackEvent("save_the_date_intro_viewed", { par_id: CONFIRM_PAR_ID });
+      });
     }
   }
 
@@ -2288,61 +2309,68 @@ ${
   if (document.getElementById("success-banner")) {
     // A konfettit már a fenti CONFIRM_PAR_ID-blokk elindítja (ugyanaz a
     // popup jelenik meg létrehozás után is, mint mentés után) - itt csak az
-    // URL-tisztítás és a halasztott fotó-feltöltés marad.
+    // URL-tisztítás marad, a halasztott fotó-feltöltést MAGA a CONFIRM_PAR_ID
+    // blokk indítja el (ld. uploadPendingNewCouplePhotoIfAny), mert annak meg
+    // is kell várnia a feltöltés végét, mielőtt megnyitja az oldal-előnézetet.
     var cleanUrl = location.pathname;
     if (window.history && window.history.replaceState) {
       window.history.replaceState(null, "", cleanUrl);
     }
-    if (CREATED_PAR_ID) {
-      // Ha az új-pár-varázsló Borítókép lépésén választott a user fotót, az
-      // a sessionStorage-ban vár (ld. a .photo-edit-block "pending" ágát
-      // fentebb) - a pár most már létezik, tehát a feltöltés pótolható.
-      (function uploadPendingNewCouplePhoto() {
-        var dataUrl = null;
-        try {
-          dataUrl = sessionStorage.getItem(PENDING_PHOTO_KEY);
-        } catch (e) {
-          return;
-        }
-        if (!dataUrl) return;
-        try {
-          sessionStorage.removeItem(PENDING_PHOTO_KEY);
-        } catch (e) {
-          // no-op
-        }
-        fetch(dataUrl)
-          .then(function (res) {
-            return res.blob();
-          })
-          .then(function (blob) {
-            var body = new FormData();
-            body.append("par_id", CREATED_PAR_ID);
-            body.append("fenykep", blob, "photo.webp");
-            return fetch("/api/couple-photo-upload", { method: "POST", body: body });
-          })
-          .then(function (res) {
-            if (!res.ok) throw new Error("upload failed");
-            return res.json();
-          })
-          .then(function (data) {
-            var stdBtn = document.querySelector('.btn-std-open[data-par-id="' + CREATED_PAR_ID + '"]');
-            if (!stdBtn || !CREATED_PAR_SLUG) return;
-            var url = "/foto/" + encodeURIComponent(CREATED_PAR_SLUG) + "?v=" + encodeURIComponent(data.version);
-            stdBtn.setAttribute("data-fenykep", url);
-            // Ha a Save the Date tervező időközben már megnyílt PONT erre a
-            // párra (az auto-megnyitás miatt gyakran igen), frissítsük élőben
-            // az előnézetét is a most feltöltött fotóval.
-            if (stdModal && stdModal.open && stdModalParId && stdModalParId.value === CREATED_PAR_ID) {
-              currentCouple.fenykep = url;
-              updateStdPreviewMode(stdWantStd ? stdWantStd.checked : true);
-            }
-          })
-          .catch(function () {
-            // Csendes hiba - a fotó nem kritikus a pár létrehozásához, a
-            // user bármikor pótolhatja a szerkesztő popup Borítókép lépésén.
-          });
-      })();
+  }
+
+  // Ha az új-pár-varázsló Borítókép lépésén választott a user fotót, az a
+  // sessionStorage-ban vár (ld. a .photo-edit-block "pending" ágát fentebb) -
+  // a pár most már létezik, tehát a feltöltés pótolható. Promise-t ad vissza
+  // (nincs teendő esetén is), hogy a hívó meg tudja várni a végét, mielőtt
+  // megmutatja az élő oldalt - különben a user egy MÉG FOTÓ NÉLKÜLI oldalt
+  // látna, ha az előnézetet a háttérben futó feltöltés befejezése ELŐTT nyitja
+  // meg.
+  function uploadPendingNewCouplePhotoIfAny() {
+    if (!CREATED_PAR_ID) return Promise.resolve();
+    var dataUrl = null;
+    try {
+      dataUrl = sessionStorage.getItem(PENDING_PHOTO_KEY);
+    } catch (e) {
+      return Promise.resolve();
     }
+    if (!dataUrl) return Promise.resolve();
+    try {
+      sessionStorage.removeItem(PENDING_PHOTO_KEY);
+    } catch (e) {
+      // no-op
+    }
+    return fetch(dataUrl)
+      .then(function (res) {
+        return res.blob();
+      })
+      .then(function (blob) {
+        var body = new FormData();
+        body.append("par_id", CREATED_PAR_ID);
+        body.append("fenykep", blob, "photo.webp");
+        return fetch("/api/couple-photo-upload", { method: "POST", body: body });
+      })
+      .then(function (res) {
+        if (!res.ok) throw new Error("upload failed");
+        return res.json();
+      })
+      .then(function (data) {
+        var stdBtn = document.querySelector('.btn-std-open[data-par-id="' + CREATED_PAR_ID + '"]');
+        if (!stdBtn || !CREATED_PAR_SLUG) return;
+        var url = "/foto/" + encodeURIComponent(CREATED_PAR_SLUG) + "?v=" + encodeURIComponent(data.version);
+        stdBtn.setAttribute("data-fenykep", url);
+        // Ha a Save the Date tervező időközben már megnyílt PONT erre a
+        // párra, frissítsük élőben az előnézetét is a most feltöltött fotóval.
+        if (stdModal && stdModal.open && stdModalParId && stdModalParId.value === CREATED_PAR_ID) {
+          currentCouple.fenykep = url;
+          updateStdPreviewMode(stdWantStd ? stdWantStd.checked : true);
+        }
+      })
+      .catch(function () {
+        // Csendes hiba - a fotó nem kritikus a pár létrehozásához, a user
+        // bármikor pótolhatja a szerkesztő popup Borítókép lépésén. A promise
+        // sikeresen lezárva (nem dobjuk tovább), hogy a hívó "then"-je mindig
+        // lefusson, ne ragadjon be egy elutasított promise miatt.
+      });
   }
 
   function launchConfetti() {
