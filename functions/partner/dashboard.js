@@ -142,7 +142,6 @@ export async function renderDashboard(context, reseller) {
         <input type="radio" name="stilus" value="${s.id}" required>
         <span class="swatch-mock"></span>
         <span class="swatch-name">${escapeHtml(getStyleName(s, lang))}</span>
-        <button type="submit" class="swatch-confirm">${t.styleConfirm}</button>
       </label>`;
   }).join("");
 
@@ -483,24 +482,9 @@ export async function renderDashboard(context, reseller) {
   .mock-buttons { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:6px; }
   .mock-btn { background:var(--accent); color:var(--btn-fg); font-family:"Poppins",sans-serif; font-size:0.62rem; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; padding:6px 14px; border-radius:999px; white-space:nowrap; max-width:150px; overflow:hidden; text-overflow:ellipsis; }
   .swatch-name { display:block; padding:9px 8px; font-size:0.88rem; font-weight:500; text-align:center; color:#4a4038; background:#fff; }
-  .style-picker .style-swatch button.swatch-confirm {
-    display:block; width:100%; border:none; border-radius:0; margin:0; font-family:inherit; cursor:pointer;
-    max-height:0; opacity:0; padding:0 8px; overflow:hidden;
-    font-size:1rem; font-weight:800; letter-spacing:0.02em; text-align:center;
-    color:#1a1408; background:linear-gradient(135deg,#f0c988,#b48b56);
-    transition:max-height 0.28s ease, opacity 0.22s ease, padding 0.28s ease;
-  }
   .style-swatch { transition:transform 0.15s ease, box-shadow 0.15s ease; }
   .style-swatch:has(input:checked) { border-color:#b48b56; box-shadow:0 0 0 3px rgba(180,139,86,0.35), 0 10px 24px -10px rgba(180,139,86,0.6); transform:scale(1.02); z-index:1; }
   .style-swatch:has(input:checked) .swatch-name { display:none; }
-  .style-picker .style-swatch:has(input:checked) button.swatch-confirm {
-    max-height:64px; opacity:1; padding:17px 8px;
-    animation: swatchConfirmPulse 1.4s ease-in-out infinite;
-  }
-  @keyframes swatchConfirmPulse {
-    0%, 100% { box-shadow:0 4px 14px -4px rgba(180,139,86,0.7); }
-    50% { box-shadow:0 6px 22px -2px rgba(180,139,86,1); }
-  }
   .success-banner { display:flex; align-items:center; gap:16px; background:linear-gradient(135deg,#fff6e6,#ffe9c7); border:1px solid #e8c583; border-radius:14px; padding:18px 20px; margin-bottom:24px; box-shadow:0 10px 30px -14px rgba(180,139,86,0.5); flex-wrap:wrap; animation:successIn 0.5s cubic-bezier(.25,1,.5,1); }
   @keyframes successIn { from { opacity:0; transform:translateY(-12px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
   .success-emoji { font-size:2.4rem; animation:successBounce 1.2s ease-in-out infinite; }
@@ -827,6 +811,39 @@ ${
 
           <div class="wizard-step" data-step="2" hidden>
             <div class="wizard-step-fields">
+              <p class="style-picker-hint">${t.stylePickerHint}</p>
+              <p class="price-note">${t.priceNote(formatPrice(PAGE_PRICE, lang))}</p>
+              <div class="style-picker" id="style-picker">${stylePicker}</div>
+            </div>
+            <div class="wizard-nav">
+              <button type="button" class="btn-back" data-back="1">${t.back}</button>
+              <button type="button" class="btn-next" id="new-couple-style-next" data-next="3" disabled>${t.next}</button>
+            </div>
+          </div>
+
+          <div class="wizard-step" data-step="3" hidden>
+            <div class="wizard-step-fields">
+              <div class="photo-edit-block" data-pending="1">
+                <p class="field-explain">${t.photoExplain}</p>
+                <div class="photo-dropzone">
+                  <img alt="" class="photo-preview" hidden>
+                  <div class="photo-drop-hint">${t.photoDropHint}</div>
+                  <input type="file" accept="image/*" class="photo-file-input">
+                </div>
+                <div class="photo-actions">
+                  <button type="button" class="btn-photo-remove" hidden>${t.photoRemove}</button>
+                  <span class="photo-upload-status"></span>
+                </div>
+              </div>
+            </div>
+            <div class="wizard-nav">
+              <button type="button" class="btn-back" data-back="2">${t.back}</button>
+              <button type="button" class="btn-next" data-next="4">${t.next}</button>
+            </div>
+          </div>
+
+          <div class="wizard-step" data-step="4" hidden>
+            <div class="wizard-step-fields">
               <label>${t.ownMessage} <span class="hint-inline">${t.ownMessageHint}</span></label>
               <p class="field-explain">${t.ownMessageExplain}</p>
               <div class="chip-row">
@@ -834,20 +851,15 @@ ${
                 ${t.messageSuggestions.map((s) => `<button type="button" class="chip" data-fill-message="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
               </div>
               <textarea name="egyedi_uzenet" id="f-uzenet" rows="3">${escapeHtml(defaultMessage)}</textarea>
-              <label>${t.buttons} <span class="hint-inline">${t.buttonsHint}</span></label>
-              <p class="field-explain">${t.buttonsExplain}</p>
-              <div class="chip-row">
-                <span class="chip-row-label">${t.inspirationLabel}</span>
-                ${t.buttonSuggestions.map((s) => `<button type="button" class="chip" data-fill="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
-              </div>
-              <div id="button-rows">
-                <div class="btn-row">
-                  <input type="text" name="gomb_label" placeholder="${t.buttonLabelPlaceholder}" autocomplete="off">
-                  <input type="text" name="gomb_url" placeholder="https://..." autocomplete="off">
-                  <button type="button" class="btn-remove-row" aria-label="${t.buttonRemoveAria}">×</button>
-                </div>
-              </div>
-              <button type="button" class="btn-add-row" id="add-button-row">${t.addButton}</button>
+            </div>
+            <div class="wizard-nav">
+              <button type="button" class="btn-back" data-back="3">${t.back}</button>
+              <button type="button" class="btn-next" data-next="5">${t.next}</button>
+            </div>
+          </div>
+
+          <div class="wizard-step" data-step="5" hidden>
+            <div class="wizard-step-fields">
               <label>${t.program} <span class="hint-inline">${t.programHint}</span></label>
               <p class="field-explain">${t.programExplain}</p>
               <div class="chip-row">
@@ -869,20 +881,31 @@ ${
               <button type="button" class="btn-add-row" id="add-event-row">${t.addEvent}</button>
             </div>
             <div class="wizard-nav">
-              <button type="button" class="btn-back" data-back="1">${t.back}</button>
-              <button type="button" class="btn-next" data-next="3">${t.next}</button>
+              <button type="button" class="btn-back" data-back="4">${t.back}</button>
+              <button type="button" class="btn-next" data-next="6">${t.next}</button>
             </div>
           </div>
 
-          <div class="wizard-step" data-step="3" hidden>
+          <div class="wizard-step" data-step="6" hidden>
             <div class="wizard-step-fields">
-              <p class="style-picker-hint">${t.stylePickerHint}</p>
-              <p class="price-note">${t.priceNote(formatPrice(PAGE_PRICE, lang))}</p>
-              <div class="style-picker" id="style-picker">${stylePicker}</div>
+              <label>${t.buttons} <span class="hint-inline">${t.buttonsHint}</span></label>
+              <p class="field-explain">${t.buttonsExplain}</p>
+              <div class="chip-row">
+                <span class="chip-row-label">${t.inspirationLabel}</span>
+                ${t.buttonSuggestions.map((s) => `<button type="button" class="chip" data-fill="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+              </div>
+              <div id="button-rows">
+                <div class="btn-row">
+                  <input type="text" name="gomb_label" placeholder="${t.buttonLabelPlaceholder}" autocomplete="off">
+                  <input type="text" name="gomb_url" placeholder="https://..." autocomplete="off">
+                  <button type="button" class="btn-remove-row" aria-label="${t.buttonRemoveAria}">×</button>
+                </div>
+              </div>
+              <button type="button" class="btn-add-row" id="add-button-row">${t.addButton}</button>
             </div>
             <div class="wizard-nav">
-              <button type="button" class="btn-back" data-back="2">${t.back}</button>
-              <button type="submit" class="btn-next" id="new-couple-style-submit" disabled>${t.createPage}</button>
+              <button type="button" class="btn-back" data-back="5">${t.back}</button>
+              <button type="submit" class="btn-next" id="new-couple-submit">${t.createPage}</button>
             </div>
           </div>
         </form>
@@ -1121,6 +1144,8 @@ ${
   var FONT_RECIPES = ${fontRecipesForClient};
   var MAX_BUTTONS = 5;
   var CREATED_PAR_ID = ${createdCouple ? JSON.stringify(String(createdCouple.id)) : "null"};
+  var CREATED_PAR_SLUG = ${createdCouple ? JSON.stringify(createdCouple.slug) : "null"};
+  var PENDING_PHOTO_KEY = "wc_pending_new_couple_photo";
   var SAVED_PAR_ID = ${saved ? JSON.stringify(String(saved)) : "null"};
   var NEW_COUPLE_ERROR = ${error ? "true" : "false"};
   var HAS_NO_COUPLES = ${JSON.stringify(!parok || parok.length === 0)};
@@ -1151,32 +1176,23 @@ ${
   var rowsContainer = document.getElementById("button-rows");
   var addRowBtn = document.getElementById("add-button-row");
 
-  form.querySelectorAll(".style-swatch").forEach(function (sw) {
-    var radio = sw.querySelector('input[type="radio"]');
-    var confirmBtn = sw.querySelector(".swatch-confirm");
-    if (radio && confirmBtn) {
-      confirmBtn.addEventListener("click", function () {
-        radio.checked = true;
-      });
-    }
-  });
-
-  // A "Tovább"/"Oldal létrehozása" gomb csak akkor válik aktívvá, ha már van
-  // kiválasztott stílus - a gomb helye/mérete NEM változik, csak az
-  // engedélyezett/letiltott állapota, hogy ne ugráljon a felület.
-  var newCoupleStyleSubmit = document.getElementById("new-couple-style-submit");
-  if (newCoupleStyleSubmit) {
+  // A stílus-lépés "Tovább" gombja csak akkor válik aktívvá, ha már van
+  // kiválasztott stílus - ugyanaz a védelem, mint a szerkesztő-varázsló
+  // stílus-lépésénél (.edit-style-next) - a gomb helye/mérete NEM változik,
+  // csak az engedélyezett/letiltott állapota, hogy ne ugráljon a felület.
+  var newCoupleStyleNext = document.getElementById("new-couple-style-next");
+  if (newCoupleStyleNext) {
     var newCoupleStyleRadios = form.querySelectorAll('input[name="stilus"]');
-    function refreshNewCoupleStyleSubmit() {
+    function refreshNewCoupleStyleNext() {
       var anyChecked = Array.prototype.some.call(newCoupleStyleRadios, function (r) {
         return r.checked;
       });
-      newCoupleStyleSubmit.disabled = !anyChecked;
+      newCoupleStyleNext.disabled = !anyChecked;
     }
     newCoupleStyleRadios.forEach(function (r) {
-      r.addEventListener("change", refreshNewCoupleStyleSubmit);
+      r.addEventListener("change", refreshNewCoupleStyleNext);
     });
-    refreshNewCoupleStyleSubmit();
+    refreshNewCoupleStyleNext();
   }
 
   function showStep(n) {
@@ -1198,7 +1214,7 @@ ${
     form.parentElement.querySelectorAll(".wizard-progress-line").forEach(function (el) {
       el.classList.toggle("completed", parseInt(el.getAttribute("data-progress-line"), 10) < n);
     });
-    if (n === 3) renderPreviews();
+    if (n === 2) renderPreviews();
   }
 
   function stepValid(stepEl) {
@@ -1603,6 +1619,7 @@ ${
 
   document.querySelectorAll(".photo-edit-block").forEach(function (block) {
     var parId = block.getAttribute("data-par-id");
+    var pending = block.hasAttribute("data-pending");
     var slug = block.getAttribute("data-slug");
     var dropzone = block.querySelector(".photo-dropzone");
     var input = block.querySelector(".photo-file-input");
@@ -1659,13 +1676,50 @@ ${
         });
     }
 
+    // Új pár létrehozásakor MÉG NINCS par_id (a pár csak a form beküldése
+    // UTÁN, a szerveren jön létre) - ilyenkor a kiválasztott fotót csak
+    // helyben mutatjuk (object URL-lel), a tényleges feltöltést a sikeres
+    // létrehozás UTÁNRA halasztjuk. Mivel a form natív POST-tal, teljes
+    // oldal-újratöltéssel küldődik be, egy sima JS-változó elveszne - a
+    // kép ezért a sessionStorage-ban vár base64 data URL-ként (ld. lejjebb
+    // a CREATED_PAR_ID melletti blokkot, ami a redirect UTÁN tölti fel).
+    function uploadFilePending(file) {
+      if (!file || file.type.indexOf("image/") !== 0) {
+        setStatus(COPY.photoUploadError, true);
+        return;
+      }
+      setStatus(COPY.photoUploading, false);
+      window.PhotoUpload.resizeImageToWebp(file)
+        .then(function (blob) {
+          showPhoto(URL.createObjectURL(blob));
+          setStatus("", false);
+          var reader = new FileReader();
+          reader.onload = function () {
+            try {
+              sessionStorage.setItem(PENDING_PHOTO_KEY, reader.result);
+            } catch (e) {
+              // sessionStorage esetleg tiltva/betelve - ilyenkor a fotó
+              // egyszerűen nem kerül át a létrehozás utáni oldalra, de a
+              // varázsló maga emiatt nem törik el.
+            }
+          };
+          reader.readAsDataURL(blob);
+        })
+        .catch(function () {
+          setStatus(COPY.photoUploadError, true);
+        });
+    }
+
     // A natív <input type="file"> önmagában is fogad drag&drop-ot (a
     // "change" esemény ugyanúgy tüzel, akár tallózással, akár ráejtéssel
     // került bele a fájl) - csak a vizuális "húzd ide" kiemeléshez kell
     // külön dragenter/dragleave kezelés.
     input.addEventListener("change", function () {
       var file = input.files && input.files[0];
-      if (file) uploadFile(file);
+      if (file) {
+        if (pending) uploadFilePending(file);
+        else uploadFile(file);
+      }
       input.value = "";
     });
     dropzone.addEventListener("dragenter", function () {
@@ -1680,6 +1734,16 @@ ${
 
     removeBtn.addEventListener("click", function () {
       if (!window.confirm(COPY.photoRemoveConfirm)) return;
+      if (pending) {
+        try {
+          sessionStorage.removeItem(PENDING_PHOTO_KEY);
+        } catch (e) {
+          // no-op
+        }
+        hidePhoto();
+        setStatus("", false);
+        return;
+      }
       var body = new FormData();
       body.append("par_id", parId);
       fetch("/api/couple-photo-delete", { method: "POST", body: body })
@@ -2224,6 +2288,56 @@ ${
       window.history.replaceState(null, "", cleanUrl);
     }
     if (CREATED_PAR_ID) {
+      // Ha az új-pár-varázsló Borítókép lépésén választott a user fotót, az
+      // a sessionStorage-ban vár (ld. a .photo-edit-block "pending" ágát
+      // fentebb) - a pár most már létezik, tehát a feltöltés pótolható. Nem
+      // várunk a Save the Date tervező 900ms-os auto-megnyitására, hogy a
+      // feltöltésnek minél több ideje legyen lefutni előtte.
+      (function uploadPendingNewCouplePhoto() {
+        var dataUrl = null;
+        try {
+          dataUrl = sessionStorage.getItem(PENDING_PHOTO_KEY);
+        } catch (e) {
+          return;
+        }
+        if (!dataUrl) return;
+        try {
+          sessionStorage.removeItem(PENDING_PHOTO_KEY);
+        } catch (e) {
+          // no-op
+        }
+        fetch(dataUrl)
+          .then(function (res) {
+            return res.blob();
+          })
+          .then(function (blob) {
+            var body = new FormData();
+            body.append("par_id", CREATED_PAR_ID);
+            body.append("fenykep", blob, "photo.webp");
+            return fetch("/api/couple-photo-upload", { method: "POST", body: body });
+          })
+          .then(function (res) {
+            if (!res.ok) throw new Error("upload failed");
+            return res.json();
+          })
+          .then(function (data) {
+            var stdBtn = document.querySelector('.btn-std-open[data-par-id="' + CREATED_PAR_ID + '"]');
+            if (!stdBtn || !CREATED_PAR_SLUG) return;
+            var url = "/foto/" + encodeURIComponent(CREATED_PAR_SLUG) + "?v=" + encodeURIComponent(data.version);
+            stdBtn.setAttribute("data-fenykep", url);
+            // Ha a Save the Date tervező időközben már megnyílt PONT erre a
+            // párra (az auto-megnyitás miatt gyakran igen), frissítsük élőben
+            // az előnézetét is a most feltöltött fotóval.
+            if (stdModal && stdModal.open && stdModalParId && stdModalParId.value === CREATED_PAR_ID) {
+              currentCouple.fenykep = url;
+              updateStdPreviewMode(stdWantStd ? stdWantStd.checked : true);
+            }
+          })
+          .catch(function () {
+            // Csendes hiba - a fotó nem kritikus a pár létrehozásához, a
+            // user bármikor pótolhatja a szerkesztő popup Borítókép lépésén.
+          });
+      })();
       setTimeout(function () {
         var btn = document.querySelector('.btn-std-open[data-par-id="' + CREATED_PAR_ID + '"]');
         if (btn) btn.click();
