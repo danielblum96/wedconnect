@@ -1565,10 +1565,15 @@ ${
     });
   }
 
-  if (SAVED_PAR_ID) {
-    var savedTriggerBtn = document.querySelector('.btn-edit-open[data-edit-target="edit-modal-' + SAVED_PAR_ID + '"]');
+  // Új pár létrehozása UTÁN ugyanez a popup jelenik meg, mint mentés után -
+  // a user explicit kérése, hogy a két folyamat a végén is egységes legyen,
+  // ne a létrehozás ugorjon egyből a Save the Date tervezőre, a szerkesztés
+  // pedig erre az összegző popupra.
+  var CONFIRM_PAR_ID = SAVED_PAR_ID || CREATED_PAR_ID;
+  if (CONFIRM_PAR_ID) {
+    var savedTriggerBtn = document.querySelector('.btn-edit-open[data-edit-target="edit-modal-' + CONFIRM_PAR_ID + '"]');
     var savedPageUrl = savedTriggerBtn ? savedTriggerBtn.getAttribute("data-page-url") : null;
-    previewStdTriggerBtn = document.querySelector('.btn-std-open[data-par-id="' + SAVED_PAR_ID + '"]');
+    previewStdTriggerBtn = document.querySelector('.btn-std-open[data-par-id="' + CONFIRM_PAR_ID + '"]');
     if (savedPageUrl && previewModal && typeof previewModal.showModal === "function") {
       launchConfetti();
       previewLink.href = savedPageUrl;
@@ -1602,14 +1607,14 @@ ${
         }
       })();
       previewModal.showModal();
-      trackEvent("wedding_page_completed", { par_id: SAVED_PAR_ID });
-      trackEvent("save_the_date_intro_viewed", { par_id: SAVED_PAR_ID });
+      trackEvent("wedding_page_completed", { par_id: CONFIRM_PAR_ID });
+      trackEvent("save_the_date_intro_viewed", { par_id: CONFIRM_PAR_ID });
     }
   }
 
   if (previewLink) {
     previewLink.addEventListener("click", function () {
-      trackEvent("wedding_page_preview_opened", { par_id: SAVED_PAR_ID });
+      trackEvent("wedding_page_preview_opened", { par_id: CONFIRM_PAR_ID });
     });
   }
 
@@ -2282,7 +2287,9 @@ ${
   }
 
   if (document.getElementById("success-banner")) {
-    launchConfetti();
+    // A konfettit már a fenti CONFIRM_PAR_ID-blokk elindítja (ugyanaz a
+    // popup jelenik meg létrehozás után is, mint mentés után) - itt csak az
+    // URL-tisztítás és a halasztott fotó-feltöltés marad.
     var cleanUrl = location.pathname;
     if (window.history && window.history.replaceState) {
       window.history.replaceState(null, "", cleanUrl);
@@ -2290,9 +2297,7 @@ ${
     if (CREATED_PAR_ID) {
       // Ha az új-pár-varázsló Borítókép lépésén választott a user fotót, az
       // a sessionStorage-ban vár (ld. a .photo-edit-block "pending" ágát
-      // fentebb) - a pár most már létezik, tehát a feltöltés pótolható. Nem
-      // várunk a Save the Date tervező 900ms-os auto-megnyitására, hogy a
-      // feltöltésnek minél több ideje legyen lefutni előtte.
+      // fentebb) - a pár most már létezik, tehát a feltöltés pótolható.
       (function uploadPendingNewCouplePhoto() {
         var dataUrl = null;
         try {
@@ -2338,10 +2343,6 @@ ${
             // user bármikor pótolhatja a szerkesztő popup Borítókép lépésén.
           });
       })();
-      setTimeout(function () {
-        var btn = document.querySelector('.btn-std-open[data-par-id="' + CREATED_PAR_ID + '"]');
-        if (btn) btn.click();
-      }, 900);
     }
   }
 
