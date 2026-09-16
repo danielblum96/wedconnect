@@ -621,7 +621,7 @@ export async function renderDashboard(context, reseller) {
      helyette flex-oszlop: fejléc (fix) + std-panel-body (flex:1, a mélyebb
      .wizard-step-fields görget benne) - ld. a .wizard-nav-nál lévő
      megjegyzést, miért nem a dialog szintjén görgetünk többé. */
-  .edit-modal, .new-couple-modal { display:flex; flex-direction:column; overflow:hidden; }
+  .edit-modal[open], .new-couple-modal[open] { display:flex; flex-direction:column; overflow:hidden; }
   .std-modal::backdrop { background:rgba(20,14,6,0.55); backdrop-filter:blur(3px); }
   .std-modal[open] { animation:std-modal-in 0.22s ease; }
   @keyframes std-modal-in { from { opacity:0; transform:translateY(10px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
