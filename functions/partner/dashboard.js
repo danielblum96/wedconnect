@@ -882,16 +882,11 @@ ${
                 <span class="event-row-header-name">${t.eventNamePlaceholder}</span>
               </div>
               <div id="event-rows">
-                ${[0, 1, 2, 3]
-                  .map(
-                    () => `
                 <div class="event-row">
                   <input type="time" name="esemeny_ido" placeholder="${t.eventTimePlaceholder}" autocomplete="off" class="event-time">
                   <input type="text" name="esemeny_nev" placeholder="${t.eventNamePlaceholder}" autocomplete="off">
                   <button type="button" class="btn-remove-row" aria-label="${t.eventRemoveAria}">×</button>
-                </div>`
-                  )
-                  .join("")}
+                </div>
               </div>
               <button type="button" class="btn-add-row" id="add-event-row">${t.addEvent}</button>
             </div>
