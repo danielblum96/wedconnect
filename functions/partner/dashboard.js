@@ -510,7 +510,6 @@ export async function renderDashboard(context, reseller) {
   .chip-row-label { font-size:0.85rem; color:var(--muted); font-weight:600; margin-right:2px; }
   .chip { border:1px solid #ddd6c9; background:#fff; color:var(--fg); border-radius:999px; padding:6px 14px; font-size:0.88rem; font-weight:500; cursor:pointer; font-family:inherit; transition:background 0.15s ease, border-color 0.15s ease; }
   .chip:hover { background:#f7f0e2; border-color:var(--accent); }
-  .price-note { display:inline-block; font-size:0.88rem; font-weight:600; color:var(--accent); background:#fbf2e2; border:1px solid #ecd9b6; border-radius:999px; padding:5px 14px; margin:-6px 0 16px; }
   .wizard-progress { display:flex; align-items:flex-start; margin-bottom:28px; }
   .wizard-progress-step { display:flex; flex-direction:column; align-items:center; flex:none; width:90px; }
   .wizard-progress-circle { width:32px; height:32px; border-radius:50%; border:2px solid #ddd6c9; background:#fff; color:var(--muted); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.95rem; transition:background 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease; }
@@ -806,7 +805,6 @@ ${
           <div class="wizard-step" data-step="2" hidden>
             <div class="wizard-step-fields">
               <p class="style-picker-hint">${t.stylePickerHint}</p>
-              <p class="price-note">${t.priceNote(formatPrice(PAGE_PRICE, lang))}</p>
               <div class="style-picker" id="style-picker">${stylePicker}</div>
             </div>
             <div class="wizard-nav">
