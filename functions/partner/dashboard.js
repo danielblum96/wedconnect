@@ -297,20 +297,22 @@ export async function renderDashboard(context, reseller) {
                     .join("")}
                 </div>
                 <div class="wizard-step" data-step="2" hidden>
-                  <div class="photo-edit-block" data-par-id="${p.id}" data-slug="${escapeHtml(p.slug)}">
-                    <p class="field-explain">${t.photoExplain}</p>
-                    <div class="photo-dropzone">
-                      ${
-                        p.fenykep_frissitve
-                          ? `<img src="/foto/${escapeHtml(p.slug)}?v=${escapeHtml(p.fenykep_frissitve)}" alt="" class="photo-preview">`
-                          : `<img alt="" class="photo-preview" hidden>`
-                      }
-                      <div class="photo-drop-hint"${p.fenykep_frissitve ? " hidden" : ""}>${t.photoDropHint}</div>
-                      <input type="file" accept="image/*" class="photo-file-input">
-                    </div>
-                    <div class="photo-actions">
-                      <button type="button" class="btn-photo-remove"${p.fenykep_frissitve ? "" : " hidden"}>${t.photoRemove}</button>
-                      <span class="photo-upload-status"></span>
+                  <div class="wizard-step-fields">
+                    <div class="photo-edit-block" data-par-id="${p.id}" data-slug="${escapeHtml(p.slug)}">
+                      <p class="field-explain">${t.photoExplain}</p>
+                      <div class="photo-dropzone">
+                        ${
+                          p.fenykep_frissitve
+                            ? `<img src="/foto/${escapeHtml(p.slug)}?v=${escapeHtml(p.fenykep_frissitve)}" alt="" class="photo-preview">`
+                            : `<img alt="" class="photo-preview" hidden>`
+                        }
+                        <div class="photo-drop-hint"${p.fenykep_frissitve ? " hidden" : ""}>${t.photoDropHint}</div>
+                        <input type="file" accept="image/*" class="photo-file-input">
+                      </div>
+                      <div class="photo-actions">
+                        <button type="button" class="btn-photo-remove"${p.fenykep_frissitve ? "" : " hidden"}>${t.photoRemove}</button>
+                        <span class="photo-upload-status"></span>
+                      </div>
                     </div>
                   </div>
                   <div class="wizard-nav">
@@ -321,43 +323,51 @@ export async function renderDashboard(context, reseller) {
                 <form method="POST" action="/api/couple-update" class="edit-form" data-nev1="${escapeHtml(nev1)}" data-nev2="${escapeHtml(nev2)}" data-datetext="${escapeHtml(dateText)}">
                   <input type="hidden" name="par_id" value="${p.id}">
                   <div class="wizard-step" data-step="1">
-                    <p class="field-explain">${t.stylePickerHint}</p>
-                    <div class="style-picker style-picker--edit">${editStylePicker}</div>
+                    <div class="wizard-step-fields">
+                      <p class="field-explain">${t.stylePickerHint}</p>
+                      <div class="style-picker style-picker--edit">${editStylePicker}</div>
+                    </div>
                     <div class="wizard-nav">
                       <button type="button" class="btn-next edit-style-next" data-next="2">${t.next}</button>
                     </div>
                   </div>
                   <div class="wizard-step" data-step="3" hidden>
-                    <p class="field-explain">${t.ownMessageExplain}</p>
-                    <div class="chip-row">
-                      <span class="chip-row-label">${t.inspirationLabel}</span>
-                      ${t.messageSuggestions.map((s) => `<button type="button" class="chip" data-fill-message="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+                    <div class="wizard-step-fields">
+                      <p class="field-explain">${t.ownMessageExplain}</p>
+                      <div class="chip-row">
+                        <span class="chip-row-label">${t.inspirationLabel}</span>
+                        ${t.messageSuggestions.map((s) => `<button type="button" class="chip" data-fill-message="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+                      </div>
+                      <textarea name="egyedi_uzenet" rows="2" placeholder="${t.ownMessagePlaceholder}">${escapeHtml(p.egyedi_uzenet || "")}</textarea>
                     </div>
-                    <textarea name="egyedi_uzenet" rows="2" placeholder="${t.ownMessagePlaceholder}">${escapeHtml(p.egyedi_uzenet || "")}</textarea>
                     <div class="wizard-nav">
                       <button type="button" class="btn-back" data-back="2">${t.back}</button>
                       <button type="button" class="btn-next" data-next="4">${t.next}</button>
                     </div>
                   </div>
                   <div class="wizard-step" data-step="4" hidden>
-                    <p class="field-explain">${t.programExplain}</p>
-                    <div class="chip-row">
-                      <span class="chip-row-label">${t.inspirationLabel}</span>
-                      ${t.eventSuggestions.map((s) => `<button type="button" class="chip" data-fill-event="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+                    <div class="wizard-step-fields">
+                      <p class="field-explain">${t.programExplain}</p>
+                      <div class="chip-row">
+                        <span class="chip-row-label">${t.inspirationLabel}</span>
+                        ${t.eventSuggestions.map((s) => `<button type="button" class="chip" data-fill-event="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+                      </div>
+                      ${eventRows}
                     </div>
-                    ${eventRows}
                     <div class="wizard-nav">
                       <button type="button" class="btn-back" data-back="3">${t.back}</button>
                       <button type="button" class="btn-next" data-next="5">${t.next}</button>
                     </div>
                   </div>
                   <div class="wizard-step" data-step="5" hidden>
-                    <p class="field-explain">${t.buttonsExplain} <span class="hint-inline">${t.buttonsEditHint}</span></p>
-                    <div class="chip-row">
-                      <span class="chip-row-label">${t.inspirationLabel}</span>
-                      ${t.buttonSuggestions.map((s) => `<button type="button" class="chip" data-fill="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+                    <div class="wizard-step-fields">
+                      <p class="field-explain">${t.buttonsExplain} <span class="hint-inline">${t.buttonsEditHint}</span></p>
+                      <div class="chip-row">
+                        <span class="chip-row-label">${t.inspirationLabel}</span>
+                        ${t.buttonSuggestions.map((s) => `<button type="button" class="chip" data-fill="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+                      </div>
+                      ${gombRows}
                     </div>
-                    ${gombRows}
                     <div class="wizard-nav">
                       <button type="button" class="btn-back" data-back="4">${t.back}</button>
                       <button type="submit" class="btn-save">${t.save}</button>
@@ -448,8 +458,8 @@ export async function renderDashboard(context, reseller) {
   .btn-edit-open { margin-top:14px; padding-top:14px; border-top:1px solid #f0e9d8; width:100%; text-align:left; cursor:pointer; font-family:inherit; font-size:0.88rem; color:var(--muted); font-weight:600; background:none; border-left:none; border-right:none; border-bottom:none; display:flex; align-items:center; gap:5px; }
   .btn-edit-open::before { content:"✎"; font-size:0.85rem; }
   .btn-edit-open:hover { color:var(--fg); }
-  .edit-modal .std-modal-head, .new-couple-modal .std-modal-head { padding:30px 40px 0; }
-  .edit-modal .std-panel-body, .new-couple-modal .std-panel-body { padding:22px 40px 34px; }
+  .edit-modal .std-modal-head, .new-couple-modal .std-modal-head { padding:30px 40px 0; flex:none; }
+  .edit-modal .std-panel-body, .new-couple-modal .std-panel-body { padding:22px 40px 34px; flex:1; min-height:0; overflow:hidden; align-items:stretch; flex-wrap:nowrap; }
   .edit-form { margin-top:0; }
   .edit-form .style-picker--edit { margin-top:6px; margin-bottom:16px; }
   .style-picker--edit .style-swatch:has(input:checked) .swatch-name { display:block; }
@@ -534,11 +544,16 @@ export async function renderDashboard(context, reseller) {
   }
   .wizard-progress-line.completed { background:linear-gradient(90deg,#f0c988,#b48b56); }
   .hint-inline { font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted); font-size:0.88rem; }
-  /* A wizard-nav sáv MINDIG a felület alján marad görgetéskor - popup-oknál
-     (.std-modal, ami maga a görgethető felület) a dialoghoz, a normál
-     lapfolyamban élő új-pár varázslónál a böngésző-viewporthoz "ragad". Fehér
-     háttér + finom felső árnyék választja el a mögötte görgő tartalomtól. */
-  .wizard-nav { display:flex; gap:10px; align-items:center; justify-content:flex-end; position:sticky; bottom:0; width:100%; background:#fff; padding:14px 0 4px; margin-top:10px; box-shadow:0 -12px 16px -12px rgba(0,0,0,0.12); }
+  /* A wizard-nav sáv MINDIG a felület alján marad görgetéskor. Korábban
+     position:sticky-vel oldottuk ezt meg, de iOS Safarin ez a <dialog> +
+     sticky + mezőre-kattintás kombináció miatt a teljes felületet a tetejére
+     "ugrasztotta" minden fókuszváltáskor. Ehelyett most VALÓDI flexbox-os
+     rögzítés van: minden .wizard-step maga egy flex-oszlop, aminek csak a
+     .wizard-step-fields (a mezők) görgethetők (overflow-y:auto), a
+     .wizard-nav pedig egy NEM görgethető flex-testvér a lépés alján - így
+     sosem "ugorhat", mert nincs is olyan scroll-konténerben, ami fókusz
+     hatására újraszámolná a pozícióját. */
+  .wizard-nav { display:flex; gap:10px; align-items:center; justify-content:flex-end; flex:none; width:100%; background:#fff; padding:14px 0 4px; margin-top:10px; box-shadow:0 -12px 16px -12px rgba(0,0,0,0.12); }
   .btn-back { display:inline-flex; align-items:center; justify-content:center; min-height:54px; padding:14px 30px; border:none; background:none; color:var(--muted); font-weight:600; font-size:1rem; cursor:pointer; font-family:inherit; border-radius:16px; transition:color 0.15s ease, background 0.15s ease; }
   .btn-back:hover { color:var(--fg); background:#f6f1e6; }
   .btn-back:active { transform:scale(0.98); }
@@ -555,10 +570,17 @@ export async function renderDashboard(context, reseller) {
   .btn-row { display:flex; gap:8px; align-items:center; }
   .btn-remove-row { flex:none; border:none; background:none; color:var(--muted); font-size:1.2rem; line-height:1; cursor:pointer; padding:0 4px 14px; }
   .btn-add-row { border:1px dashed #ddd6c9; background:none; color:var(--accent); border-radius:8px; padding:9px 14px; font-size:0.95rem; font-weight:600; cursor:pointer; font-family:inherit; margin-bottom:20px; }
-  .edit-tabs, .new-couple-tabs { min-width:0; flex:1; }
-  .edit-tabs .wizard-progress, .new-couple-tabs .wizard-progress { margin-bottom:22px; }
+  .edit-tabs, .new-couple-tabs { min-width:0; flex:1; display:flex; flex-direction:column; min-height:0; }
+  .edit-tabs .wizard-progress, .new-couple-tabs .wizard-progress { margin-bottom:22px; flex:none; }
   .edit-tabs .wizard-progress-step { cursor:default; width:74px; }
   .edit-tabs .wizard-progress-step.completed, .edit-tabs .wizard-progress-step.active { cursor:pointer; }
+  /* A varázsló aktív lépése (és az edit-modálnál az azt körülvevő <form>) egy
+     beágyazott flex-oszlop-lánc, hogy a .wizard-step-fields-nek legyen mihez
+     "flex:1"-kednie - lásd a .wizard-nav-nál lévő megjegyzést a miértről. */
+  .edit-tabs > form, .new-couple-tabs > form { min-height:0; }
+  .edit-tabs > form:has(> .wizard-step:not([hidden])), .new-couple-tabs > form:has(> .wizard-step:not([hidden])) { flex:1; display:flex; flex-direction:column; }
+  .wizard-step:not([hidden]) { flex:1; min-height:0; display:flex; flex-direction:column; }
+  .wizard-step-fields { flex:1; min-height:0; overflow-y:auto; }
   .photo-edit-block { margin-bottom:18px; }
   .photo-dropzone { position:relative; border:1.5px dashed #ddd6c9; border-radius:10px; padding:10px; text-align:center; margin-bottom:10px; transition:border-color 0.15s ease, background 0.15s ease; }
   .photo-dropzone:hover, .photo-dropzone.drag-over { border-color:var(--accent); background:#fbf7ef; }
@@ -595,6 +617,11 @@ export async function renderDashboard(context, reseller) {
   .btn-std-open { font-family:"Poppins",sans-serif; font-size:0.85rem; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:var(--accent); background:#fff; border:1.5px solid var(--accent); padding:10px 22px; border-radius:999px; cursor:pointer; transition:background 0.18s ease, color 0.18s ease; }
   .btn-std-open:hover { background:var(--accent); color:#fff; }
   .std-modal { border:none; border-radius:22px; padding:0; max-width:760px; width:92vw; box-shadow:0 40px 90px -24px rgba(30,20,8,0.4); position:relative; max-height:90vh; max-height:90dvh; overflow-y:auto; margin:auto; }
+  /* A varázsló-popupoknál (szerkesztés, új pár) a dialog maga NEM görget -
+     helyette flex-oszlop: fejléc (fix) + std-panel-body (flex:1, a mélyebb
+     .wizard-step-fields görget benne) - ld. a .wizard-nav-nál lévő
+     megjegyzést, miért nem a dialog szintjén görgetünk többé. */
+  .edit-modal, .new-couple-modal { display:flex; flex-direction:column; overflow:hidden; }
   .std-modal::backdrop { background:rgba(20,14,6,0.55); backdrop-filter:blur(3px); }
   .std-modal[open] { animation:std-modal-in 0.22s ease; }
   @keyframes std-modal-in { from { opacity:0; transform:translateY(10px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
@@ -784,12 +811,14 @@ ${
         </div>
         <form method="POST" action="/api/couple-create" id="new-couple-form" novalidate>
           <div class="wizard-step" data-step="1">
-            <div class="field-row">
-              <div><label>${t.brideName}</label><input type="text" name="nev1" id="f-nev1" required></div>
-              <div><label>${t.groomName}</label><input type="text" name="nev2" id="f-nev2" required></div>
-            </div>
-            <div class="field-row">
-              <div><label>${t.weddingDate}</label><input type="date" name="eskuvo_datuma" id="f-datum" required></div>
+            <div class="wizard-step-fields">
+              <div class="field-row">
+                <div><label>${t.brideName}</label><input type="text" name="nev1" id="f-nev1" required></div>
+                <div><label>${t.groomName}</label><input type="text" name="nev2" id="f-nev2" required></div>
+              </div>
+              <div class="field-row">
+                <div><label>${t.weddingDate}</label><input type="date" name="eskuvo_datuma" id="f-datum" required></div>
+              </div>
             </div>
             <div class="wizard-nav">
               <button type="button" class="btn-next" data-next="2">${t.next}</button>
@@ -797,46 +826,48 @@ ${
           </div>
 
           <div class="wizard-step" data-step="2" hidden>
-            <label>${t.ownMessage} <span class="hint-inline">${t.ownMessageHint}</span></label>
-            <p class="field-explain">${t.ownMessageExplain}</p>
-            <div class="chip-row">
-              <span class="chip-row-label">${t.inspirationLabel}</span>
-              ${t.messageSuggestions.map((s) => `<button type="button" class="chip" data-fill-message="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
-            </div>
-            <textarea name="egyedi_uzenet" id="f-uzenet" rows="3">${escapeHtml(defaultMessage)}</textarea>
-            <label>${t.buttons} <span class="hint-inline">${t.buttonsHint}</span></label>
-            <p class="field-explain">${t.buttonsExplain}</p>
-            <div class="chip-row">
-              <span class="chip-row-label">${t.inspirationLabel}</span>
-              ${t.buttonSuggestions.map((s) => `<button type="button" class="chip" data-fill="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
-            </div>
-            <div id="button-rows">
-              <div class="btn-row">
-                <input type="text" name="gomb_label" placeholder="${t.buttonLabelPlaceholder}" autocomplete="off">
-                <input type="text" name="gomb_url" placeholder="https://..." autocomplete="off">
-                <button type="button" class="btn-remove-row" aria-label="${t.buttonRemoveAria}">×</button>
+            <div class="wizard-step-fields">
+              <label>${t.ownMessage} <span class="hint-inline">${t.ownMessageHint}</span></label>
+              <p class="field-explain">${t.ownMessageExplain}</p>
+              <div class="chip-row">
+                <span class="chip-row-label">${t.inspirationLabel}</span>
+                ${t.messageSuggestions.map((s) => `<button type="button" class="chip" data-fill-message="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
               </div>
+              <textarea name="egyedi_uzenet" id="f-uzenet" rows="3">${escapeHtml(defaultMessage)}</textarea>
+              <label>${t.buttons} <span class="hint-inline">${t.buttonsHint}</span></label>
+              <p class="field-explain">${t.buttonsExplain}</p>
+              <div class="chip-row">
+                <span class="chip-row-label">${t.inspirationLabel}</span>
+                ${t.buttonSuggestions.map((s) => `<button type="button" class="chip" data-fill="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+              </div>
+              <div id="button-rows">
+                <div class="btn-row">
+                  <input type="text" name="gomb_label" placeholder="${t.buttonLabelPlaceholder}" autocomplete="off">
+                  <input type="text" name="gomb_url" placeholder="https://..." autocomplete="off">
+                  <button type="button" class="btn-remove-row" aria-label="${t.buttonRemoveAria}">×</button>
+                </div>
+              </div>
+              <button type="button" class="btn-add-row" id="add-button-row">${t.addButton}</button>
+              <label>${t.program} <span class="hint-inline">${t.programHint}</span></label>
+              <p class="field-explain">${t.programExplain}</p>
+              <div class="chip-row">
+                <span class="chip-row-label">${t.inspirationLabel}</span>
+                ${t.eventSuggestions.map((s) => `<button type="button" class="chip" data-fill-event="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
+              </div>
+              <div id="event-rows">
+                ${[0, 1, 2, 3]
+                  .map(
+                    () => `
+                <div class="event-row">
+                  <input type="text" name="esemeny_ido" placeholder="${t.eventTimePlaceholder}" autocomplete="off" class="event-time">
+                  <input type="text" name="esemeny_nev" placeholder="${t.eventNamePlaceholder}" autocomplete="off">
+                  <button type="button" class="btn-remove-row" aria-label="${t.eventRemoveAria}">×</button>
+                </div>`
+                  )
+                  .join("")}
+              </div>
+              <button type="button" class="btn-add-row" id="add-event-row">${t.addEvent}</button>
             </div>
-            <button type="button" class="btn-add-row" id="add-button-row">${t.addButton}</button>
-            <label>${t.program} <span class="hint-inline">${t.programHint}</span></label>
-            <p class="field-explain">${t.programExplain}</p>
-            <div class="chip-row">
-              <span class="chip-row-label">${t.inspirationLabel}</span>
-              ${t.eventSuggestions.map((s) => `<button type="button" class="chip" data-fill-event="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join("")}
-            </div>
-            <div id="event-rows">
-              ${[0, 1, 2, 3]
-                .map(
-                  () => `
-              <div class="event-row">
-                <input type="text" name="esemeny_ido" placeholder="${t.eventTimePlaceholder}" autocomplete="off" class="event-time">
-                <input type="text" name="esemeny_nev" placeholder="${t.eventNamePlaceholder}" autocomplete="off">
-                <button type="button" class="btn-remove-row" aria-label="${t.eventRemoveAria}">×</button>
-              </div>`
-                )
-                .join("")}
-            </div>
-            <button type="button" class="btn-add-row" id="add-event-row">${t.addEvent}</button>
             <div class="wizard-nav">
               <button type="button" class="btn-back" data-back="1">${t.back}</button>
               <button type="button" class="btn-next" data-next="3">${t.next}</button>
@@ -844,9 +875,11 @@ ${
           </div>
 
           <div class="wizard-step" data-step="3" hidden>
-            <p class="style-picker-hint">${t.stylePickerHint}</p>
-            <p class="price-note">${t.priceNote(formatPrice(PAGE_PRICE, lang))}</p>
-            <div class="style-picker" id="style-picker">${stylePicker}</div>
+            <div class="wizard-step-fields">
+              <p class="style-picker-hint">${t.stylePickerHint}</p>
+              <p class="price-note">${t.priceNote(formatPrice(PAGE_PRICE, lang))}</p>
+              <div class="style-picker" id="style-picker">${stylePicker}</div>
+            </div>
             <div class="wizard-nav">
               <button type="button" class="btn-back" data-back="2">${t.back}</button>
               <button type="submit" class="btn-next" id="new-couple-style-submit" disabled>${t.createPage}</button>
