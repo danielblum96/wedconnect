@@ -849,7 +849,7 @@ ${
             </div>
             <div class="wizard-nav">
               <button type="button" class="btn-back" data-back="2">${t.back}</button>
-              <button type="button" class="btn-next" data-next="4">${t.next}</button>
+              <button type="button" class="btn-next" id="new-couple-photo-next" data-next="4">${t.next}</button>
             </div>
           </div>
 
@@ -1719,30 +1719,53 @@ ${
     // oldal-újratöltéssel küldődik be, egy sima JS-változó elveszne - a
     // kép ezért a sessionStorage-ban vár base64 data URL-ként (ld. lejjebb
     // a CREATED_PAR_ID melletti blokkot, ami a redirect UTÁN tölti fel).
+    //
+    // FONTOS SORREND: a sessionStorage-ba írás (FileReader.readAsDataURL)
+    // egy KÜLÖN, a resize-tól független aszinkron lépés - ha a helyi
+    // előnézetet (showPhoto) MÁR ez előtt megmutatnánk, egy gyors user
+    // rögtön továbbléphetne, MIELŐTT a kép ténylegesen bekerülne a
+    // sessionStorage-ba, és a fotó csendben elveszne (a létrehozás utáni
+    // oldalon sosem jelenne meg). Ezért az előnézet és a "Tovább" gomb
+    // újra-engedélyezése is CSAK a sessionStorage-írás befejezése UTÁN
+    // történik - eddig a Tovább gomb is le van tiltva, hogy egy nagyon
+    // gyors user se tudjon "elébe vágni" a mentésnek.
     function uploadFilePending(file) {
+      var nextBtn = document.getElementById("new-couple-photo-next");
       if (!file || file.type.indexOf("image/") !== 0) {
         setStatus(COPY.photoUploadError, true);
         return;
       }
       setStatus(COPY.photoUploading, false);
+      if (nextBtn) nextBtn.disabled = true;
       window.PhotoUpload.resizeImageToWebp(file)
+        .then(function (blob) {
+          return new Promise(function (resolve) {
+            var reader = new FileReader();
+            reader.onload = function () {
+              try {
+                sessionStorage.setItem(PENDING_PHOTO_KEY, reader.result);
+              } catch (e) {
+                // sessionStorage esetleg tiltva/betelve - ilyenkor a fotó
+                // egyszerűen nem kerül át a létrehozás utáni oldalra, de a
+                // varázsló maga emiatt nem törik el.
+              }
+              resolve(blob);
+            };
+            reader.onerror = function () {
+              resolve(blob);
+            };
+            reader.readAsDataURL(blob);
+          });
+        })
         .then(function (blob) {
           showPhoto(URL.createObjectURL(blob));
           setStatus("", false);
-          var reader = new FileReader();
-          reader.onload = function () {
-            try {
-              sessionStorage.setItem(PENDING_PHOTO_KEY, reader.result);
-            } catch (e) {
-              // sessionStorage esetleg tiltva/betelve - ilyenkor a fotó
-              // egyszerűen nem kerül át a létrehozás utáni oldalra, de a
-              // varázsló maga emiatt nem törik el.
-            }
-          };
-          reader.readAsDataURL(blob);
         })
         .catch(function () {
           setStatus(COPY.photoUploadError, true);
+        })
+        .then(function () {
+          if (nextBtn) nextBtn.disabled = false;
         });
     }
 
