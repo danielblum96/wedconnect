@@ -457,8 +457,8 @@ export async function renderDashboard(context, reseller) {
   .btn-edit-open { margin-top:14px; padding-top:14px; border-top:1px solid #f0e9d8; width:100%; text-align:left; cursor:pointer; font-family:inherit; font-size:0.88rem; color:var(--muted); font-weight:600; background:none; border-left:none; border-right:none; border-bottom:none; display:flex; align-items:center; gap:5px; }
   .btn-edit-open::before { content:"✎"; font-size:0.85rem; }
   .btn-edit-open:hover { color:var(--fg); }
-  .edit-modal .std-modal-head, .new-couple-modal .std-modal-head { padding:30px 40px 0; flex:none; }
-  .edit-modal .std-panel-body, .new-couple-modal .std-panel-body { padding:22px 40px 34px; flex:1; min-height:0; overflow:hidden; align-items:stretch; flex-wrap:nowrap; }
+  .edit-modal .std-modal-head, .new-couple-modal .std-modal-head { padding:30px 40px 0; }
+  .edit-modal .std-panel-body, .new-couple-modal .std-panel-body { padding:22px 40px 34px; }
   .edit-form { margin-top:0; }
   .edit-form .style-picker--edit { margin-top:6px; margin-bottom:16px; }
   .style-picker--edit .style-swatch:has(input:checked) .swatch-name { display:block; }
@@ -470,12 +470,11 @@ export async function renderDashboard(context, reseller) {
   .saved-note { color:#3a7a4e; font-size:0.95rem; margin-left:10px; }
   .empty { color:var(--muted); font-size:1rem; }
   .error-box { background:#fdeee7; color:#b1451f; border:1px solid #f3c8b3; padding:10px 14px; border-radius:8px; font-size:0.95rem; margin-bottom:18px; }
-  /* A .wizard-step-fields overflow-y:auto-ja (a nav-sáv iPhone-os "ugrás"
-     hibájának javításánál) mellékhatásként overflow-x:auto-t is bekapcsol
-     (a böngésző így számolja ki, ha az egyik tengely nem "visible") - emiatt
-     a kiválasztott stílus-kártya kifelé "kilógó" arany fénykerete
-     (box-shadow + scale) a bal/jobb szélen levágódott. A padding ad neki
-     helyet, mielőtt a görgethető konténer levágná. */
+  /* A padding azért kell, mert egy overflow:auto-t kapó ősnél (pl. a
+     .std-modal maga) a böngésző a "visible" tengelyt is auto-ra kényszeríti,
+     ami vágja a kiválasztott stílus-kártya kifelé "kilógó" arany fénykeretét
+     (box-shadow + scale) - a padding ad neki helyet, mielőtt egy görgethető
+     konténer levágná. */
   .style-picker { display:grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap:18px; padding:6px; margin-bottom:0; }
   .style-swatch { position:relative; cursor:pointer; border-radius:12px; overflow:hidden; border:2px solid transparent; box-shadow:0 4px 14px rgba(0,0,0,0.1); display:block; }
   .style-swatch input { position:absolute; opacity:0; width:0; height:0; margin:0; }
@@ -534,16 +533,17 @@ export async function renderDashboard(context, reseller) {
   }
   .wizard-progress-line.completed { background:linear-gradient(90deg,#f0c988,#b48b56); }
   .hint-inline { font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted); font-size:0.88rem; }
-  /* A wizard-nav sáv MINDIG a felület alján marad görgetéskor. Korábban
-     position:sticky-vel oldottuk ezt meg, de iOS Safarin ez a <dialog> +
-     sticky + mezőre-kattintás kombináció miatt a teljes felületet a tetejére
-     "ugrasztotta" minden fókuszváltáskor. Ehelyett most VALÓDI flexbox-os
-     rögzítés van: minden .wizard-step maga egy flex-oszlop, aminek csak a
-     .wizard-step-fields (a mezők) görgethetők (overflow-y:auto), a
-     .wizard-nav pedig egy NEM görgethető flex-testvér a lépés alján - így
-     sosem "ugorhat", mert nincs is olyan scroll-konténerben, ami fókusz
-     hatására újraszámolná a pozícióját. */
-  .wizard-nav { display:flex; gap:10px; align-items:center; justify-content:flex-end; flex:none; width:100%; background:#fff; padding:14px 0 4px; margin-top:10px; box-shadow:0 -12px 16px -12px rgba(0,0,0,0.12); }
+  /* A wizard-nav sávot korábban position:sticky-vel, majd egy mély
+     flex-oszlop-lánccal próbáltuk a felület alján tartani görgetéskor -
+     mindkettő valódi iPhone-on (Safari) hibát okozott: a sticky a mezőre
+     kattintáskor a tetejére "ugrasztotta" a felületet, a flex-lánc pedig a
+     teljes varázsló-tartalmat összeomlasztotta (0 magasságúra), mert Safari
+     nem mindig oldja fel helyesen a mélyen egymásba ágyazott
+     flex:1/min-height:0 láncokat egy <dialog> elemben. A nav ezért most NEM
+     rögzített - egyszerű, a tartalom után következő elem, a dialoggal együtt
+     görgetve. Kevésbé kényelmes, mint egy mindig látható gombsor, de
+     garantáltan megbízható minden böngészőben. */
+  .wizard-nav { display:flex; gap:10px; align-items:center; justify-content:flex-end; width:100%; background:#fff; padding:14px 0 4px; margin-top:10px; }
   .btn-back { display:inline-flex; align-items:center; justify-content:center; min-height:54px; padding:14px 30px; border:none; background:none; color:var(--muted); font-weight:600; font-size:1rem; cursor:pointer; font-family:inherit; border-radius:16px; transition:color 0.15s ease, background 0.15s ease; }
   .btn-back:hover { color:var(--fg); background:#f6f1e6; }
   .btn-back:active { transform:scale(0.98); }
@@ -560,17 +560,10 @@ export async function renderDashboard(context, reseller) {
   .btn-row { display:flex; gap:8px; align-items:center; }
   .btn-remove-row { flex:none; border:none; background:none; color:var(--muted); font-size:1.2rem; line-height:1; cursor:pointer; padding:0 4px 14px; }
   .btn-add-row { border:1px dashed #ddd6c9; background:none; color:var(--accent); border-radius:8px; padding:9px 14px; font-size:0.95rem; font-weight:600; cursor:pointer; font-family:inherit; margin-bottom:20px; }
-  .edit-tabs, .new-couple-tabs { min-width:0; flex:1; display:flex; flex-direction:column; min-height:0; }
-  .edit-tabs .wizard-progress, .new-couple-tabs .wizard-progress { margin-bottom:22px; flex:none; }
+  .edit-tabs, .new-couple-tabs { min-width:0; flex:1; }
+  .edit-tabs .wizard-progress, .new-couple-tabs .wizard-progress { margin-bottom:22px; }
   .edit-tabs .wizard-progress-step { cursor:default; width:74px; }
   .edit-tabs .wizard-progress-step.completed, .edit-tabs .wizard-progress-step.active { cursor:pointer; }
-  /* A varázsló aktív lépése (és az edit-modálnál az azt körülvevő <form>) egy
-     beágyazott flex-oszlop-lánc, hogy a .wizard-step-fields-nek legyen mihez
-     "flex:1"-kednie - lásd a .wizard-nav-nál lévő megjegyzést a miértről. */
-  .edit-tabs > form, .new-couple-tabs > form { min-height:0; }
-  .edit-tabs > form:has(> .wizard-step:not([hidden])), .new-couple-tabs > form:has(> .wizard-step:not([hidden])) { flex:1; display:flex; flex-direction:column; }
-  .wizard-step:not([hidden]) { flex:1; min-height:0; display:flex; flex-direction:column; }
-  .wizard-step-fields { flex:1; min-height:0; overflow-y:auto; }
   .photo-edit-block { margin-bottom:18px; }
   .photo-dropzone { position:relative; border:1.5px dashed #ddd6c9; border-radius:10px; padding:10px; text-align:center; margin-bottom:10px; transition:border-color 0.15s ease, background 0.15s ease; }
   .photo-dropzone:hover, .photo-dropzone.drag-over { border-color:var(--accent); background:#fbf7ef; }
@@ -607,11 +600,6 @@ export async function renderDashboard(context, reseller) {
   .btn-std-open { font-family:"Poppins",sans-serif; font-size:0.85rem; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:var(--accent); background:#fff; border:1.5px solid var(--accent); padding:10px 22px; border-radius:999px; cursor:pointer; transition:background 0.18s ease, color 0.18s ease; }
   .btn-std-open:hover { background:var(--accent); color:#fff; }
   .std-modal { border:none; border-radius:22px; padding:0; max-width:760px; width:92vw; box-shadow:0 40px 90px -24px rgba(30,20,8,0.4); position:relative; max-height:90vh; max-height:90dvh; overflow-y:auto; margin:auto; }
-  /* A varázsló-popupoknál (szerkesztés, új pár) a dialog maga NEM görget -
-     helyette flex-oszlop: fejléc (fix) + std-panel-body (flex:1, a mélyebb
-     .wizard-step-fields görget benne) - ld. a .wizard-nav-nál lévő
-     megjegyzést, miért nem a dialog szintjén görgetünk többé. */
-  .edit-modal[open], .new-couple-modal[open] { display:flex; flex-direction:column; overflow:hidden; }
   .std-modal::backdrop { background:rgba(20,14,6,0.55); backdrop-filter:blur(3px); }
   .std-modal[open] { animation:std-modal-in 0.22s ease; }
   @keyframes std-modal-in { from { opacity:0; transform:translateY(10px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
