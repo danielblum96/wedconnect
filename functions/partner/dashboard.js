@@ -470,7 +470,13 @@ export async function renderDashboard(context, reseller) {
   .saved-note { color:#3a7a4e; font-size:0.95rem; margin-left:10px; }
   .empty { color:var(--muted); font-size:1rem; }
   .error-box { background:#fdeee7; color:#b1451f; border:1px solid #f3c8b3; padding:10px 14px; border-radius:8px; font-size:0.95rem; margin-bottom:18px; }
-  .style-picker { display:grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap:18px; margin-bottom:6px; }
+  /* A .wizard-step-fields overflow-y:auto-ja (a nav-sáv iPhone-os "ugrás"
+     hibájának javításánál) mellékhatásként overflow-x:auto-t is bekapcsol
+     (a böngésző így számolja ki, ha az egyik tengely nem "visible") - emiatt
+     a kiválasztott stílus-kártya kifelé "kilógó" arany fénykerete
+     (box-shadow + scale) a bal/jobb szélen levágódott. A padding ad neki
+     helyet, mielőtt a görgethető konténer levágná. */
+  .style-picker { display:grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap:18px; padding:6px; margin-bottom:0; }
   .style-swatch { position:relative; cursor:pointer; border-radius:12px; overflow:hidden; border:2px solid transparent; box-shadow:0 4px 14px rgba(0,0,0,0.1); display:block; }
   .style-swatch input { position:absolute; opacity:0; width:0; height:0; margin:0; }
   .swatch-mock { background:var(--bg); color:var(--fg); min-height:230px; padding:22px 18px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:8px; }
