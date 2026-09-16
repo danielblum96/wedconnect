@@ -459,6 +459,11 @@ export async function renderDashboard(context, reseller) {
   .btn-edit-open:hover { color:var(--fg); }
   .edit-modal .std-modal-head, .new-couple-modal .std-modal-head { padding:30px 40px 0; }
   .edit-modal .std-panel-body, .new-couple-modal .std-panel-body { padding:22px 40px 34px; }
+  /* A sticky .wizard-nav magasságát "foglalja le" a görgethető dialog natív
+     fókusz-görgetési logikájánál, hogy egy mezőre kattintáskor a böngésző NE
+     görgessen a sticky sáv alá/mögé (ez okozott korábban egy hibás
+     "a tetejére ugrás" viselkedést sima sticky esetén). */
+  .edit-modal, .new-couple-modal { scroll-padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
   .edit-form { margin-top:0; }
   .edit-form .style-picker--edit { margin-top:6px; margin-bottom:16px; }
   .style-picker--edit .style-swatch:has(input:checked) .swatch-name { display:block; }
@@ -532,17 +537,19 @@ export async function renderDashboard(context, reseller) {
   }
   .wizard-progress-line.completed { background:linear-gradient(90deg,#f0c988,#b48b56); }
   .hint-inline { font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted); font-size:0.88rem; }
-  /* A wizard-nav sávot korábban position:sticky-vel, majd egy mély
-     flex-oszlop-lánccal próbáltuk a felület alján tartani görgetéskor -
-     mindkettő valódi iPhone-on (Safari) hibát okozott: a sticky a mezőre
-     kattintáskor a tetejére "ugrasztotta" a felületet, a flex-lánc pedig a
+  /* A wizard-nav sávot korábban egy mély flex-oszlop-lánccal próbáltuk a
+     felület alján tartani görgetéskor - ez valódi iPhone-on (Safari) a
      teljes varázsló-tartalmat összeomlasztotta (0 magasságúra), mert Safari
      nem mindig oldja fel helyesen a mélyen egymásba ágyazott
-     flex:1/min-height:0 láncokat egy <dialog> elemben. A nav ezért most NEM
-     rögzített - egyszerű, a tartalom után következő elem, a dialoggal együtt
-     görgetve. Kevésbé kényelmes, mint egy mindig látható gombsor, de
-     garantáltan megbízható minden böngészőben. */
-  .wizard-nav { display:flex; gap:10px; align-items:center; justify-content:flex-end; width:100%; background:#fff; padding:14px 0 4px; margin-top:10px; }
+     flex:1/min-height:0 láncokat egy <dialog> elemben - ezért az VISSZA lett
+     vonva. Ehelyett most a jóval egyszerűbb, széles körben támogatott
+     position:sticky rögzíti a sávot, PÁROSÍTVA a .std-modal-on lévő
+     scroll-padding-bottom-mal (ld. lejjebb) - ez utóbbi a böngésző natív
+     "görgesd a fókuszált mezőt láthatóvá" logikájának mondja meg, hogy a
+     sticky sáv magasságát hagyja szabadon, nehogy alá görgessen/rossz
+     pozíciót számoljon (ez okozott korábban egy "a tetejére ugrás" hibát
+     sima sticky esetén, mielőtt ezt a védelmet bevezettük). */
+  .wizard-nav { display:flex; gap:10px; align-items:center; justify-content:flex-end; position:sticky; bottom:0; width:100%; background:#fff; padding:14px 0 4px; margin-top:10px; box-shadow:0 -12px 16px -12px rgba(0,0,0,0.12); }
   .btn-back { display:inline-flex; align-items:center; justify-content:center; min-height:54px; padding:14px 30px; border:none; background:none; color:var(--muted); font-weight:600; font-size:1rem; cursor:pointer; font-family:inherit; border-radius:16px; transition:color 0.15s ease, background 0.15s ease; }
   .btn-back:hover { color:var(--fg); background:#f6f1e6; }
   .btn-back:active { transform:scale(0.98); }

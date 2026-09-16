@@ -668,6 +668,7 @@ const INDIVIDUAL_DASHBOARD_OVERRIDES = {
     onboardingStep2: "Oszd meg a linket vagy a QR-kódot a vendégeitekkel",
     onboardingStep3: "A vendégeitek élvezik az oldalt, ti pedig készen vagytok – ennyi az egész!",
     confirmDelete: "Biztosan véglegesen törlöd a saját esküvői oldalatokat?",
+    newCoupleHeading: "Esküvői oldal készítése",
   },
 };
 
