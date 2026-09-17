@@ -182,6 +182,9 @@
       <label for="email">Email</label>
       <input type="email" id="email" name="email" required autocomplete="username">
 
+      <label for="telefon">Telefonszám</label>
+      <input type="tel" id="telefon" name="telefon" required autocomplete="tel" placeholder="+36 30 123 4567">
+
       <label for="jelszo">Jelszó</label>
       <input type="password" id="jelszo" name="jelszo" required autocomplete="new-password" minlength="8">
       <div class="hint">Legalább 8 karakter.</div>
@@ -246,6 +249,11 @@
         </select>
       </div>
 
+      <label class="toggle-label">
+        <input type="checkbox" id="adatkezeles" name="adatkezeles" value="1" required>
+        Elfogadom az <a href="/hu/adatkezelesi-tajekoztato" target="_blank">adatkezelési tájékoztatót</a>.
+      </label>
+
       <button type="submit">Ingyenes regisztráció</button>
     </form>
     <div class="foot">Már van fiókod? <a href="/partner/login">Jelentkezz be itt</a></div>
@@ -258,6 +266,8 @@
         missing_fields: "Kérjük, töltsön ki minden mezőt.",
         weak_password: "A jelszónak legalább 8 karakter hosszúnak kell lennie.",
         invalid_email: "Kérjük, adjon meg egy érvényes email-címet.",
+        invalid_phone: "Kérjük, adjon meg egy érvényes telefonszámot.",
+        privacy_required: "Az adatkezelési tájékoztató elfogadása kötelező.",
         email_exists: "Ez az email-cím már regisztrálva van.",
         rate_limited: "Túl sok regisztrációs kísérlet. Kérjük, próbálja meg később."
       };

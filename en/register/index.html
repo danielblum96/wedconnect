@@ -182,6 +182,9 @@
       <label for="email">Email</label>
       <input type="email" id="email" name="email" required autocomplete="username">
 
+      <label for="telefon">Phone number</label>
+      <input type="tel" id="telefon" name="telefon" required autocomplete="tel" placeholder="+1 555 123 4567">
+
       <label for="jelszo">Password</label>
       <input type="password" id="jelszo" name="jelszo" required autocomplete="new-password" minlength="8">
       <div class="hint">At least 8 characters.</div>
@@ -246,6 +249,11 @@
         </select>
       </div>
 
+      <label class="toggle-label">
+        <input type="checkbox" id="adatkezeles" name="adatkezeles" value="1" required>
+        I accept the <a href="/en/privacy-policy" target="_blank">privacy policy</a>.
+      </label>
+
       <button type="submit">Register for free</button>
     </form>
     <div class="foot">Already a partner? <a href="/partner/login">Log in here</a></div>
@@ -258,6 +266,8 @@
         missing_fields: "Please fill in all fields.",
         weak_password: "The password must be at least 8 characters long.",
         invalid_email: "Please enter a valid email address.",
+        invalid_phone: "Please enter a valid phone number.",
+        privacy_required: "You must accept the privacy policy.",
         email_exists: "This email address is already registered.",
         rate_limited: "Too many registration attempts. Please try again later."
       };

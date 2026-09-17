@@ -12,7 +12,9 @@ export async function onRequestPost(context) {
   const formData = await request.formData();
   const cegNev = (formData.get("ceg_nev") || "").toString().trim();
   const email = (formData.get("email") || "").toString().trim().toLowerCase();
+  const telefon = (formData.get("telefon") || "").toString().trim();
   const jelszo = (formData.get("jelszo") || "").toString();
+  const adatkezeles = formData.get("adatkezeles");
   const orszag = (formData.get("orszag") || "").toString().trim();
   const adoszam = (formData.get("adoszam") || "").toString().trim();
   const szamlazasiUtca = (formData.get("szamlazasi_utca") || "").toString().trim();
@@ -38,9 +40,11 @@ export async function onRequestPost(context) {
   );
   if (!allowed) return backWithError("rate_limited");
 
-  if (!cegNev || !email || !orszag) return backWithError("missing_fields");
+  if (!cegNev || !email || !telefon || !orszag) return backWithError("missing_fields");
+  if (!/^[0-9+()\s-]{7,20}$/.test(telefon)) return backWithError("invalid_phone");
   if (jelszo.length < 8) return backWithError("weak_password");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return backWithError("invalid_email");
+  if (!adatkezeles) return backWithError("privacy_required");
 
   const existing = await env.DB.prepare("SELECT id FROM viszontelado WHERE email = ?").bind(email).first();
   if (existing) return backWithError("email_exists");
@@ -49,14 +53,16 @@ export async function onRequestPost(context) {
   const nyelv = countryToLang(orszag);
   const insert = await env.DB.prepare(
     `INSERT INTO viszontelado (
-      ceg_nev, email, jelszo_hash, orszag, nyelv,
+      ceg_nev, email, telefon, jelszo_hash, orszag, nyelv,
       adoszam, szamlazasi_utca, szamlazasi_irsz, szamlazasi_varos, szamlazasi_orszag,
-      szallitas_azonos, alap_szallitasi_utca, alap_szallitasi_irsz, alap_szallitasi_varos, alap_szallitasi_orszag
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      szallitas_azonos, alap_szallitasi_utca, alap_szallitasi_irsz, alap_szallitasi_varos, alap_szallitasi_orszag,
+      adatkezeles_elfogadva
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`
   )
     .bind(
       cegNev,
       email,
+      telefon,
       jelszoHash,
       orszag,
       nyelv,

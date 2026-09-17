@@ -18,7 +18,9 @@ export async function onRequestPost(context) {
   const formData = await request.formData();
   const nev = (formData.get("nev") || "").toString().trim();
   const email = (formData.get("email") || "").toString().trim().toLowerCase();
+  const telefon = (formData.get("telefon") || "").toString().trim();
   const jelszo = (formData.get("jelszo") || "").toString();
+  const adatkezeles = formData.get("adatkezeles");
 
   function backWithError(code) {
     return Response.redirect(`${new URL("/hu/sajat-oldal", request.url).href}?error=${code}`, 303);
@@ -32,18 +34,20 @@ export async function onRequestPost(context) {
   );
   if (!allowed) return backWithError("rate_limited");
 
-  if (!nev || !email) return backWithError("missing_fields");
+  if (!nev || !email || !telefon) return backWithError("missing_fields");
+  if (!/^[0-9+()\s-]{7,20}$/.test(telefon)) return backWithError("invalid_phone");
   if (jelszo.length < 8) return backWithError("weak_password");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return backWithError("invalid_email");
+  if (!adatkezeles) return backWithError("privacy_required");
 
   const existing = await env.DB.prepare("SELECT id FROM viszontelado WHERE email = ?").bind(email).first();
   if (existing) return backWithError("email_exists");
 
   const jelszoHash = await hashPassword(jelszo);
   const insert = await env.DB.prepare(
-    "INSERT INTO viszontelado (ceg_nev, email, jelszo_hash, orszag, nyelv, fiok_tipus) VALUES (?, ?, ?, 'HU', 'hu', 'maganszemely')"
+    "INSERT INTO viszontelado (ceg_nev, email, telefon, jelszo_hash, orszag, nyelv, fiok_tipus, adatkezeles_elfogadva) VALUES (?, ?, ?, ?, 'HU', 'hu', 'maganszemely', datetime('now'))"
   )
-    .bind(nev, email, jelszoHash)
+    .bind(nev, email, telefon, jelszoHash)
     .run();
 
   const viszonteladoId = insert.meta.last_row_id;
