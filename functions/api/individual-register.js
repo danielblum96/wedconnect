@@ -1,5 +1,6 @@
 import { hashPassword, newSessionToken, sessionCookie } from "../_utils/auth.js";
 import { checkRateLimit, clientIp } from "../_utils/rateLimit.js";
+import { sendMetaCapiEvent } from "../_utils/metaCapi.js";
 
 // Magánszemélyeknek szóló, leegyszerűsített regisztráció - a viszonteladói
 // `viszontelado` táblát/session-rendszert/dashboardot használja újra
@@ -13,7 +14,7 @@ const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
 
 export async function onRequestPost(context) {
-  const { request, env } = context;
+  const { request, env, waitUntil } = context;
   const formData = await request.formData();
   const nev = (formData.get("nev") || "").toString().trim();
   const email = (formData.get("email") || "").toString().trim().toLowerCase();
@@ -51,6 +52,17 @@ export async function onRequestPost(context) {
   await env.DB.prepare("INSERT INTO sessions (token, viszontelado_id, lejar) VALUES (?, ?, ?)")
     .bind(token, viszonteladoId, lejar)
     .run();
+
+  // Meta Conversions API: a válasz küldését nem várja meg (waitUntil), hogy
+  // egy lassú/hibás Meta-hívás sose lassítsa a user tényleges regisztrációját.
+  waitUntil(
+    sendMetaCapiEvent(env, {
+      eventName: "CompleteRegistration",
+      email,
+      eventSourceUrl: new URL("/hu/sajat-oldal", request.url).href,
+      request,
+    })
+  );
 
   return new Response(null, {
     status: 303,

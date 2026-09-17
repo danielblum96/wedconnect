@@ -16,6 +16,7 @@ import { sendEmail } from "./mailer.js";
 import { generateSVG } from "./saveTheDate.js";
 import { countryLabel } from "./countries.js";
 import { getPricing, formatPrice } from "./i18n.js";
+import { sendMetaCapiEvent } from "./metaCapi.js";
 
 export const PAYMENT_DEADLINE_HOURS = 24;
 
@@ -139,6 +140,19 @@ export async function fulfillStripeOrder(env, rendelesId) {
       subject: `Kifizetett rendelés (${formatPrice(rendeles.ar_osszesen, lang)}) – ${par.par_neve}`,
       html,
       attachments,
+    });
+
+    // Meta Conversions API - ez a projekt legértékesebb konverziós jele
+    // (a tényleges fizetés, valós Ft-értékkel), innen tud a Meta hirdetési
+    // algoritmusa érték-alapú (ROAS) optimalizálásra váltani. Ugyanabban a
+    // try/catch-ben, mint az admin-email - egy sikertelen küldés itt sem
+    // törheti meg a fizetés tényleges feldolgozását (a függvény akkor is
+    // "true"-val tér vissza, ha ez a hívás elhasal).
+    await sendMetaCapiEvent(env, {
+      eventName: "Purchase",
+      email: reseller.email,
+      eventSourceUrl: `https://wedconnect.eu/${par.slug}`,
+      customData: { value: rendeles.ar_osszesen, currency: rendeles.penznem || "HUF" },
     });
   } catch (e) {
     console.error(`fulfillStripeOrder: email küldése sikertelen (rendeles_id=${rendelesId}): ${e.message}`);

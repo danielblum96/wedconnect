@@ -20,6 +20,10 @@
   var CONSENT_VERSION = 1;
   var GOOGLE_ADS_ID = ""; // TODO: pl. "AW-XXXXXXXXX", ha lesz Google Ads
   var GA4_ID = ""; // TODO: pl. "G-XXXXXXXXXX", ha lesz GA4
+  // A szerver-oldali Meta Conversions API (regisztráció/vásárlás eseményei)
+  // a functions/_utils/metaCapi.js-ben van, ugyanezzel a Pixel ID-vel - ha ez
+  // valaha változna, mindkét helyen frissíteni kell.
+  var META_PIXEL_ID = "1069938152514040";
 
   var TRANSLATIONS = {
     hu: {
@@ -123,6 +127,36 @@
     document.dispatchEvent(new CustomEvent("cookieConsentUpdated", { detail: data }));
   }
 
+  // A Meta Pixel hivatalos, dokumentált beillesztő kódjával funkcionálisan
+  // egyenértékű, csak olvasható (nem minifikált) formában, hogy illeszkedjen
+  // a projekt többi részének stílusához. Csak marketing-hozzájárulással
+  // töltődik be - a szerver-oldali Conversions API (regisztráció/vásárlás)
+  // ettől függetlenül működik, ld. functions/_utils/metaCapi.js.
+  function loadMetaPixel() {
+    if (window.fbq) return;
+    var queue = [];
+    function fbq() {
+      if (fbq.callMethod) {
+        fbq.callMethod.apply(fbq, arguments);
+      } else {
+        queue.push(arguments);
+      }
+    }
+    window.fbq = fbq;
+    if (!window._fbq) window._fbq = fbq;
+    fbq.push = fbq;
+    fbq.loaded = true;
+    fbq.version = "2.0";
+    fbq.queue = queue;
+    var script = document.createElement("script");
+    script.async = true;
+    script.src = "https://connect.facebook.net/en_US/fbevents.js";
+    var firstScript = document.getElementsByTagName("script")[0];
+    firstScript.parentNode.insertBefore(script, firstScript);
+    fbq("init", META_PIXEL_ID);
+    fbq("track", "PageView");
+  }
+
   function applyConsent(consent) {
     gtag("consent", "update", {
       ad_storage: consent.marketing ? "granted" : "denied",
@@ -130,6 +164,9 @@
       ad_personalization: consent.marketing ? "granted" : "denied",
       analytics_storage: consent.statistics ? "granted" : "denied",
     });
+    if (consent.marketing && META_PIXEL_ID) {
+      loadMetaPixel();
+    }
     if (consent.statistics && GA4_ID && !document.getElementById("ga4-loader")) {
       var s = document.createElement("script");
       s.id = "ga4-loader";
