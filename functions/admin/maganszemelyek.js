@@ -1,4 +1,5 @@
 import { getAdminSession } from "../_utils/adminAuth.js";
+import { adminNav, adminNavCss } from "../_utils/adminNav.js";
 import { escapeHtml } from "../_utils/html.js";
 
 // Külön admin-lista a magánszemélyes (fiok_tipus='maganszemely') fiókoknak -
@@ -82,9 +83,7 @@ export async function onRequestGet(context) {
   header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; padding:20px 32px; background:var(--card); box-shadow:0 2px 10px rgba(0,0,0,0.05); }
   .brand { font-family:"Cormorant Garamond",serif; font-weight:600; font-size:1.4rem; }
   .brand span { color:var(--accent); }
-  nav { display:flex; gap:18px; align-items:center; }
-  nav a { color:var(--muted); text-decoration:underline; font-size:0.95rem; }
-  nav a.active { color:var(--fg); font-weight:600; text-decoration:none; }
+${adminNavCss}
   .logout-form button { border:none; background:none; color:var(--muted); text-decoration:underline; cursor:pointer; font-family:inherit; font-size:0.95rem; }
   main { max-width:1400px; margin:0 auto; padding:36px 24px 80px; }
   h2 { font-family:"Cormorant Garamond",serif; font-size:1.5rem; margin:0 0 18px; }
@@ -111,12 +110,7 @@ export async function onRequestGet(context) {
 <body>
 <header>
   <div class="brand">Wed<span>Connect</span> Admin</div>
-  <nav>
-    <a href="/admin/rendelesek">Rendelések</a>
-    <a href="/admin/viszonteladok">Viszonteladók</a>
-    <a href="/admin/maganszemelyek" class="active">Magánszemélyek</a>
-    <form method="POST" action="/api/admin-logout" class="logout-form"><button type="submit">Kijelentkezés</button></form>
-  </nav>
+  ${adminNav("maganszemelyek")}
 </header>
 <main>
   <h2>Magánszemélyek</h2>
