@@ -63,7 +63,18 @@ export async function fulfillStripeOrder(env, rendelesId) {
     .first();
   if (!rendeles || rendeles.allapot === "Fizetve") return false;
 
-  await env.DB.prepare("UPDATE rendelesek SET allapot = 'Fizetve' WHERE id = ?").bind(rendelesId).run();
+  // ATOMI átvétel: a fenti olvasás önmagában nem védene, mert a Stripe webhook
+  // és a success_url visszaellenőrzés szinte egyszerre futhat, és mindkettő
+  // "Fizetésre vár"-t látna. Az egyetlen feltételes UPDATE viszont atomi: csak
+  // az egyik hívás módosít sort (meta.changes = 1), a másik 0-t kap és kilép -
+  // így az admin email és a Meta Purchase is pontosan egyszer megy ki.
+  const claim = await env.DB.prepare("UPDATE rendelesek SET allapot = 'Fizetve' WHERE id = ? AND allapot IS NOT 'Fizetve'")
+    .bind(rendelesId)
+    .run();
+  if (!claim.meta.changes) {
+    console.log(`fulfillStripeOrder: versenyhelyzet, a rendelést (id=${rendelesId}) egy másik hívás már feldolgozta - kihagyva.`);
+    return false;
+  }
 
   // Bármelyik, párhoz kötött rendelés rendezi az oldal fizetési kötelezettségét -
   // vagy mert maga az oldal díja volt (mennyiseg=1, couple-pay.js), vagy mert
@@ -157,8 +168,19 @@ export async function fulfillStripeOrder(env, rendelesId) {
       const attribution = parseStoredAttribution(reseller.attribucio);
       await sendMetaCapiEvent(env, {
         eventName: "Purchase",
+        // Determinisztikus event_id: ugyanahhoz a rendeléshez mindig ugyanaz, így
+        // ha valamiért mégis kétszer menne ki, a Meta összevonja (48 órán belül).
+        eventId: `purchase_${rendelesId}`,
         eventSourceUrl: `https://wedconnect.eu/${par.slug}`,
-        customData: { value: rendeles.ar_osszesen, currency: rendeles.penznem || "HUF" },
+        customData: {
+          value: rendeles.ar_osszesen,
+          currency: rendeles.penznem || "HUF",
+          order_id: String(rendelesId),
+          account_type: reseller.fiok_tipus === "maganszemely" ? "individual" : "reseller",
+          product_type: wantsStd ? "save_the_date" : "wedding_website",
+          quantity: rendeles.mennyiseg,
+          country: reseller.orszag,
+        },
         user: {
           email: reseller.email,
           phone: reseller.telefon,

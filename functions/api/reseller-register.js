@@ -96,7 +96,9 @@ export async function onRequestPost(context) {
     waitUntil(
       sendMetaCapiEvent(env, {
         eventName: "CompleteRegistration",
+        eventId: `registration_${viszonteladoId}`,
         eventSourceUrl: new URL(redirectBase, request.url).href,
+        customData: { account_type: "reseller", country: orszag },
         user: {
           email,
           phone: telefon,

@@ -49,11 +49,13 @@ function randomEventId() {
   return `evt_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 }
 
+// eventId: az ÜZLETI esemény determinisztikus azonosítója (pl. purchase_<rendelés-id>);
+// ha nincs megadva, véletlen UUID (dedup nem lehetséges).
 // user: { email, phone, country, firstName, lastName, externalId,
 //         fbp, fbc, clientIp, clientUserAgent }
 // A személyes adatokat SHA-256-tal hash-eljük (Meta követelménye), az fbp/fbc,
 // IP és User-Agent a specifikáció szerint NEM hash-elt.
-export async function sendMetaCapiEvent(env, { eventName, eventSourceUrl, customData, user }) {
+export async function sendMetaCapiEvent(env, { eventName, eventId, eventSourceUrl, customData, user }) {
   if (!env.META_CAPI_ACCESS_TOKEN) {
     console.error("sendMetaCapiEvent: META_CAPI_ACCESS_TOKEN nincs beállítva, küldés kihagyva.");
     return;
@@ -77,7 +79,7 @@ export async function sendMetaCapiEvent(env, { eventName, eventSourceUrl, custom
         {
           event_name: eventName,
           event_time: Math.floor(Date.now() / 1000),
-          event_id: randomEventId(),
+          event_id: eventId || randomEventId(),
           event_source_url: eventSourceUrl,
           action_source: "website",
           user_data: userData,
@@ -85,6 +87,11 @@ export async function sendMetaCapiEvent(env, { eventName, eventSourceUrl, custom
         },
       ],
     };
+
+    // Teszteléshez: ha a META_CAPI_TEST_EVENT_CODE be van állítva (Events Manager ->
+    // Test Events), az esemény a Test Events fülön jelenik meg. ÉLES üzemben NE
+    // legyen beállítva.
+    if (env.META_CAPI_TEST_EVENT_CODE) payload.test_event_code = env.META_CAPI_TEST_EVENT_CODE;
 
     const url = `https://graph.facebook.com/${META_GRAPH_VERSION}/${META_PIXEL_ID}/events?access_token=${encodeURIComponent(env.META_CAPI_ACCESS_TOKEN)}`;
     const response = await fetch(url, {
