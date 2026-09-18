@@ -130,8 +130,9 @@
   // A Meta Pixel hivatalos, dokumentált beillesztő kódjával funkcionálisan
   // egyenértékű, csak olvasható (nem minifikált) formában, hogy illeszkedjen
   // a projekt többi részének stílusához. Csak marketing-hozzájárulással
-  // töltődik be - a szerver-oldali Conversions API (regisztráció/vásárlás)
-  // ettől függetlenül működik, ld. functions/_utils/metaCapi.js.
+  // töltődik be. A szerver-oldali Conversions API (regisztráció/vásárlás) is
+  // ehhez a hozzájáruláshoz kötött: a regisztrációs űrlap a döntést az
+  // "attribution" rejtett mezőben viszi át a szervernek (ld. lejjebb).
   function loadMetaPixel() {
     if (window.fbq) return;
     var queue = [];
@@ -157,6 +158,86 @@
     fbq("track", "PageView");
   }
 
+  // --- Hirdetés-attribúció (UTM + Meta fbclid/fbc/fbp) ---
+  // CSAK marketing-hozzájárulással tárolódik (localStorage), visszavonáskor
+  // törlődik. Logika: az utolsó FIZETETT érintés (UTM/fbclid) felülírja a
+  // korábbit, egyébként az első érintés marad meg (90 napig).
+  var ATTRIBUTION_KEY = "wedconnect_attribution";
+  var ATTRIBUTION_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
+  var ATTRIBUTION_PARAMS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid"];
+
+  function readCookie(name) {
+    var match = document.cookie.match(new RegExp("(?:^|; )" + name + "=([^;]*)"));
+    return match ? decodeURIComponent(match[1]) : "";
+  }
+
+  function loadAttribution() {
+    try {
+      var stored = JSON.parse(localStorage.getItem(ATTRIBUTION_KEY) || "null");
+      if (stored && Date.now() - stored.ts < ATTRIBUTION_MAX_AGE_MS) return stored;
+    } catch (e) {}
+    return null;
+  }
+
+  function captureAttribution() {
+    try {
+      var params = new URLSearchParams(location.search);
+      var data = {};
+      var hasPaidTouch = false;
+      ATTRIBUTION_PARAMS.forEach(function (key) {
+        var value = params.get(key);
+        if (value) {
+          data[key] = value.slice(0, 200);
+          hasPaidTouch = true;
+        }
+      });
+      if (!hasPaidTouch && loadAttribution()) return;
+      data.landing_url = (location.origin + location.pathname).slice(0, 300);
+      data.referrer = (document.referrer || "").slice(0, 300);
+      data.ts = Date.now();
+      if (data.fbclid) data.fbc = "fb.1." + data.ts + "." + data.fbclid;
+      localStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(data));
+    } catch (e) {}
+  }
+
+  function clearAttribution() {
+    try {
+      localStorage.removeItem(ATTRIBUTION_KEY);
+    } catch (e) {}
+  }
+
+  // A regisztrációs űrlapok (data-wc-attribution) beküldésekor a hozzájárulás
+  // állapotát ÉS (csak marketing-hozzájárulással) az attribúciót egy rejtett
+  // mezőben viszi át a szervernek - a szerver ez alapján dönt, küldhet-e
+  // eseményt a Meta Conversions API-nak, és tárolhat-e attribúciós adatot.
+  document.addEventListener(
+    "submit",
+    function (e) {
+      var form = e.target;
+      if (!form || !form.hasAttribute || !form.hasAttribute("data-wc-attribution")) return;
+      var payload = { consent_marketing: false };
+      var consent = loadConsent();
+      if (consent && consent.marketing) {
+        payload.consent_marketing = true;
+        var stored = loadAttribution() || {};
+        Object.keys(stored).forEach(function (key) {
+          payload[key] = stored[key];
+        });
+        payload.fbp = readCookie("_fbp");
+        payload.fbc = readCookie("_fbc") || stored.fbc || "";
+      }
+      var input = form.querySelector('input[name="attribution"]');
+      if (!input) {
+        input = document.createElement("input");
+        input.type = "hidden";
+        input.name = "attribution";
+        form.appendChild(input);
+      }
+      input.value = JSON.stringify(payload);
+    },
+    true
+  );
+
   function applyConsent(consent) {
     gtag("consent", "update", {
       ad_storage: consent.marketing ? "granted" : "denied",
@@ -164,6 +245,11 @@
       ad_personalization: consent.marketing ? "granted" : "denied",
       analytics_storage: consent.statistics ? "granted" : "denied",
     });
+    if (consent.marketing) {
+      captureAttribution();
+    } else {
+      clearAttribution();
+    }
     if (consent.marketing && META_PIXEL_ID) {
       loadMetaPixel();
     }

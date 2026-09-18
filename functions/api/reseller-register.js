@@ -2,6 +2,7 @@ import { hashPassword, newSessionToken, sessionCookie } from "../_utils/auth.js"
 import { countryToLang } from "../_utils/i18n.js";
 import { checkRateLimit, clientIp } from "../_utils/rateLimit.js";
 import { sendMetaCapiEvent } from "../_utils/metaCapi.js";
+import { readAttribution } from "../_utils/attribution.js";
 
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
 const RATE_LIMIT_MAX = 5;
@@ -15,6 +16,7 @@ export async function onRequestPost(context) {
   const telefon = (formData.get("telefon") || "").toString().trim();
   const jelszo = (formData.get("jelszo") || "").toString();
   const adatkezeles = formData.get("adatkezeles");
+  const { marketingConsent, attribution } = readAttribution(formData, request);
   const orszag = (formData.get("orszag") || "").toString().trim();
   const adoszam = (formData.get("adoszam") || "").toString().trim();
   const szamlazasiUtca = (formData.get("szamlazasi_utca") || "").toString().trim();
@@ -56,8 +58,8 @@ export async function onRequestPost(context) {
       ceg_nev, email, telefon, jelszo_hash, orszag, nyelv,
       adoszam, szamlazasi_utca, szamlazasi_irsz, szamlazasi_varos, szamlazasi_orszag,
       szallitas_azonos, alap_szallitasi_utca, alap_szallitasi_irsz, alap_szallitasi_varos, alap_szallitasi_orszag,
-      adatkezeles_elfogadva
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`
+      adatkezeles_elfogadva, marketing_hozzajarulas, attribucio
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), ?, ?)`
   )
     .bind(
       cegNev,
@@ -75,7 +77,9 @@ export async function onRequestPost(context) {
       alapSzallitasiUtca || null,
       alapSzallitasiIrsz || null,
       alapSzallitasiVaros || null,
-      alapSzallitasiOrszag || null
+      alapSzallitasiOrszag || null,
+      marketingConsent ? 1 : 0,
+      attribution ? JSON.stringify(attribution) : null
     )
     .run();
 
@@ -86,16 +90,26 @@ export async function onRequestPost(context) {
     .bind(token, viszonteladoId, lejar)
     .run();
 
-  // Meta Conversions API: a válasz KÜLDÉSÉT nem várja meg (waitUntil), hogy
-  // egy lassú/hibás Meta-hívás sose lassítsa a user tényleges regisztrációját.
-  waitUntil(
-    sendMetaCapiEvent(env, {
-      eventName: "CompleteRegistration",
-      email,
-      eventSourceUrl: new URL(redirectBase, request.url).href,
-      request,
-    })
-  );
+  // Meta Conversions API - CSAK marketing-hozzájárulással, a válasz küldését
+  // nem várva (waitUntil).
+  if (marketingConsent) {
+    waitUntil(
+      sendMetaCapiEvent(env, {
+        eventName: "CompleteRegistration",
+        eventSourceUrl: new URL(redirectBase, request.url).href,
+        user: {
+          email,
+          phone: telefon,
+          country: orszag,
+          externalId: viszonteladoId,
+          fbp: attribution.fbp,
+          fbc: attribution.fbc,
+          clientIp: attribution.client_ip,
+          clientUserAgent: attribution.client_user_agent,
+        },
+      })
+    );
+  }
 
   return new Response(null, {
     status: 303,

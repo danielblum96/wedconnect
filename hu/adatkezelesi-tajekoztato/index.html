@@ -94,6 +94,7 @@
       <li>Az Ön által létrehozott esküvői oldal tartalma (pár nevei, esküvő dátuma, program, üzenetek, feltöltött borítókép)</li>
       <li>Fizetéshez kapcsolódó adatok (a fizetést a Stripe dolgozza fel, bankkártya-adatot mi magunk nem tárolunk)</li>
       <li>Technikai adatok (IP-cím, böngésző-azonosító), kizárólag a süti-beállításokban jóváhagyott mértékben</li>
+      <li>Hirdetési forrás adatai (UTM-paraméterek, hirdetési kattintás-azonosító, az oldal, ahonnan érkezett), kizárólag marketing-hozzájárulással, a regisztrációhoz kapcsolva</li>
     </ul>
 
     <h2>3. Az adatkezelés célja és jogalapja</h2>
@@ -101,7 +102,7 @@
       <li><strong>Fiók létrehozása és a szolgáltatás nyújtása</strong> (esküvői oldal elkészítése, kezelése) — jogalap: szerződés teljesítése (GDPR 6. cikk (1) b) pont).</li>
       <li><strong>Kapcsolatfelvétel telefonon vagy emailben</strong> (pl. tájékoztatás, ajánlat, ügyfélszolgálati megkeresés) — jogalap: az Ön hozzájárulása, amit a regisztrációkor ad meg.</li>
       <li><strong>Számlázás, fizetés feldolgozása</strong> — jogalap: szerződés teljesítése, illetve jogszabályi (számviteli) kötelezettség.</li>
-      <li><strong>Hirdetés-optimalizálás</strong> (Meta/Facebook Pixel és Conversions API, kizárólag ha Ön a süti-beállításokban ehhez hozzájárult) — jogalap: hozzájárulás. Ilyenkor az email-címét egyirányú, visszafejthetetlen módon titkosítva (hash-elve) továbbítjuk a Meta felé, kizárólag hirdetési célközönség-optimalizálás céljából.</li>
+      <li><strong>Hirdetés-mérés és -optimalizálás</strong> (Meta/Facebook Pixel és Conversions API, kizárólag ha Ön a süti-beállításokban marketing-hozzájárulást ad) — jogalap: hozzájárulás. Ilyenkor a regisztrációról és a vásárlásról szóló értesítéssel együtt továbbítjuk a Meta felé az email-címét, telefonszámát, nevét és fiókazonosítóját (egyirányúan hash-elt formában), valamint az IP-címét, böngésző-azonosítóját és a hirdetési kattintás azonosítóit (ezeket a Meta előírása szerint hash-elés nélkül). Hozzájárulás nélkül ezeket sem tároljuk, sem nem továbbítjuk. Ha a hozzájárulást később visszavonja, jelezze az elérhetőségünkön, és töröljük a fiókjához kapcsolt hirdetési adatokat, további eseményt pedig nem küldünk.</li>
     </ul>
 
     <h2>4. Kikkel osztjuk meg az adatokat</h2>
@@ -110,7 +111,7 @@
       <li><strong>Cloudflare</strong> — tárhely, adatbázis és a weboldal kiszolgálása</li>
       <li><strong>Resend</strong> — tranzakciós emailek (pl. visszaigazolás) kiküldése</li>
       <li><strong>Stripe</strong> — bankkártyás fizetés feldolgozása</li>
-      <li><strong>Meta Platforms (Facebook/Instagram)</strong> — kizárólag marketing-hozzájárulás esetén, hirdetés-optimalizálás céljából, titkosított (hash-elt) formában</li>
+      <li><strong>Meta Platforms (Facebook/Instagram)</strong> — kizárólag marketing-hozzájárulás esetén, hirdetés-mérés és -optimalizálás céljából (hash-elt személyes adatok, valamint IP-cím és böngésző-azonosító)</li>
     </ul>
     <p>Az adatokat harmadik félnek egyéb célból nem adjuk el, nem továbbítjuk.</p>
 

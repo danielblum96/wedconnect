@@ -1,6 +1,7 @@
 import { hashPassword, newSessionToken, sessionCookie } from "../_utils/auth.js";
 import { checkRateLimit, clientIp } from "../_utils/rateLimit.js";
 import { sendMetaCapiEvent } from "../_utils/metaCapi.js";
+import { readAttribution } from "../_utils/attribution.js";
 
 // Magánszemélyeknek szóló, leegyszerűsített regisztráció - a viszonteladói
 // `viszontelado` táblát/session-rendszert/dashboardot használja újra
@@ -22,6 +23,7 @@ export async function onRequestPost(context) {
   const telefon = (formData.get("telefon") || "").toString().trim();
   const jelszo = (formData.get("jelszo") || "").toString();
   const adatkezeles = formData.get("adatkezeles");
+  const { marketingConsent, attribution } = readAttribution(formData, request);
 
   function backWithError(code) {
     return Response.redirect(`${new URL("/hu/sajat-oldal", request.url).href}?error=${code}`, 303);
@@ -46,9 +48,18 @@ export async function onRequestPost(context) {
 
   const jelszoHash = await hashPassword(jelszo);
   const insert = await env.DB.prepare(
-    "INSERT INTO viszontelado (ceg_nev, vezeteknev, keresztnev, email, telefon, jelszo_hash, orszag, nyelv, fiok_tipus, adatkezeles_elfogadva) VALUES (?, ?, ?, ?, ?, ?, 'HU', 'hu', 'maganszemely', datetime('now'))"
+    "INSERT INTO viszontelado (ceg_nev, vezeteknev, keresztnev, email, telefon, jelszo_hash, orszag, nyelv, fiok_tipus, adatkezeles_elfogadva, marketing_hozzajarulas, attribucio) VALUES (?, ?, ?, ?, ?, ?, 'HU', 'hu', 'maganszemely', datetime('now'), ?, ?)"
   )
-    .bind(`${vezeteknev} ${keresztnev}`, vezeteknev, keresztnev, email, telefon, jelszoHash)
+    .bind(
+      `${vezeteknev} ${keresztnev}`,
+      vezeteknev,
+      keresztnev,
+      email,
+      telefon,
+      jelszoHash,
+      marketingConsent ? 1 : 0,
+      attribution ? JSON.stringify(attribution) : null
+    )
     .run();
 
   const viszonteladoId = insert.meta.last_row_id;
@@ -58,16 +69,29 @@ export async function onRequestPost(context) {
     .bind(token, viszonteladoId, lejar)
     .run();
 
-  // Meta Conversions API: a válasz küldését nem várja meg (waitUntil), hogy
-  // egy lassú/hibás Meta-hívás sose lassítsa a user tényleges regisztrációját.
-  waitUntil(
-    sendMetaCapiEvent(env, {
-      eventName: "CompleteRegistration",
-      email,
-      eventSourceUrl: new URL("/hu/sajat-oldal", request.url).href,
-      request,
-    })
-  );
+  // Meta Conversions API - CSAK marketing-hozzájárulással. A válasz küldését
+  // nem várja meg (waitUntil), hogy egy lassú/hibás Meta-hívás sose lassítsa
+  // a user tényleges regisztrációját.
+  if (marketingConsent) {
+    waitUntil(
+      sendMetaCapiEvent(env, {
+        eventName: "CompleteRegistration",
+        eventSourceUrl: new URL("/hu/sajat-oldal", request.url).href,
+        user: {
+          email,
+          phone: telefon,
+          country: "HU",
+          firstName: keresztnev,
+          lastName: vezeteknev,
+          externalId: viszonteladoId,
+          fbp: attribution.fbp,
+          fbc: attribution.fbc,
+          clientIp: attribution.client_ip,
+          clientUserAgent: attribution.client_user_agent,
+        },
+      })
+    );
+  }
 
   return new Response(null, {
     status: 303,

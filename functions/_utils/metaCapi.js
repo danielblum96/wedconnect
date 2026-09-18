@@ -1,23 +1,23 @@
 // Meta (Facebook) Conversions API - szerver-oldali eseményküldés a Meta Pixel
-// mellé. 2025-re a böngésző-oldali Pixel önmagában (iOS/ITP, hirdetésblokkolók,
-// süti-elutasítás miatt) túl sok konverziót veszít el ahhoz, hogy a Meta
-// hirdetési algoritmusa jól tudjon optimalizálni - a Pixel + CAPI páros a
-// jelenlegi ajánlott megoldás. Ez a fájl KIZÁRÓLAG a szerver-oldali CAPI-t
-// adja; a böngésző-oldali Pixel alapkód (PageView) az assets/cookie-consent.js
-// fájlban van, a süti-hozzájáruláshoz kötve.
+// mellé. A böngésző-oldali Pixel önmagában (iOS/ITP, hirdetésblokkolók,
+// süti-elutasítás miatt) túl sok konverziót veszít el, a Pixel + CAPI páros a
+// jelenlegi ajánlott megoldás. A böngésző-oldali Pixel alapkód (PageView) az
+// assets/cookie-consent.js fájlban van.
 //
-// Szándékosan NINCS kliens-oldali egyedi esemény (pl. "Lead" a regisztrációs
-// gombra kattintva) ehhez a CAPI-hoz társítva - ez elkerüli a duplikáció
-// (dedup, event_id-egyeztetés) bonyolultságát: a regisztráció/vásárlás
-// eseményeket KIZÁRÓLAG a szerver küldi, a kliens Pixel csak PageView-t.
+// HOZZÁJÁRULÁS: ezt a függvényt CSAK akkor szabad meghívni, ha a felhasználó
+// marketing-hozzájárulást adott (ld. functions/_utils/attribution.js,
+// viszontelado.marketing_hozzajarulas). A függvény maga nem ellenőrzi.
+//
+// Szándékosan NINCS kliens-oldali egyedi esemény ugyanezekhez (nincs dedup,
+// event_id-egyeztetés): a regisztráció/vásárlás eseményeket KIZÁRÓLAG a szerver
+// küldi, a kliens Pixel csak PageView-t.
 //
 // A hozzáférési token a Cloudflare Pages "META_CAPI_ACCESS_TOKEN" secret-jében
-// van (nem a kódban, nem git-ben) - ha hiányzik, a küldés csendben kihagyva
-// (nem dob hibát, hogy ez sose törje meg a regisztráció/fizetés folyamatát).
-import { clientIp } from "./rateLimit.js";
-
+// van (nem a kódban, nem git-ben) - ha hiányzik, a küldés kihagyva, nem dob hibát.
 const META_PIXEL_ID = "1069938152514040";
 const META_GRAPH_VERSION = "v21.0";
+
+const CALLING_CODES = { HU: "36", DE: "49", AT: "43", CH: "41" };
 
 async function sha256Hash(value) {
   const bytes = new TextEncoder().encode(value.trim().toLowerCase());
@@ -27,37 +27,50 @@ async function sha256Hash(value) {
     .join("");
 }
 
-// event_id: MINDIG adjunk egyet (akár csak egy random string), hogy Meta
-// egyértelműen tudja, ez az esemény micsoda - jövőbeli, kliens-oldali
-// esemény-kiegészítésnél (ha lesz) ez lesz a dedup-kulcs.
+// Meta elvárása: csak számjegyek, országhívóval, vezető 0/+ nélkül. Nemzeti
+// formátumnál ("06 30..." / "0151...") az ország hívószámát a fiók országából
+// pótoljuk; ha ez nem ismert, inkább kihagyjuk, mint rossz értéket küldeni.
+function normalizePhone(phone, country) {
+  if (!phone) return null;
+  const raw = phone.trim();
+  let digits = raw.replace(/\D/g, "");
+  if (!digits) return null;
+  if (raw.startsWith("+")) return digits;
+  if (digits.startsWith("00")) return digits.slice(2);
+  const code = CALLING_CODES[country];
+  if (!code) return null;
+  if (country === "HU" && digits.startsWith("06")) return code + digits.slice(2);
+  if (digits.startsWith("0")) return code + digits.slice(1);
+  return digits.startsWith(code) ? digits : code + digits;
+}
+
 function randomEventId() {
   if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
   return `evt_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 }
 
-// eventName: Meta standard esemény neve (pl. "CompleteRegistration", "Purchase").
-// eventSourceUrl: a felhasználó által látott oldal URL-je (attribúcióhoz).
-// email: nyers (nem hashelt) email - a függvény hasheli SHA-256-tal, ahogy
-// Meta megköveteli, sosem küldünk nyers PII-t.
-// request: az eredeti Request objektum, ha elérhető - ebből nyerjük ki a
-// kliens IP-t/User-Agent-et a jobb egyezés-minőséghez (nem minden hívási
-// helyen érhető el, pl. Stripe webhook esetén NEM a user böngészőjéből jön a
-// kérés, ilyenkor egyszerűen kihagyjuk).
-// customData: pl. { value, currency } vásárlásnál.
-export async function sendMetaCapiEvent(env, { eventName, email, eventSourceUrl, request, customData }) {
+// user: { email, phone, country, firstName, lastName, externalId,
+//         fbp, fbc, clientIp, clientUserAgent }
+// A személyes adatokat SHA-256-tal hash-eljük (Meta követelménye), az fbp/fbc,
+// IP és User-Agent a specifikáció szerint NEM hash-elt.
+export async function sendMetaCapiEvent(env, { eventName, eventSourceUrl, customData, user }) {
   if (!env.META_CAPI_ACCESS_TOKEN) {
     console.error("sendMetaCapiEvent: META_CAPI_ACCESS_TOKEN nincs beállítva, küldés kihagyva.");
     return;
   }
   try {
+    const u = user || {};
     const userData = {};
-    if (email) userData.em = [await sha256Hash(email)];
-    if (request) {
-      const ip = clientIp(request);
-      const ua = request.headers.get("user-agent");
-      if (ip && ip !== "unknown") userData.client_ip_address = ip;
-      if (ua) userData.client_user_agent = ua;
-    }
+    if (u.email) userData.em = [await sha256Hash(u.email)];
+    const phone = normalizePhone(u.phone, u.country);
+    if (phone) userData.ph = [await sha256Hash(phone)];
+    if (u.firstName) userData.fn = [await sha256Hash(u.firstName)];
+    if (u.lastName) userData.ln = [await sha256Hash(u.lastName)];
+    if (u.externalId) userData.external_id = [await sha256Hash(String(u.externalId))];
+    if (u.fbp) userData.fbp = u.fbp;
+    if (u.fbc) userData.fbc = u.fbc;
+    if (u.clientIp) userData.client_ip_address = u.clientIp;
+    if (u.clientUserAgent) userData.client_user_agent = u.clientUserAgent;
 
     const payload = {
       data: [
@@ -84,8 +97,6 @@ export async function sendMetaCapiEvent(env, { eventName, email, eventSourceUrl,
       console.error(`sendMetaCapiEvent: Meta API hiba ${response.status} - ${body}`);
     }
   } catch (e) {
-    // Csendes hiba - egy analitikai esemény sikertelen küldése sosem törheti
-    // meg a regisztráció/fizetés tényleges folyamatát.
     console.error(`sendMetaCapiEvent: küldés sikertelen (${eventName}): ${e.message}`);
   }
 }

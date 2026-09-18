@@ -17,6 +17,7 @@ import { generateSVG } from "./saveTheDate.js";
 import { countryLabel } from "./countries.js";
 import { getPricing, formatPrice } from "./i18n.js";
 import { sendMetaCapiEvent } from "./metaCapi.js";
+import { parseStoredAttribution } from "./attribution.js";
 
 export const PAYMENT_DEADLINE_HOURS = 24;
 
@@ -80,7 +81,9 @@ export async function fulfillStripeOrder(env, rendelesId) {
   if (!rendeles.par_id) return true;
 
   try {
-    const reseller = await env.DB.prepare("SELECT ceg_nev, email, fiok_tipus FROM viszontelado WHERE id = ?")
+    const reseller = await env.DB.prepare(
+      "SELECT ceg_nev, email, fiok_tipus, telefon, vezeteknev, keresztnev, orszag, marketing_hozzajarulas, attribucio FROM viszontelado WHERE id = ?"
+    )
       .bind(rendeles.viszontelado_id)
       .first();
     const par = await env.DB.prepare("SELECT par_neve, nev1, nev2, eskuvo_datuma, slug, nyelv FROM parok WHERE id = ?")
@@ -144,16 +147,32 @@ export async function fulfillStripeOrder(env, rendelesId) {
 
     // Meta Conversions API - ez a projekt legértékesebb konverziós jele
     // (a tényleges fizetés, valós Ft-értékkel), innen tud a Meta hirdetési
-    // algoritmusa érték-alapú (ROAS) optimalizálásra váltani. Ugyanabban a
-    // try/catch-ben, mint az admin-email - egy sikertelen küldés itt sem
-    // törheti meg a fizetés tényleges feldolgozását (a függvény akkor is
-    // "true"-val tér vissza, ha ez a hívás elhasal).
-    await sendMetaCapiEvent(env, {
-      eventName: "Purchase",
-      email: reseller.email,
-      eventSourceUrl: `https://wedconnect.eu/${par.slug}`,
-      customData: { value: rendeles.ar_osszesen, currency: rendeles.penznem || "HUF" },
-    });
+    // algoritmusa érték-alapú (ROAS) optimalizálásra váltani. CSAK akkor
+    // küldjük, ha a user a regisztrációkor marketing-hozzájárulást adott. A
+    // Stripe webhook nem böngészőből jön, ezért az egyezéshez (fbp/fbc, IP,
+    // User-Agent) a regisztrációkor eltárolt attribúciót használjuk. Ugyanabban
+    // a try/catch-ben, mint az admin-email - egy sikertelen küldés itt sem
+    // törheti meg a fizetés tényleges feldolgozását.
+    if (reseller.marketing_hozzajarulas) {
+      const attribution = parseStoredAttribution(reseller.attribucio);
+      await sendMetaCapiEvent(env, {
+        eventName: "Purchase",
+        eventSourceUrl: `https://wedconnect.eu/${par.slug}`,
+        customData: { value: rendeles.ar_osszesen, currency: rendeles.penznem || "HUF" },
+        user: {
+          email: reseller.email,
+          phone: reseller.telefon,
+          country: reseller.orszag,
+          firstName: reseller.keresztnev,
+          lastName: reseller.vezeteknev,
+          externalId: rendeles.viszontelado_id,
+          fbp: attribution.fbp,
+          fbc: attribution.fbc,
+          clientIp: attribution.client_ip,
+          clientUserAgent: attribution.client_user_agent,
+        },
+      });
+    }
   } catch (e) {
     console.error(`fulfillStripeOrder: email küldése sikertelen (rendeles_id=${rendelesId}): ${e.message}`);
   }
