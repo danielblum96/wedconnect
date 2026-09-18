@@ -16,7 +16,8 @@ const RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
 export async function onRequestPost(context) {
   const { request, env, waitUntil } = context;
   const formData = await request.formData();
-  const nev = (formData.get("nev") || "").toString().trim();
+  const vezeteknev = (formData.get("vezeteknev") || "").toString().trim();
+  const keresztnev = (formData.get("keresztnev") || "").toString().trim();
   const email = (formData.get("email") || "").toString().trim().toLowerCase();
   const telefon = (formData.get("telefon") || "").toString().trim();
   const jelszo = (formData.get("jelszo") || "").toString();
@@ -34,7 +35,7 @@ export async function onRequestPost(context) {
   );
   if (!allowed) return backWithError("rate_limited");
 
-  if (!nev || !email || !telefon) return backWithError("missing_fields");
+  if (!vezeteknev || !keresztnev || !email || !telefon) return backWithError("missing_fields");
   if (!/^[0-9+()\s-]{7,20}$/.test(telefon)) return backWithError("invalid_phone");
   if (jelszo.length < 8) return backWithError("weak_password");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return backWithError("invalid_email");
@@ -45,9 +46,9 @@ export async function onRequestPost(context) {
 
   const jelszoHash = await hashPassword(jelszo);
   const insert = await env.DB.prepare(
-    "INSERT INTO viszontelado (ceg_nev, email, telefon, jelszo_hash, orszag, nyelv, fiok_tipus, adatkezeles_elfogadva) VALUES (?, ?, ?, ?, 'HU', 'hu', 'maganszemely', datetime('now'))"
+    "INSERT INTO viszontelado (ceg_nev, vezeteknev, keresztnev, email, telefon, jelszo_hash, orszag, nyelv, fiok_tipus, adatkezeles_elfogadva) VALUES (?, ?, ?, ?, ?, ?, 'HU', 'hu', 'maganszemely', datetime('now'))"
   )
-    .bind(nev, email, telefon, jelszoHash)
+    .bind(`${vezeteknev} ${keresztnev}`, vezeteknev, keresztnev, email, telefon, jelszoHash)
     .run();
 
   const viszonteladoId = insert.meta.last_row_id;

@@ -151,8 +151,11 @@
     <div class="info-box">Ingyen kipróbálhatod — a saját neveitekkel, dátumotokkal élesedik az oldal. Csak akkor kell fizetned, ha meg szeretnéd tartani.</div>
     <div class="error" id="err"></div>
     <form method="POST" action="/api/individual-register">
-      <label for="nev">Neved</label>
-      <input type="text" id="nev" name="nev" required>
+      <label for="vezeteknev">Vezetéknév</label>
+      <input type="text" id="vezeteknev" name="vezeteknev" required autocomplete="family-name">
+
+      <label for="keresztnev">Keresztnév</label>
+      <input type="text" id="keresztnev" name="keresztnev" required autocomplete="given-name">
 
       <label for="email">Email</label>
       <input type="email" id="email" name="email" required autocomplete="username">
