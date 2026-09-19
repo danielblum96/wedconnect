@@ -3,9 +3,11 @@ import { slugify } from "../_utils/slug.js";
 import { getStyle } from "../_utils/styles.js";
 import { getCopy } from "../_utils/i18n.js";
 import { normalizeUrl } from "../_utils/html.js";
+import { recordEvent, browserContext, buildMetaUser, accountType } from "../_utils/measurement.js";
+import { parseStoredAttribution } from "../_utils/attribution.js";
 
 export async function onRequestPost(context) {
-  const { request, env } = context;
+  const { request, env, waitUntil } = context;
   const reseller = await getSessionReseller(request, env.DB);
   if (!reseller) return Response.redirect(new URL("/partner/login", request.url).href, 303);
   const dashboardUrl = dashboardHref(reseller.fiok_tipus);
@@ -69,7 +71,7 @@ export async function onRequestPost(context) {
     if (nev) esemenyek.push({ ido, nev });
   }
 
-  await env.DB.prepare(
+  const insert = await env.DB.prepare(
     "INSERT INTO parok (par_neve, nev1, nev2, eskuvo_datuma, slug, allapot, valasztott_stilus, viszontelado_id, nyelv, egyedi_uzenet, egyedi_gombok, esemenyek) VALUES (?, ?, ?, ?, ?, 'Aktív', ?, ?, ?, ?, ?, ?)"
   )
     .bind(
@@ -86,6 +88,26 @@ export async function onRequestPost(context) {
       esemenyek.length ? JSON.stringify(esemenyek) : null
     )
     .run();
+
+  // Aktivációs esemény: az esküvői oldal létrejött (az oldal azonnal élesedik).
+  // A backend biztosan tudja, hogy megtörtént, ezért nem kell a böngészőtől
+  // megkérdezni (nincs kliens-oldali Pixel-esemény, nincs deduplikáció).
+  const parId = insert.meta.last_row_id;
+  waitUntil(
+    recordEvent(env, {
+      eventId: `page_published_${parId}`,
+      name: "wedding_page_published",
+      metaEventName: "WeddingPagePublished",
+      viszonteladoId: reseller.id,
+      parId,
+      data: { account_type: accountType(reseller.fiok_tipus), country: reseller.orszag },
+      consent: reseller.marketing_hozzajarulas === 1,
+      impersonated: !!reseller.admin_impersonalt,
+      eventSourceUrl: new URL(dashboardUrl, request.url).href,
+      customData: { account_type: accountType(reseller.fiok_tipus), country: reseller.orszag, language: reseller.nyelv },
+      user: buildMetaUser(reseller, parseStoredAttribution(reseller.attribucio), browserContext(request)),
+    })
+  );
 
   return Response.redirect(`${new URL(dashboardUrl, request.url).href}?created=${encodeURIComponent(slug)}`, 303);
 }

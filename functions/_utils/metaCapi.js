@@ -55,10 +55,12 @@ function randomEventId() {
 //         fbp, fbc, clientIp, clientUserAgent }
 // A személyes adatokat SHA-256-tal hash-eljük (Meta követelménye), az fbp/fbc,
 // IP és User-Agent a specifikáció szerint NEM hash-elt.
+// Visszatérési érték: { status: "elkuldve" | "hiba", response: <szöveg> } - a hívó
+// (functions/_utils/measurement.js) ezt menti az eseménynaplóba. Sosem dob hibát.
 export async function sendMetaCapiEvent(env, { eventName, eventId, eventSourceUrl, customData, user }) {
   if (!env.META_CAPI_ACCESS_TOKEN) {
     console.error("sendMetaCapiEvent: META_CAPI_ACCESS_TOKEN nincs beállítva, küldés kihagyva.");
-    return;
+    return { status: "hiba", response: "META_CAPI_ACCESS_TOKEN nincs beállítva" };
   }
   try {
     const u = user || {};
@@ -99,14 +101,20 @@ export async function sendMetaCapiEvent(env, { eventName, eventId, eventSourceUr
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
+    const body = (await response.text()).slice(0, 500);
     if (!response.ok) {
-      const body = await response.text();
       console.error(`sendMetaCapiEvent: Meta API hiba ${response.status} - ${body}`);
-    } else if (env.META_CAPI_TEST_EVENT_CODE) {
-      // Csak teszt-módban: a Meta válasza (events_received, figyelmeztetések).
-      console.log(`sendMetaCapiEvent [TESZT] ${eventName}: ${await response.text()}`);
+      return { status: "hiba", response: `${response.status} ${body}` };
     }
+    if (env.META_CAPI_TEST_EVENT_CODE) {
+      // Csak teszt-módban: a Meta válasza (events_received, figyelmeztetések).
+      console.log(`sendMetaCapiEvent [TESZT] ${eventName}: ${body}`);
+    }
+    return { status: "elkuldve", response: body };
   } catch (e) {
+    // Csendes hiba - egy analitikai esemény sikertelen küldése sosem törheti
+    // meg a regisztráció/fizetés tényleges folyamatát.
     console.error(`sendMetaCapiEvent: küldés sikertelen (${eventName}): ${e.message}`);
+    return { status: "hiba", response: String(e.message).slice(0, 500) };
   }
 }

@@ -1,6 +1,8 @@
 import { getSessionReseller, dashboardHref } from "../_utils/auth.js";
 import { getPricing } from "../_utils/i18n.js";
 import { createCheckoutSession } from "../_utils/stripe.js";
+import { recordEvent, browserContext, buildMetaUser, accountType } from "../_utils/measurement.js";
+import { parseStoredAttribution } from "../_utils/attribution.js";
 
 // Egy már élő, de MÉG NEM rendezett (parok.rendeles_id IS NULL) esküvői oldal
 // önálló kifizetése - a dashboard "Fizetés" gombja hívja. Ugyanaz a
@@ -9,7 +11,7 @@ import { createCheckoutSession } from "../_utils/stripe.js";
 // rendezés (parok.rendeles_id beállítása) a webhook/success_url-en keresztül,
 // ld. _utils/paymentFulfillment.js.
 export async function onRequestPost(context) {
-  const { request, env } = context;
+  const { request, env, waitUntil } = context;
   const reseller = await getSessionReseller(request, env.DB);
   if (!reseller) return Response.redirect(new URL("/partner/login", request.url).href, 303);
 
@@ -64,7 +66,41 @@ export async function onRequestPost(context) {
       customerEmail: reseller.email,
       metadata: { rendeles_id: String(rendelesId), tipus: "oldal", par_id: String(par.id) },
     });
-    await env.DB.prepare("UPDATE rendelesek SET stripe_session_id = ? WHERE id = ?").bind(session.id, rendelesId).run();
+    // A böngésző FRISS adata (IP, User-Agent, _fbp/_fbc) a rendeléshez mentve, hogy a
+    // későbbi, webhookból érkező Purchase ezt használja a regisztrációkori helyett.
+    // Csak hozzájárulással és nem admin-megtekintésből.
+    const consent = reseller.marketing_hozzajarulas === 1;
+    const impersonated = !!reseller.admin_impersonalt;
+    const context_ = consent && !impersonated ? browserContext(request) : null;
+    await env.DB.prepare("UPDATE rendelesek SET stripe_session_id = ?, mero_kontextus = ? WHERE id = ?")
+      .bind(session.id, context_ ? JSON.stringify(context_) : null, rendelesId)
+      .run();
+    waitUntil(
+      recordEvent(env, {
+        eventId: `checkout_${rendelesId}`,
+        name: "checkout_started",
+        metaEventName: "InitiateCheckout",
+        viszonteladoId: reseller.id,
+        parId: par.id,
+        rendelesId,
+        value: pricing.pagePrice,
+        currency: pricing.currency,
+        data: { account_type: accountType(reseller.fiok_tipus), product_type: "wedding_website", quantity: 1, country: reseller.orszag },
+        consent,
+        impersonated,
+        eventSourceUrl: dashboardUrl,
+        customData: {
+          value: pricing.pagePrice,
+          currency: pricing.currency,
+          order_id: String(rendelesId),
+          account_type: accountType(reseller.fiok_tipus),
+          product_type: "wedding_website",
+          quantity: 1,
+          country: reseller.orszag,
+        },
+        user: buildMetaUser(reseller, parseStoredAttribution(reseller.attribucio), context_),
+      })
+    );
     return Response.redirect(session.url, 303);
   } catch (e) {
     console.error(`couple-pay: Stripe session létrehozása sikertelen (rendeles_id=${rendelesId}): ${e.message}`);

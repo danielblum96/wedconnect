@@ -79,3 +79,32 @@ CREATE TABLE IF NOT EXISTS password_resets (
   lejar TEXT NOT NULL,
   felhasznalva INTEGER NOT NULL DEFAULT 0
 );
+
+-- Saját eseménynapló (2026-09-19): minden üzleti esemény itt rögzül, a Meta-
+-- továbbítás állapotával. event_id UNIQUE: ugyanaz az esemény kétszer nem rögzül.
+-- meta_statusz: fuggoben | elkuldve | hiba | nincs_hozzajarulas | admin_nezet | nincs_meta_esemeny
+CREATE TABLE IF NOT EXISTS measurement_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  event_id TEXT NOT NULL UNIQUE,
+  event_name TEXT NOT NULL,
+  meta_event_name TEXT,
+  viszontelado_id INTEGER,
+  par_id INTEGER,
+  rendeles_id INTEGER,
+  ertek REAL,
+  penznem TEXT,
+  adat TEXT,
+  letrehozva TEXT NOT NULL DEFAULT (datetime('now')),
+  meta_statusz TEXT NOT NULL DEFAULT 'fuggoben',
+  meta_kiserletek INTEGER NOT NULL DEFAULT 0,
+  meta_utolso_kiserlet TEXT,
+  meta_valasz TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_measurement_events_nev ON measurement_events (event_name, letrehozva);
+CREATE INDEX IF NOT EXISTS idx_measurement_events_statusz ON measurement_events (meta_statusz);
+
+-- Az alábbi oszlopok a régi CREATE TABLE-ök után ALTER-rel kerültek be (a fenti
+-- táblák nem mutatják a teljes, éles sémát - a `PRAGMA table_info(<tábla>)` a mérvadó):
+--   viszontelado: telefon, vezeteknev, keresztnev, adatkezeles_elfogadva,
+--                 marketing_hozzajarulas (INTEGER NOT NULL DEFAULT 0), attribucio (JSON)
+--   rendelesek:   mero_kontextus (JSON: friss fbp/fbc/IP/User-Agent a fizetés indításakor)

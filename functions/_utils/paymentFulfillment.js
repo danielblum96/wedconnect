@@ -16,7 +16,7 @@ import { sendEmail } from "./mailer.js";
 import { generateSVG } from "./saveTheDate.js";
 import { countryLabel } from "./countries.js";
 import { getPricing, formatPrice } from "./i18n.js";
-import { sendMetaCapiEvent } from "./metaCapi.js";
+import { recordEvent, buildMetaUser, accountType } from "./measurement.js";
 import { parseStoredAttribution } from "./attribution.js";
 
 export const PAYMENT_DEADLINE_HOURS = 24;
@@ -56,7 +56,7 @@ export async function fulfillStripeOrder(env, rendelesId) {
   const rendeles = await env.DB.prepare(
     `SELECT id, viszontelado_id, csomag, mennyiseg, ar_osszesen, penznem, allapot, par_id,
             megjegyzes, adoszam, szamlazasi_utca, szamlazasi_irsz, szamlazasi_varos, szamlazasi_orszag,
-            szallitasi_utca, szallitasi_irsz, szallitasi_varos, szallitasi_orszag
+            szallitasi_utca, szallitasi_irsz, szallitasi_varos, szallitasi_orszag, mero_kontextus
      FROM rendelesek WHERE id = ?`
   )
     .bind(rendelesId)
@@ -105,6 +105,45 @@ export async function fulfillStripeOrder(env, rendelesId) {
     const lang = par.nyelv || "hu";
     const pricing = getPricing(lang, reseller.fiok_tipus);
     const wantsStd = rendeles.mennyiseg >= 50;
+
+    // Saját eseménynapló + Meta Purchase - ez a projekt legértékesebb konverziós
+    // jele (a tényleges fizetés, valós értékkel). Az email ELŐTT rögzítjük, hogy egy
+    // sikertelen email-küldés ne akadályozza meg. A Metának CSAK marketing-
+    // hozzájárulással megy; a webhook nem böngészőből jön, ezért a fizetés
+    // INDÍTÁSAKOR a rendeléshez mentett friss böngészőadatot használja (mero_kontextus),
+    // ennek hiányában (pl. admin kézi jelölés) a regisztrációkor mentett attribúciót.
+    let checkoutContext = null;
+    try {
+      checkoutContext = rendeles.mero_kontextus ? JSON.parse(rendeles.mero_kontextus) : null;
+    } catch (e) {}
+    const productType = wantsStd ? "save_the_date" : "wedding_website";
+    await recordEvent(env, {
+      eventId: `purchase_${rendelesId}`,
+      name: "payment_completed",
+      metaEventName: "Purchase",
+      viszonteladoId: rendeles.viszontelado_id,
+      parId: rendeles.par_id,
+      rendelesId,
+      value: rendeles.ar_osszesen,
+      currency: rendeles.penznem || "HUF",
+      data: { account_type: accountType(reseller.fiok_tipus), product_type: productType, quantity: rendeles.mennyiseg, country: reseller.orszag },
+      consent: reseller.marketing_hozzajarulas === 1,
+      eventSourceUrl: `https://wedconnect.eu/${par.slug}`,
+      customData: {
+        value: rendeles.ar_osszesen,
+        currency: rendeles.penznem || "HUF",
+        order_id: String(rendelesId),
+        account_type: accountType(reseller.fiok_tipus),
+        product_type: productType,
+        quantity: rendeles.mennyiseg,
+        country: reseller.orszag,
+      },
+      user: buildMetaUser(
+        { ...reseller, id: rendeles.viszontelado_id },
+        parseStoredAttribution(reseller.attribucio),
+        checkoutContext
+      ),
+    });
 
     let stdBlock = "";
     let attachments = [];
@@ -155,46 +194,6 @@ export async function fulfillStripeOrder(env, rendelesId) {
       html,
       attachments,
     });
-
-    // Meta Conversions API - ez a projekt legértékesebb konverziós jele
-    // (a tényleges fizetés, valós Ft-értékkel), innen tud a Meta hirdetési
-    // algoritmusa érték-alapú (ROAS) optimalizálásra váltani. CSAK akkor
-    // küldjük, ha a user a regisztrációkor marketing-hozzájárulást adott. A
-    // Stripe webhook nem böngészőből jön, ezért az egyezéshez (fbp/fbc, IP,
-    // User-Agent) a regisztrációkor eltárolt attribúciót használjuk. Ugyanabban
-    // a try/catch-ben, mint az admin-email - egy sikertelen küldés itt sem
-    // törheti meg a fizetés tényleges feldolgozását.
-    if (reseller.marketing_hozzajarulas) {
-      const attribution = parseStoredAttribution(reseller.attribucio);
-      await sendMetaCapiEvent(env, {
-        eventName: "Purchase",
-        // Determinisztikus event_id: ugyanahhoz a rendeléshez mindig ugyanaz, így
-        // ha valamiért mégis kétszer menne ki, a Meta összevonja (48 órán belül).
-        eventId: `purchase_${rendelesId}`,
-        eventSourceUrl: `https://wedconnect.eu/${par.slug}`,
-        customData: {
-          value: rendeles.ar_osszesen,
-          currency: rendeles.penznem || "HUF",
-          order_id: String(rendelesId),
-          account_type: reseller.fiok_tipus === "maganszemely" ? "individual" : "reseller",
-          product_type: wantsStd ? "save_the_date" : "wedding_website",
-          quantity: rendeles.mennyiseg,
-          country: reseller.orszag,
-        },
-        user: {
-          email: reseller.email,
-          phone: reseller.telefon,
-          country: reseller.orszag,
-          firstName: reseller.keresztnev,
-          lastName: reseller.vezeteknev,
-          externalId: rendeles.viszontelado_id,
-          fbp: attribution.fbp,
-          fbc: attribution.fbc,
-          clientIp: attribution.client_ip,
-          clientUserAgent: attribution.client_user_agent,
-        },
-      });
-    }
   } catch (e) {
     console.error(`fulfillStripeOrder: email küldése sikertelen (rendeles_id=${rendelesId}): ${e.message}`);
   }

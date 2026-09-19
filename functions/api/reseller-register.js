@@ -1,7 +1,7 @@
 import { hashPassword, newSessionToken, sessionCookie } from "../_utils/auth.js";
 import { countryToLang } from "../_utils/i18n.js";
 import { checkRateLimit, clientIp } from "../_utils/rateLimit.js";
-import { sendMetaCapiEvent } from "../_utils/metaCapi.js";
+import { recordEvent } from "../_utils/measurement.js";
 import { readAttribution } from "../_utils/attribution.js";
 
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
@@ -90,28 +90,31 @@ export async function onRequestPost(context) {
     .bind(token, viszonteladoId, lejar)
     .run();
 
-  // Meta Conversions API - CSAK marketing-hozzájárulással, a válasz küldését
-  // nem várva (waitUntil).
-  if (marketingConsent) {
-    waitUntil(
-      sendMetaCapiEvent(env, {
-        eventName: "CompleteRegistration",
-        eventId: `registration_${viszonteladoId}`,
-        eventSourceUrl: new URL(redirectBase, request.url).href,
-        customData: { account_type: "reseller", country: orszag },
-        user: {
-          email,
-          phone: telefon,
-          country: orszag,
-          externalId: viszonteladoId,
-          fbp: attribution.fbp,
-          fbc: attribution.fbc,
-          clientIp: attribution.client_ip,
-          clientUserAgent: attribution.client_user_agent,
-        },
-      })
-    );
-  }
+  // Saját eseménynapló + Meta Conversions API (utóbbi CSAK marketing-hozzájárulással,
+  // ld. _utils/measurement.js), a válasz küldését nem várva (waitUntil).
+  const a = attribution || {};
+  waitUntil(
+    recordEvent(env, {
+      eventId: `registration_${viszonteladoId}`,
+      name: "account_registered",
+      metaEventName: "CompleteRegistration",
+      viszonteladoId,
+      data: { account_type: "reseller", country: orszag },
+      consent: marketingConsent,
+      eventSourceUrl: new URL(redirectBase, request.url).href,
+      customData: { account_type: "reseller", country: orszag },
+      user: {
+        email,
+        phone: telefon,
+        country: orszag,
+        externalId: viszonteladoId,
+        fbp: a.fbp,
+        fbc: a.fbc,
+        clientIp: a.client_ip,
+        clientUserAgent: a.client_user_agent,
+      },
+    })
+  );
 
   return new Response(null, {
     status: 303,

@@ -1,6 +1,6 @@
 import { hashPassword, newSessionToken, sessionCookie } from "../_utils/auth.js";
 import { checkRateLimit, clientIp } from "../_utils/rateLimit.js";
-import { sendMetaCapiEvent } from "../_utils/metaCapi.js";
+import { recordEvent } from "../_utils/measurement.js";
 import { readAttribution } from "../_utils/attribution.js";
 
 // Magánszemélyeknek szóló, leegyszerűsített regisztráció - a viszonteladói
@@ -69,31 +69,33 @@ export async function onRequestPost(context) {
     .bind(token, viszonteladoId, lejar)
     .run();
 
-  // Meta Conversions API - CSAK marketing-hozzájárulással. A válasz küldését
-  // nem várja meg (waitUntil), hogy egy lassú/hibás Meta-hívás sose lassítsa
-  // a user tényleges regisztrációját.
-  if (marketingConsent) {
-    waitUntil(
-      sendMetaCapiEvent(env, {
-        eventName: "CompleteRegistration",
-        eventId: `registration_${viszonteladoId}`,
-        eventSourceUrl: new URL("/hu/sajat-oldal", request.url).href,
-        customData: { account_type: "individual", country: "HU" },
-        user: {
-          email,
-          phone: telefon,
-          country: "HU",
-          firstName: keresztnev,
-          lastName: vezeteknev,
-          externalId: viszonteladoId,
-          fbp: attribution.fbp,
-          fbc: attribution.fbc,
-          clientIp: attribution.client_ip,
-          clientUserAgent: attribution.client_user_agent,
-        },
-      })
-    );
-  }
+  // Saját eseménynapló + Meta Conversions API (utóbbi CSAK marketing-hozzájárulással,
+  // ld. _utils/measurement.js). A válasz küldését nem várja meg (waitUntil).
+  const a = attribution || {};
+  waitUntil(
+    recordEvent(env, {
+      eventId: `registration_${viszonteladoId}`,
+      name: "account_registered",
+      metaEventName: "CompleteRegistration",
+      viszonteladoId,
+      data: { account_type: "individual", country: "HU" },
+      consent: marketingConsent,
+      eventSourceUrl: new URL("/hu/sajat-oldal", request.url).href,
+      customData: { account_type: "individual", country: "HU" },
+      user: {
+        email,
+        phone: telefon,
+        country: "HU",
+        firstName: keresztnev,
+        lastName: vezeteknev,
+        externalId: viszonteladoId,
+        fbp: a.fbp,
+        fbc: a.fbc,
+        clientIp: a.client_ip,
+        clientUserAgent: a.client_user_agent,
+      },
+    })
+  );
 
   return new Response(null, {
     status: 303,

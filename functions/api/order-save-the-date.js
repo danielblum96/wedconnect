@@ -1,9 +1,11 @@
 import { getSessionReseller, dashboardHref } from "../_utils/auth.js";
+import { recordEvent, browserContext, buildMetaUser, accountType } from "../_utils/measurement.js";
+import { parseStoredAttribution } from "../_utils/attribution.js";
 import { getPricing } from "../_utils/i18n.js";
 import { createCheckoutSession } from "../_utils/stripe.js";
 
 export async function onRequestPost(context) {
-  const { request, env } = context;
+  const { request, env, waitUntil } = context;
   const reseller = await getSessionReseller(request, env.DB);
   if (!reseller) return Response.redirect(new URL("/partner/login", request.url).href, 303);
 
@@ -93,7 +95,41 @@ export async function onRequestPost(context) {
       customerEmail: reseller.email,
       metadata: { rendeles_id: String(rendelesId), tipus: wantsStd ? "std" : "oldal", par_id: String(par.id) },
     });
-    await env.DB.prepare("UPDATE rendelesek SET stripe_session_id = ? WHERE id = ?").bind(session.id, rendelesId).run();
+    // A böngésző FRISS adata a rendeléshez mentve (ld. couple-pay.js).
+    const consent = reseller.marketing_hozzajarulas === 1;
+    const impersonated = !!reseller.admin_impersonalt;
+    const context_ = consent && !impersonated ? browserContext(request) : null;
+    await env.DB.prepare("UPDATE rendelesek SET stripe_session_id = ?, mero_kontextus = ? WHERE id = ?")
+      .bind(session.id, context_ ? JSON.stringify(context_) : null, rendelesId)
+      .run();
+    const productType = wantsStd ? "save_the_date" : "wedding_website";
+    const quantity = wantsStd ? mennyiseg : 1;
+    waitUntil(
+      recordEvent(env, {
+        eventId: `checkout_${rendelesId}`,
+        name: "checkout_started",
+        metaEventName: "InitiateCheckout",
+        viszonteladoId: reseller.id,
+        parId: par.id,
+        rendelesId,
+        value: total,
+        currency: pricing.currency,
+        data: { account_type: accountType(reseller.fiok_tipus), product_type: productType, quantity, country: reseller.orszag },
+        consent,
+        impersonated,
+        eventSourceUrl: dashboardUrl,
+        customData: {
+          value: total,
+          currency: pricing.currency,
+          order_id: String(rendelesId),
+          account_type: accountType(reseller.fiok_tipus),
+          product_type: productType,
+          quantity,
+          country: reseller.orszag,
+        },
+        user: buildMetaUser(reseller, parseStoredAttribution(reseller.attribucio), context_),
+      })
+    );
     return Response.redirect(session.url, 303);
   } catch (e) {
     console.error(`order-save-the-date: Stripe session létrehozása sikertelen (rendeles_id=${rendelesId}): ${e.message}`);
