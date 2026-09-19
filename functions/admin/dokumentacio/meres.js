@@ -66,6 +66,7 @@ const DOC_HTML = `<main class="doc">
       </tbody>
     </table>
   </div>
+  <p><b>Bevétel-definíció (magánszemély, HU):</b> az árak <b>bruttók</b>, az ÁFÁ-t tartalmazzák. A Save the Date szállítása <b>ingyenes</b>, ezért a rendelés összege a darabszám és a darabár szorzata (50 db-tól az oldal díja elmarad), külön szállítási tétel nincs. Kedvezmény nincs. A viszonteladói (B2B) árakról a bruttó/nettó megjelölés nincs rögzítve.</p>
   <p class="note">A fizetés két úton is beérkezhet, és mindkettő ugyanazt a függvényt hívja: Stripe webhook, illetve a Checkout utáni visszairányítás (<code>success_url</code>). Az admin felületen kézzel is meg lehet jelölni egy rendelést fizetettnek (készpénz, utalás), ez ugyanazt a függvényt futtatja.</p>
 
   <h2 id="adatfolyam">2. Adatfolyam</h2>
@@ -163,6 +164,7 @@ const DOC_HTML = `<main class="doc">
       </tbody>
     </table>
   </div>
+  <p><b>A <code>Purchase</code> értéke:</b> <code>value</code> = <code>rendelesek.ar_osszesen</code>, vagyis az ügyfél által ténylegesen fizetett <b>bruttó</b> összeg (ÁFÁ-val, szállítás nélkül, mert az ingyenes), <b>visszatérítés előtt</b>. A visszatérítés vagy lemondás jelenleg nem korrigálja a Metának küldött értéket; a saját adatbázisban a <code>rendelesek.allapot</code> mutatja az állapotot. Nettó érték és visszatérítés külön mezőként még nincs.</p>
   <h3>user_data</h3>
   <div class="scroll">
     <table>
