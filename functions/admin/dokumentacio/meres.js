@@ -208,11 +208,11 @@ const DOC_HTML = `<main class="doc">
         <tr><td>Pixel csak hozzájárulással töltődik be</td><td><span class="pill ok">élesben</span></td><td>Elutasított hozzájárulással a <code>fbevents.js</code> nem töltődik be</td></tr>
         <tr><td>Attribúció tárolódik és a fiókhoz kerül</td><td><span class="pill ok">élesben</span></td><td>Valódi regisztráció, a D1-ben lekérdezve</td></tr>
         <tr><td>Hozzájárulás nélkül nincs tárolt attribúció</td><td><span class="pill ok">élesben</span></td><td><code>marketing_hozzajarulas=0</code>, <code>attribucio</code> NULL</td></tr>
-        <tr><td><code>CompleteRegistration</code> a Meta által elfogadva</td><td><span class="pill part">közvetett</span></td><td>A Cloudflare naplóban nincs hibaüzenet a hívás után; az Events Managerben megjelenést és az Event Match Quality értéket még nem néztük</td></tr>
-        <tr><td>Atomi fizetés-átvétel</td><td><span class="pill part">részben</span></td><td>Az SQL-szemantika valódi SQLite-on tesztelve (az első hívás 1, a második 0 módosított sort ad); élesben egy QA-rendelés kétszeri, egyidejű fizetettnek jelölése után a rendelés <code>Fizetve</code>, a pár rendezett. Igazi, mikroszekundumos versenyhelyzetet nem sikerült reprodukálni.</td></tr>
-        <tr><td><code>Purchase</code> payload helyes</td><td><span class="pill part">mockolt</span></td><td>A valódi kóddal, mockolt <code>fetch</code>-csel: hash-ek, mezők, országhívó-normalizálás ellenőrizve. <b>Valódi fizetéssel még nem futott le.</b></td></tr>
+        <tr><td><code>CompleteRegistration</code> a Meta által elfogadva</td><td><span class="pill ok">élesben</span></td><td>Valódi regisztrációval, Test Events kóddal küldve: a Meta válasza <code>events_received: 1</code>, üzenet és figyelmeztetés nélkül. Az Event Match Quality értéket az Events Managerben még nem néztük.</td></tr>
+        <tr><td>Atomi fizetés-átvétel</td><td><span class="pill part">részben</span></td><td>SQL-szemantika valódi SQLite-on tesztelve; élesben két egyidejű fizetettnek jelölő kérésből pontosan egy <code>Purchase</code>-küldés történt. Valódi, mikroszekundumos versenyhelyzetet nem sikerült reprodukálni.</td></tr>
+        <tr><td><code>Purchase</code> a Meta által elfogadva</td><td><span class="pill ok">élesben</span></td><td>A valódi útvonalon (admin kézi jelölés → <code>fulfillStripeOrder()</code>, ugyanaz a függvény, mint a webhooknál), Test Events kóddal küldve: <code>events_received: 1</code>, figyelmeztetés nélkül. Stripe-on keresztüli valódi fizetéssel még nem futott le.</td></tr>
         <tr><td>Domain-verifikáció</td><td><span class="pill ok">kész</span></td><td>A Business Managerben ellenőrzött (a felhasználó megerősítette)</td></tr>
-        <tr><td>Event Match Quality, Test Events</td><td><span class="pill no">nincs</span></td><td>Az első valódi esemény után nézendő</td></tr>
+        <tr><td>Event Match Quality</td><td><span class="pill no">nincs</span></td><td>Az Events Manager Test Events fülén a két teszt-esemény látszik; az EMQ értéket a felhasználó ellenőrzi.</td></tr>
       </tbody>
     </table>
   </div>
