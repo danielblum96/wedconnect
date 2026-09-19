@@ -215,7 +215,7 @@ const DOC_HTML = `<main class="doc">
     <li>Cél: <b>Értékesítés (Sales)</b>, konverziós helyszín: weboldal, a fenti Pixel.</li>
     <li>Optimalizálási esemény induláskor: <code>CompleteRegistration</code>. A <code>WeddingPagePublished</code> egyéni eseményből az Events Managerben egyéni konverziót kell létrehozni (az első esemény beérkezése után); ez az esküvői oldal létrehozását méri, ami erősebb szándékjel a puszta regisztrációnál, és gyakoribb a <code>Purchase</code>-nél. Javasolt sorrend: <code>CompleteRegistration</code> → <code>WeddingPagePublished</code> → <code>Purchase</code> (váltás, ha az adott esemény ad set szinten tartósan eléri a heti ~50-et).</li>
     <li>Hirdetés-URL paraméterek: <code>utm_source=facebook&amp;utm_medium=paid_social&amp;utm_campaign={{campaign.id}}&amp;utm_content={{ad.id}}&amp;utm_term={{adset.id}}</code></li>
-    <li>Regisztrációs kísérlet-korlát: óránként 5 kísérlet IP-nként (a sikertelenek is számítanak).</li>
+    <li>Regisztrációs kísérlet-korlát: óránként 10 kísérlet IP-nként (a sikertelenek is számítanak; a magánszemély és a viszonteladói regisztráció közös számlálót használ).</li>
   </ul>
 
   <h2 id="ellenorzes">9. Mi van tényleg ellenőrizve</h2>
@@ -241,7 +241,7 @@ const DOC_HTML = `<main class="doc">
   <h2 id="hianyossagok">10. Ismert hiányosságok és kockázatok</h2>
   <p class="note">Javítva az 1. és 2. csomagban: a <code>Purchase</code> dupla kézbesítése (atomi átvétel + determinisztikus <code>event_id</code>), az események <code>account_type</code> / termék adatai, az aktivációs esemény, a <code>CheckoutStarted</code>, a saját eseménynapló és a friss böngészőadat a fizetés indításakor.</p>
   <div class="gap hi">
-    <p><b>Rate limit és megosztott IP-k.</b> Óránként 5 regisztrációs kísérlet engedélyezett IP-nként. Mobilhálózati (CGNAT) vagy irodai megosztott IP mögött legitim regisztrációk is elutasításra kerülhetnek, és a hirdetésből érkező konverzió csendben elveszik (a felhasználó hibaüzenetet kap).</p>
+    <p><b>Rate limit és megosztott IP-k.</b> Óránként 10 regisztrációs kísérlet engedélyezett IP-nként (2026-09-19-ig 5 volt). Nagy, megosztott IP mögött (mobilhálózati CGNAT, irodai hálózat) még így is elutasításra kerülhetnek legitim regisztrációk, és a hirdetésből érkező konverzió csendben elvész (a felhasználó hibaüzenetet kap). Az arányt az első kampány-hetekben érdemes figyelni; ha szükséges, a számláló IP és email együttes kulcsára cserélhető.</p>
   </div>
   <div class="gap">
     <p><b>A hozzájárulás visszavonása regisztráció után nem terjed át automatikusan.</b> A mentett állapot addig érvényes, amíg a felhasználó nem jelzi, és kézzel nem töröljük az attribúciót és nem nullázzuk a <code>marketing_hozzajarulas</code>-t.</p>

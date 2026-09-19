@@ -5,7 +5,7 @@ import { recordEvent } from "../_utils/measurement.js";
 import { readAttribution } from "../_utils/attribution.js";
 
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
-const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
 
 export async function onRequestPost(context) {
