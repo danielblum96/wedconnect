@@ -1,5 +1,5 @@
 import { getAdminSession } from "../_utils/adminAuth.js";
-import { adminNav, adminNavCss } from "../_utils/adminNav.js";
+import { adminNav, adminNavCss, adminNotice } from "../_utils/adminNav.js";
 import { escapeHtml } from "../_utils/html.js";
 
 // Egyszerű, szabály-alapú szegmentálás a jövőbeli PPC-célközönség-tervhez
@@ -26,7 +26,7 @@ export async function onRequestGet(context) {
   if (!session) return Response.redirect(new URL("/admin/login", request.url).href, 303);
 
   const { results: viszonteladoRaw } = await env.DB.prepare(
-    `SELECT v.id, v.ceg_nev, v.email, v.orszag, v.nyelv, v.allapot, v.letrehozva,
+    `SELECT v.id, v.ceg_nev, v.email, v.telefon, v.orszag, v.nyelv, v.allapot, v.letrehozva,
             (SELECT COUNT(*) FROM parok p WHERE p.viszontelado_id = v.id) AS parok_szama,
             (SELECT COUNT(*) FROM rendelesek r WHERE r.viszontelado_id = v.id AND r.allapot = 'Fizetve') AS fizetett_rendelesek,
             (SELECT COALESCE(SUM(r.ar_osszesen), 0) FROM rendelesek r WHERE r.viszontelado_id = v.id AND r.allapot = 'Fizetve') AS osszbevetel,
@@ -50,6 +50,7 @@ export async function onRequestGet(context) {
           <td>${escapeHtml((v.letrehozva || "").slice(0, 10))}</td>
           <td>${escapeHtml(v.ceg_nev)}</td>
           <td>${escapeHtml(v.email)}</td>
+          <td>${v.telefon ? `<a href="tel:${escapeHtml(v.telefon.replace(/[^0-9+]/g, ""))}">${escapeHtml(v.telefon)}</a>` : "—"}</td>
           <td>${escapeHtml(v.orszag || "—")}</td>
           <td>${escapeHtml((v.nyelv || "").toUpperCase())}</td>
           <td>${v.parok_szama}</td>
@@ -70,6 +71,13 @@ export async function onRequestGet(context) {
               <input type="hidden" name="action" value="${isActive ? "deactivate" : "activate"}">
               <button type="submit" class="btn-small">${isActive ? "Inaktiválás" : "Aktiválás"}</button>
             </form>
+            ${v.fizetett_rendelesek > 0
+              ? `<span class="muted-note" title="A fizetett rendelés számviteli bizonylat, ezért a fiók nem törölhető.">Nem törölhető (fizetett rendelés)</span>`
+              : `<form method="POST" action="/api/admin-delete-account" data-confirm="${escapeHtml(`Biztosan VÉGLEGESEN törlöd ezt a viszonteladót (${v.ceg_nev}) és mind a(z) ${v.parok_szama} oldalát? Ez nem vonható vissza.`)}" onsubmit="return confirm(this.dataset.confirm)">
+              <input type="hidden" name="viszontelado_id" value="${v.id}">
+              <input type="hidden" name="vissza" value="viszonteladok">
+              <button type="submit" class="btn-small btn-danger">Törlés</button>
+            </form>`}
           </td>
         </tr>`;
     })
@@ -128,6 +136,7 @@ ${adminNavCss}
   ${adminNav("viszonteladok")}
 </header>
 <main>
+  ${adminNotice(request.url)}
   <h2>Viszonteladók</h2>
   <div class="stats-bar">
     <div class="stat"><div class="stat-value">${viszontelado.length}</div><div class="stat-label">regisztrált viszonteladó</div></div>
@@ -147,7 +156,7 @@ ${adminNavCss}
       viszontelado.length
         ? `<table id="viszontelado-table">
             <thead><tr>
-              <th>Regisztráció</th><th>Cégnév</th><th>Email</th><th>Ország</th><th>Nyelv</th><th>Párok</th>
+              <th>Regisztráció</th><th>Cégnév</th><th>Email</th><th>Telefon</th><th>Ország</th><th>Nyelv</th><th>Párok</th>
               <th>Rendelések</th><th>Bevétel</th><th>Utolsó rendelés</th><th>Szegmens</th><th>Állapot</th><th></th>
             </tr></thead>
             <tbody>${rows}</tbody>

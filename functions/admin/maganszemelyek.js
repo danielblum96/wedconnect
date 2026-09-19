@@ -1,5 +1,5 @@
 import { getAdminSession } from "../_utils/adminAuth.js";
-import { adminNav, adminNavCss } from "../_utils/adminNav.js";
+import { adminNav, adminNavCss, adminNotice } from "../_utils/adminNav.js";
 import { escapeHtml } from "../_utils/html.js";
 
 // Külön admin-lista a magánszemélyes (fiok_tipus='maganszemely') fiókoknak -
@@ -21,7 +21,7 @@ export async function onRequestGet(context) {
   if (!session) return Response.redirect(new URL("/admin/login", request.url).href, 303);
 
   const { results: raw } = await env.DB.prepare(
-    `SELECT v.id, v.ceg_nev, v.email, v.allapot, v.letrehozva,
+    `SELECT v.id, v.ceg_nev, v.email, v.telefon, v.allapot, v.letrehozva,
             (SELECT p.slug FROM parok p WHERE p.viszontelado_id = v.id LIMIT 1) AS slug,
             (SELECT p.par_neve FROM parok p WHERE p.viszontelado_id = v.id LIMIT 1) AS par_neve,
             (SELECT COUNT(*) FROM rendelesek r WHERE r.viszontelado_id = v.id AND r.allapot = 'Fizetve') AS fizetett_rendelesek,
@@ -45,6 +45,7 @@ export async function onRequestGet(context) {
           <td>${escapeHtml((v.letrehozva || "").slice(0, 10))}</td>
           <td>${escapeHtml(v.ceg_nev)}</td>
           <td>${escapeHtml(v.email)}</td>
+          <td>${v.telefon ? `<a href="tel:${escapeHtml(v.telefon.replace(/[^0-9+]/g, ""))}">${escapeHtml(v.telefon)}</a>` : "—"}</td>
           <td>${v.slug ? `<a href="https://wedconnect.eu/${escapeHtml(v.slug)}" target="_blank" rel="noopener">${escapeHtml(v.par_neve || v.slug)}</a>` : "—"}</td>
           <td>${v.osszbevetel ? `${v.osszbevetel.toLocaleString("hu-HU")} ${escapeHtml(v.penznem || "")}` : "—"}</td>
           <td><span class="badge ${status.cls}">${escapeHtml(status.label)}</span></td>
@@ -61,6 +62,13 @@ export async function onRequestGet(context) {
               <input type="hidden" name="action" value="${isActive ? "deactivate" : "activate"}">
               <button type="submit" class="btn-small">${isActive ? "Inaktiválás" : "Aktiválás"}</button>
             </form>
+            ${v.fizetett_rendelesek > 0
+              ? `<span class="muted-note" title="A fizetett rendelés számviteli bizonylat, ezért a fiók nem törölhető.">Nem törölhető (fizetett rendelés)</span>`
+              : `<form method="POST" action="/api/admin-delete-account" data-confirm="${escapeHtml(`Biztosan VÉGLEGESEN törlöd ezt a fiókot (${v.ceg_nev})${v.slug ? " és az esküvői oldalát" : ""}? Ez nem vonható vissza.`)}" onsubmit="return confirm(this.dataset.confirm)">
+              <input type="hidden" name="viszontelado_id" value="${v.id}">
+              <input type="hidden" name="vissza" value="maganszemelyek">
+              <button type="submit" class="btn-small btn-danger">Törlés</button>
+            </form>`}
           </td>
         </tr>`;
     })
@@ -113,6 +121,7 @@ ${adminNavCss}
   ${adminNav("maganszemelyek")}
 </header>
 <main>
+  ${adminNotice(request.url)}
   <h2>Magánszemélyek</h2>
   <div class="stats-bar">
     <div class="stat"><div class="stat-value">${maganszemelyek.length}</div><div class="stat-label">regisztrált magánszemély</div></div>
@@ -124,7 +133,7 @@ ${adminNavCss}
       maganszemelyek.length
         ? `<table>
             <thead><tr>
-              <th>Regisztráció</th><th>Név</th><th>Email</th><th>Saját oldal</th>
+              <th>Regisztráció</th><th>Név</th><th>Email</th><th>Telefon</th><th>Saját oldal</th>
               <th>Bevétel</th><th>Fizetés</th><th>Állapot</th><th></th>
             </tr></thead>
             <tbody>${rows}</tbody>

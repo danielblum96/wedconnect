@@ -12,7 +12,23 @@ export const adminNavCss = `
   .nav-menu summary::after { content:"\\25BE"; display:inline-block; margin-left:5px; }
   .nav-menu-list { position:absolute; right:0; top:calc(100% + 10px); z-index:20; min-width:210px; background:var(--card); border-radius:10px; box-shadow:0 10px 30px -12px rgba(0,0,0,0.28); padding:8px 0; }
   .nav-menu-list a { display:block; padding:8px 18px; white-space:nowrap; }
+  .btn-danger { border-color:#b1451f !important; color:#b1451f !important; }
+  .btn-danger:hover { background:#b1451f !important; color:#fff !important; }
+  .notice { border-radius:10px; padding:12px 16px; margin-bottom:18px; font-size:0.95rem; }
+  .notice-ok { background:#e2f3dd; color:#2f6b28; }
+  .notice-err { background:#fdeee7; color:#b1451f; }
+  .muted-note { color:var(--muted); font-size:0.82rem; }
 `;
+
+// Egy egyszeri visszajelzés a listák tetejére (a törlés utáni átirányítás paramétereiből).
+export function adminNotice(url) {
+  const q = new URL(url).searchParams;
+  if (q.get("torolve")) return '<div class="notice notice-ok">A fiók és a hozzá tartozó adatok véglegesen törölve.</div>';
+  if (q.get("hiba") === "fizetett_rendeles") {
+    return '<div class="notice notice-err">A fiók nem törölhető, mert van fizetett rendelése (számviteli bizonylat).</div>';
+  }
+  return "";
+}
 
 export function adminNav(active) {
   const cls = (key) => (active === key ? ' class="active"' : "");
