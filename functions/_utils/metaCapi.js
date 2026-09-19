@@ -102,6 +102,9 @@ export async function sendMetaCapiEvent(env, { eventName, eventId, eventSourceUr
     if (!response.ok) {
       const body = await response.text();
       console.error(`sendMetaCapiEvent: Meta API hiba ${response.status} - ${body}`);
+    } else if (env.META_CAPI_TEST_EVENT_CODE) {
+      // Csak teszt-módban: a Meta válasza (events_received, figyelmeztetések).
+      console.log(`sendMetaCapiEvent [TESZT] ${eventName}: ${await response.text()}`);
     }
   } catch (e) {
     console.error(`sendMetaCapiEvent: küldés sikertelen (${eventName}): ${e.message}`);
