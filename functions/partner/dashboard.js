@@ -4,7 +4,8 @@ import { escapeHtml, safeHref } from "../_utils/html.js";
 import { getCopy, getStatusLabel, getResellerCopy, getPricing, formatPrice } from "../_utils/i18n.js";
 import { countryOptions } from "../_utils/countries.js";
 import { retrieveCheckoutSession } from "../_utils/stripe.js";
-import { fulfillStripeOrder, isExpiredUnpaid, paymentDeadlineMs } from "../_utils/paymentFulfillment.js";
+import { fulfillStripeOrder, isExpiredUnpaid, isPurgeable, paymentDeadlineMs, restoreDeadlineMs } from "../_utils/paymentFulfillment.js";
+import { purgePage } from "../_utils/pageLifecycle.js";
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -68,34 +69,18 @@ export async function renderDashboard(context, reseller) {
     .bind(reseller.id)
     .all();
 
-  // Lazy takarítás: a 24 órán belül ki nem fizetett / rendezetlen oldalak
-  // törlése - nincs külön cron job (a Cloudflare Pages Functions ezt natívan
-  // nem támogatja), ehelyett minden dashboard-betöltéskor megtörténik.
+  // A 24 órán belül ki nem fizetett oldal a vendégeknek azonnal elérhetetlen, de az
+  // adatai a visszaállítási ablak (7 nap) végéig megmaradnak, és fizetéssel
+  // visszaállíthatók (a dashboardon "lejárt" sávval látszik). A VÉGLEGES törlést az
+  // ütemezett Worker végzi (ld. _utils/reminders.js); ez a lazy takarítás csak
+  // tartalék arra az esetre, ha a Worker nem futna.
   const now = Date.now();
-  const expired = (parokRaw || []).filter((p) => isExpiredUnpaid(p, now));
-  for (const p of expired) {
-    // A pár törlése előtt a hozzá kötött rendeléseket (rendelesek.par_id) le
-    // kell választani (NULL-ra állítani) - a par_id egy idegen kulcs, enélkül
-    // a DELETE FOREIGN KEY constraint hibával elszáll (ld. couple-delete.js
-    // azonos mintája).
-    await env.DB.prepare("UPDATE rendelesek SET par_id = NULL WHERE par_id = ? AND viszontelado_id = ?")
-      .bind(p.id, reseller.id)
-      .run();
-    await env.DB.prepare("DELETE FROM parok WHERE id = ? AND viszontelado_id = ?").bind(p.id, reseller.id).run();
-    // Ugyanaz a "ne szemeteljünk az R2-ben" ok, mint a couple-delete.js-nél -
-    // ez a MÁSIK törlési útvonal (automatikus lejárat-takarítás), ami ugyanúgy
-    // felejtette volna el a borítóképet, ahogy korábban az FK-leválasztást is
-    // (ld. Error 1101 tanulság) - ha ez a mező itt is kimaradna, minden lejárt,
-    // ki nem fizetett oldal képe örökre bent maradna az R2-ben.
-    if (p.slug) {
-      try {
-        await env.PHOTOS.delete(`parok/${p.slug}.webp`);
-      } catch (e) {
-        console.error(`dashboard lazy-cleanup: borítókép törlése sikertelen (slug=${p.slug}): ${e.message}`);
-      }
-    }
+  for (const p of (parokRaw || []).filter((p) => isPurgeable(p, now))) {
+    await purgePage(env, p);
   }
-  const parok = (parokRaw || []).filter((p) => !isExpiredUnpaid(p, now));
+  const parok = (parokRaw || [])
+    .filter((p) => !isPurgeable(p, now))
+    .map((p) => (isExpiredUnpaid(p, now) ? { ...p, lejart: true } : p));
 
   const createdCouple = created ? parok.find((p) => p.slug === created) : null;
 
@@ -126,6 +111,11 @@ export async function renderDashboard(context, reseller) {
     const now = new Date();
     const todayUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
     return Math.round((target.getTime() - todayUTC) / 86400000);
+  }
+
+  function formatRestoreDate(ms) {
+    const locale = lang === "hu" ? "hu-HU" : lang === "de" ? "de-DE" : "en-GB";
+    return new Intl.DateTimeFormat(locale, { timeZone: "Europe/Budapest", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(ms));
   }
 
   function formatCountdown(ms) {
@@ -265,7 +255,15 @@ export async function renderDashboard(context, reseller) {
           </div>
           ${
             !p.rendeles_id
-              ? `<div class="urgent-banner">
+              ? p.lejart
+                ? `<div class="urgent-banner">
+                  <span>${t.expiredBanner(formatRestoreDate(restoreDeadlineMs(p)), formatPrice(PAGE_PRICE, lang))}</span>
+                  <form method="POST" action="/api/couple-pay">
+                    <input type="hidden" name="par_id" value="${p.id}">
+                    <button type="submit" class="btn-pay-now">${t.restoreNow}</button>
+                  </form>
+                </div>`
+                : `<div class="urgent-banner">
                   <span>${t.urgentBanner(paymentDeadlineMs(p), formatCountdown(paymentDeadlineMs(p) - now), formatPrice(PAGE_PRICE, lang))}</span>
                   <form method="POST" action="/api/couple-pay">
                     <input type="hidden" name="par_id" value="${p.id}">

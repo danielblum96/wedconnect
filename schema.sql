@@ -108,3 +108,25 @@ CREATE INDEX IF NOT EXISTS idx_measurement_events_statusz ON measurement_events 
 --   viszontelado: telefon, vezeteknev, keresztnev, adatkezeles_elfogadva,
 --                 marketing_hozzajarulas (INTEGER NOT NULL DEFAULT 0), attribucio (JSON)
 --   rendelesek:   mero_kontextus (JSON: friss fbp/fbc/IP/User-Agent a fizetés indításakor)
+
+-- Emlékeztető emailek naplója (2026-09-19): egy sor = egy (oldal, típus) küldés.
+-- tipus: emlekezteto_8h | emlekezteto_2h | lejart | torolve. UNIQUE (par_id, tipus):
+-- ugyanaz az email kétszer nem megy ki. token: kattintás-követés és leiratkozás.
+-- statusz: fuggoben | elkuldve | hiba. A viszontelado.emlekezteto_tiltva (0/1) a leiratkozás.
+CREATE TABLE IF NOT EXISTS email_kuldesek (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  par_id INTEGER NOT NULL,
+  viszontelado_id INTEGER NOT NULL,
+  tipus TEXT NOT NULL,
+  token TEXT NOT NULL UNIQUE,
+  statusz TEXT NOT NULL DEFAULT 'fuggoben',
+  kiserletek INTEGER NOT NULL DEFAULT 0,
+  utolso_kiserlet TEXT,
+  hiba TEXT,
+  kuldve TEXT,
+  kattintva TEXT,
+  kattintasok INTEGER NOT NULL DEFAULT 0,
+  letrehozva TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (par_id, tipus)
+);
+CREATE INDEX IF NOT EXISTS idx_email_kuldesek_viszontelado ON email_kuldesek (viszontelado_id);

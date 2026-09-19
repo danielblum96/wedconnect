@@ -1,0 +1,14 @@
+name = "wedconnect-cron"
+main = "index.js"
+compatibility_date = "2026-07-14"
+workers_dev = false
+
+# 15 percenként meghívja a webhely /api/cron-reminders végpontját (emlékeztető
+# emailek + lejárt oldalak takarítása). A logika a Pages Functions-ben él
+# (functions/_utils/reminders.js), a Worker csak az ütemező. A CRON_SECRET
+# titkot `wrangler secret put CRON_SECRET --config worker/wrangler.toml` állítja be.
+[triggers]
+crons = ["*/15 * * * *"]
+
+[vars]
+SITE_URL = "https://wedconnect.eu"

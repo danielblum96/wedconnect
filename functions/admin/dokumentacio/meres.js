@@ -51,7 +51,7 @@ const DOC_HTML = `<main class="doc">
         <tr><td>Esküvői oldal létrehozása (6 lépéses varázsló)</td><td><span class="pill ok">igen</span></td><td>Szerver-oldali <code>WeddingPagePublished</code> (az oldal a létrehozáskor azonnal élesedik); a dashboardon a Pixel nem fut</td></tr>
         <tr><td>Fizetés indítása (Stripe Checkout)</td><td><span class="pill ok">igen</span></td><td>Szerver-oldali <code>InitiateCheckout</code>, friss böngészőadattal</td></tr>
         <tr><td>Fizetés / Save the Date rendelés</td><td><span class="pill ok">igen</span></td><td>Szerver-oldali <code>Purchase</code> valós értékkel</td></tr>
-        <tr><td>Lejárat, törlés</td><td><span class="pill no">nem</span></td><td>Nincs esemény (csak a D1-ben látszik)</td></tr>
+        <tr><td>Lejárat, visszaállítás, törlés</td><td><span class="pill part">belső</span></td><td>Belső események a saját naplóban (<code>wedding_page_purged</code>, <code>reminder_email_sent</code>, <code>reminder_email_clicked</code>), a Metának nem küldjük. A lejárt oldal 7 napig fizetéssel visszaállítható; a visszaállítás a <code>Purchase</code>-ben látszik.</td></tr>
       </tbody>
     </table>
   </div>
@@ -205,6 +205,7 @@ const DOC_HTML = `<main class="doc">
         <tr><td><code>parok</code></td><td>Az esküvői oldalak: <code>viszontelado_id</code>, <code>letrehozva</code>, <code>rendeles_id</code> (NULL = még fizetetlen, fut a 24 órás határidő)</td></tr>
         <tr><td><code>rendelesek</code></td><td><code>par_id</code>, <code>viszontelado_id</code>, <code>mennyiseg</code>, <code>ar_osszesen</code>, <code>penznem</code>, <code>allapot</code> (<code>Fizetésre vár</code> / <code>Fizetve</code>), <code>stripe_session_id</code>, <code>mero_kontextus</code> (JSON: friss fbp/fbc/IP/User-Agent a fizetés indításakor, csak hozzájárulással)</td></tr>
         <tr><td><code>measurement_events</code></td><td>Saját eseménynapló: <code>event_id</code> (UNIQUE), <code>event_name</code> (belső: <code>account_registered</code>, <code>wedding_page_published</code>, <code>checkout_started</code>, <code>payment_completed</code>), <code>meta_event_name</code>, <code>viszontelado_id</code>, <code>par_id</code>, <code>rendeles_id</code>, <code>ertek</code>, <code>penznem</code>, <code>adat</code> (üzleti mezők JSON-ban, hirdetési azonosító nélkül), <code>letrehozva</code>, <code>meta_statusz</code> (<code>fuggoben</code> / <code>elkuldve</code> / <code>hiba</code> / <code>nincs_hozzajarulas</code> / <code>admin_nezet</code> / <code>nincs_meta_esemeny</code>), <code>meta_kiserletek</code>, <code>meta_utolso_kiserlet</code>, <code>meta_valasz</code></td></tr>
+        <tr><td><code>email_kuldesek</code></td><td>Az emlékeztető emailek naplója: <code>par_id</code>, <code>viszontelado_id</code>, <code>tipus</code> (<code>emlekezteto_8h</code> / <code>emlekezteto_2h</code> / <code>lejart</code> / <code>torolve</code>), <code>token</code>, <code>statusz</code>, <code>kiserletek</code>, <code>kuldve</code>, <code>kattintva</code>, <code>kattintasok</code>; UNIQUE (<code>par_id</code>, <code>tipus</code>). A <code>viszontelado.emlekezteto_tiltva</code> a leiratkozás jelzője. Kontrollcsoport nincs: mindenki kapja a leveleket.</td></tr>
       </tbody>
     </table>
   </div>

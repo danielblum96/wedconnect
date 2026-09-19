@@ -20,6 +20,10 @@ import { recordEvent, buildMetaUser, accountType } from "./measurement.js";
 import { parseStoredAttribution } from "./attribution.js";
 
 export const PAYMENT_DEADLINE_HOURS = 24;
+// A lejárat után az oldal a vendégeknek azonnal elérhetetlen, de az adatai még
+// ennyi napig megmaradnak, és fizetéssel (vagy 50+ db Save the Date rendeléssel)
+// visszaállíthatók - utána véglegesen törlődik (ld. _utils/reminders.js).
+export const RESTORE_WINDOW_DAYS = 7;
 
 function createdAtMs(p) {
   return new Date(`${p.letrehozva.replace(" ", "T")}Z`).getTime();
@@ -35,6 +39,15 @@ export function isExpiredUnpaid(p, now) {
 
 export function paymentDeadlineMs(p) {
   return createdAtMs(p) + PAYMENT_DEADLINE_HOURS * 3600000;
+}
+
+export function restoreDeadlineMs(p) {
+  return paymentDeadlineMs(p) + RESTORE_WINDOW_DAYS * 24 * 3600000;
+}
+
+// Lejárt ÉS a visszaállítási ablak is elmúlt: ezt az oldalt véglegesen törölni kell.
+export function isPurgeable(p, now) {
+  return isExpiredUnpaid(p, now) && now > restoreDeadlineMs(p);
 }
 
 function utf8ToBase64(str) {

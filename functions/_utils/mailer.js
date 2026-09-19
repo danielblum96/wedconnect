@@ -3,7 +3,7 @@
 // szolgáltatásra van szükség. Az API-kulcsot a `RESEND_API_KEY` Cloudflare
 // Pages secret tárolja - amíg ez nincs beállítva, a küldés csendben nem
 // történik meg (nem dob hibát), hogy a fejlesztés/tesztelés se akadjon el.
-export async function sendEmail(env, { to, subject, html, attachments }) {
+export async function sendEmail(env, { to, subject, html, attachments, headers, replyTo }) {
   if (!env.RESEND_API_KEY) {
     console.error("sendEmail: RESEND_API_KEY nincs beállítva, küldés kihagyva.");
     return;
@@ -16,6 +16,8 @@ export async function sendEmail(env, { to, subject, html, attachments }) {
     html,
   };
   if (attachments && attachments.length) payload.attachments = attachments;
+  if (headers) payload.headers = headers;
+  if (replyTo) payload.reply_to = replyTo;
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
