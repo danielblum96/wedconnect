@@ -9,7 +9,7 @@ const DOC_HTML = `<main class="doc">
     <h1>WedConnect mérési rendszer</h1>
     <p class="lede">Hogyan mérjük a hirdetésből érkező regisztrációkat és vásárlásokat a wedconnect.eu-n: mi mit küld, honnan, milyen hozzájárulással, és mi nincs még kész. Szakértői átnézésre.</p>
     <div class="meta">
-      <span><b>Állapot:</b> 2026-09-19, élő (1. csomag után)</span>
+      <span><b>Állapot:</b> 2026-09-19, élő (2. csomag után)</span>
       <span><b>Meta Pixel ID:</b> <code>1069938152514040</code></span>
       <span><b>Domain:</b> wedconnect.eu, Metában ellenőrzött</span>
       <span><b>Infrastruktúra:</b> Cloudflare Pages + Functions, D1 (SQLite)</span>
@@ -33,10 +33,10 @@ const DOC_HTML = `<main class="doc">
     <h2>Röviden</h2>
     <ul>
       <li>A Meta Pixel a nyilvános oldalakon csak <code>PageView</code>-t küld, <b>marketing-hozzájárulással</b>.</li>
-      <li>A két üzleti esemény, a <code>CompleteRegistration</code> és a <code>Purchase</code>, <b>kizárólag szerver-oldalról</b>, a Conversions API-n megy ki. Kliens-oldali párjuk nincs, ezért böngésző-szerver deduplikáció sem kell.</li>
+      <li>A négy üzleti esemény, a <code>CompleteRegistration</code>, <code>WeddingPagePublished</code>, <code>InitiateCheckout</code> és <code>Purchase</code>, <b>kizárólag szerver-oldalról</b>, a Conversions API-n megy ki. Kliens-oldali párjuk nincs, ezért böngésző-szerver deduplikáció sem kell.</li>
       <li>Hozzájárulás nélkül semmi nem tárolódik az attribúcióból, és semmi nem megy a Metának. A döntést a böngésző viszi át a szervernek a regisztrációs űrlap rejtett mezőjében.</li>
-      <li>Az attribúciót (UTM, <code>fbclid</code>/<code>fbc</code>, <code>fbp</code>, IP, User-Agent) a regisztrációkor a fiókhoz mentjük, a <code>Purchase</code> később ezt használja, mert a fizetés visszaigazolása nem a felhasználó böngészőjéből érkezik.</li>
-      <li>A <code>Purchase</code> egyszeri feldolgozását atomi átvétel biztosítja, az <code>event_id</code> determinisztikus (<code>purchase_&lt;rendelés-id&gt;</code>). Nincs viszont aktivációs esemény (esküvői oldal létrehozva), nincs <code>InitiateCheckout</code> és nincs saját eseménynapló (ld. <a href="#hianyossagok">hiányosságok</a>).</li>
+      <li>Az attribúciót (UTM, <code>fbclid</code>/<code>fbc</code>, <code>fbp</code>, IP, User-Agent) a regisztrációkor a fiókhoz mentjük. A fizetés indításakor a szerver a kérésből friss böngészőadatot (<code>_fbp</code>/<code>_fbc</code> sütik, IP, User-Agent) olvas és a rendeléshez menti, a <code>Purchase</code> ezt használja, tartalékként a regisztrációkori attribúciót.</li>
+      <li>Minden üzleti esemény bekerül a saját eseménynaplóba (<code>measurement_events</code>) is, hozzájárulástól függetlenül, hirdetési azonosítók nélkül, a Meta-küldés állapotával és válaszával. A <code>Purchase</code> egyszeri feldolgozását atomi átvétel biztosítja, az <code>event_id</code> determinisztikus.</li>
     </ul>
   </section>
 
@@ -48,10 +48,10 @@ const DOC_HTML = `<main class="doc">
       <tbody>
         <tr><td>Hirdetés-kattintás, landolás</td><td><span class="pill ok">igen</span></td><td>Pixel <code>PageView</code> + attribúció-rögzítés (hozzájárulással)</td></tr>
         <tr><td>Regisztráció (név, email, telefon, jelszó, adatkezelés)</td><td><span class="pill ok">igen</span></td><td>Szerver-oldali <code>CompleteRegistration</code></td></tr>
-        <tr><td>Esküvői oldal létrehozása (6 lépéses varázsló)</td><td><span class="pill no">nem</span></td><td>Nincs esemény; a dashboardon a Pixel sem fut</td></tr>
-        <tr><td>Fizetés indítása (Stripe Checkout)</td><td><span class="pill no">nem</span></td><td>Nincs <code>InitiateCheckout</code></td></tr>
+        <tr><td>Esküvői oldal létrehozása (6 lépéses varázsló)</td><td><span class="pill ok">igen</span></td><td>Szerver-oldali <code>WeddingPagePublished</code> (az oldal a létrehozáskor azonnal élesedik); a dashboardon a Pixel nem fut</td></tr>
+        <tr><td>Fizetés indítása (Stripe Checkout)</td><td><span class="pill ok">igen</span></td><td>Szerver-oldali <code>InitiateCheckout</code>, friss böngészőadattal</td></tr>
         <tr><td>Fizetés / Save the Date rendelés</td><td><span class="pill ok">igen</span></td><td>Szerver-oldali <code>Purchase</code> valós értékkel</td></tr>
-        <tr><td>Lejárat, törlés</td><td><span class="pill no">nem</span></td><td>Csak a D1-ben látszik</td></tr>
+        <tr><td>Lejárat, törlés</td><td><span class="pill no">nem</span></td><td>Nincs esemény (csak a D1-ben látszik)</td></tr>
       </tbody>
     </table>
   </div>
@@ -76,14 +76,17 @@ const DOC_HTML = `<main class="doc">
       <li><span class="lane">Böngésző</span><span>Marketing-hozzájárulással: a Pixel betölt (<code>PageView</code>), és az attribúció a <code>localStorage</code>-ba kerül.</span></li>
       <li><span class="lane">Böngésző</span><span>Az űrlap beküldésekor egy <code>submit</code>-figyelő a rejtett <code>attribution</code> mezőbe írja a hozzájárulás állapotát és (csak igen esetén) az attribúciót plusz az <code>_fbp</code>/<code>_fbc</code> sütiket.</span></li>
       <li><span class="lane">Szerver</span><span><code>individual-register.js</code> / <code>reseller-register.js</code> validálja a mezőt, létrehozza a fiókot, és menti a <code>marketing_hozzajarulas</code> és <code>attribucio</code> oszlopokat.</span></li>
-      <li><span class="lane meta-lane">Meta CAPI</span><span>Csak hozzájárulással: <code>CompleteRegistration</code>, a válasz elküldése után, a háttérben (<code>waitUntil</code>).</span></li>
+      <li><span class="lane">Szerver</span><span>Az esemény bekerül a <code>measurement_events</code> naplóba (mindig, hirdetési azonosítók nélkül).</span></li>
+      <li><span class="lane meta-lane">Meta CAPI</span><span>Csak hozzájárulással: <code>CompleteRegistration</code>, a válasz elküldése után, a háttérben (<code>waitUntil</code>); a Meta válasza a naplóba kerül.</span></li>
+      <li><span class="lane">Szerver</span><span>Az esküvői oldal létrehozásakor ugyanígy: naplózás, majd hozzájárulással <code>WeddingPagePublished</code>.</span></li>
     </ol>
     <h3>B. Vásárlás</h3>
     <ol class="steps">
+      <li><span class="lane">Szerver</span><span>A fizetés indításakor (Stripe Checkout Session létrehozása) a kérésből kiolvassa a friss <code>_fbp</code>/<code>_fbc</code> sütiket, az IP-t és a User-Agentet, a rendelésre menti (<code>mero_kontextus</code>, csak hozzájárulással), és naplózza az <code>InitiateCheckout</code>-ot (hozzájárulással a Metának is).</span></li>
       <li><span class="lane">Stripe</span><span>A felhasználó fizet a Checkoutban. A visszaigazolás két úton jöhet: webhook, illetve a Checkout utáni visszairányítás. Admin kézi jelölés is ide fut.</span></li>
       <li><span class="lane">Szerver</span><span><code>fulfillStripeOrder()</code>: atomi átvétel (egyetlen feltételes <code>UPDATE … WHERE allapot IS NOT 'Fizetve'</code>, csak az a hívás folytatja, amelyik módosított sort). A rendelés <code>Fizetve</code> lesz, az oldal rendezetté válik, az admin emailt kap.</span></li>
-      <li><span class="lane">Szerver</span><span>Beolvassa a fiók mentett adatait: <code>marketing_hozzajarulas</code>, <code>attribucio</code> (fbp, fbc, IP, User-Agent), telefon, név.</span></li>
-      <li><span class="lane meta-lane">Meta CAPI</span><span>Csak hozzájárulással: <code>Purchase</code> a rendelés valós összegével és pénznemével.</span></li>
+      <li><span class="lane">Szerver</span><span>Beolvassa a mentett adatokat: <code>marketing_hozzajarulas</code>, a rendelés friss <code>mero_kontextus</code>-át (tartalék: a regisztrációkori <code>attribucio</code>), telefon, név.</span></li>
+      <li><span class="lane meta-lane">Meta CAPI</span><span>Naplózás, majd csak hozzájárulással: <code>Purchase</code> a rendelés valós összegével és pénznemével (az admin email előtt).</span></li>
     </ol>
   </div>
 
@@ -101,7 +104,7 @@ const DOC_HTML = `<main class="doc">
   <ul>
     <li>A Pixel (<code>fbevents.js</code>) két hívást kap: <code>fbq("init", …)</code> és <code>fbq("track", "PageView")</code>. Más kliens-oldali Meta-esemény nincs.</li>
     <li>A <code>cookie-consent.js</code> 8 nyilvános statikus oldalon fut: <code>hu/index</code>, <code>de/index</code>, <code>hu/sajat-oldal</code>, <code>hu/regisztracio</code>, <code>de/registrieren</code>, <code>en/register</code>, <code>hu/eskuvoi-koszonoajandek</code>, <code>stilus-valaszto</code>.</li>
-    <li><b>Nem fut</b> a dashboardon (varázsló), a Stripe-ról visszatérő oldalon, a bejelentkezésen és a vendégek által látott esküvői oldalakon. A regisztráció utáni út tehát böngésző-oldalon nem mérhető.</li>
+    <li><b>Nem fut</b> a dashboardon (varázsló), a Stripe-ról visszatérő oldalon, a bejelentkezésen és a vendégek által látott esküvői oldalakon. A regisztráció utáni út böngésző-oldalon nem mérhető, szerver-oldalról viszont igen (oldal létrehozva, fizetés indítva, vásárlás).</li>
     <li>A dashboardban 8 névvel ellátott <code>trackEvent()</code> hívási pont van (pl. <code>wedding_page_completed</code>, <code>save_the_date_order_started</code>). Ezek jelenleg <b>nem csinálnak semmit</b>: a függvény <code>window.gtag</code>-ot hív, ami ezeken az oldalakon nincs betöltve.</li>
   </ul>
 
@@ -128,7 +131,7 @@ const DOC_HTML = `<main class="doc">
  "client_ip":"…","client_user_agent":"…"}</code></pre>
 
   <h2 id="capi">6. Szerver-oldali események (Conversions API)</h2>
-  <p>Végpont: <code>POST https://graph.facebook.com/v21.0/1069938152514040/events</code>. A hozzáférési token Cloudflare titokként él (<code>META_CAPI_ACCESS_TOKEN</code>), a kódban és a repóban nincs. Minden hívás <code>action_source: "website"</code>. Az <code>event_id</code> az üzleti eseményhez kötött és determinisztikus: <code>registration_&lt;fiók-id&gt;</code>, <code>purchase_&lt;rendelés-id&gt;</code>, így egy esetleges duplikált beküldést a Meta összevon. Teszteléshez a <code>META_CAPI_TEST_EVENT_CODE</code> környezeti változó a kérést a Test Events fülre irányítja (élesben nincs beállítva).</p>
+  <p>Végpont: <code>POST https://graph.facebook.com/v21.0/1069938152514040/events</code>. A hozzáférési token Cloudflare titokként él (<code>META_CAPI_ACCESS_TOKEN</code>), a kódban és a repóban nincs. Minden hívás <code>action_source: "website"</code>. Az <code>event_id</code> az üzleti eseményhez kötött és determinisztikus: <code>registration_&lt;fiók-id&gt;</code>, <code>purchase_&lt;rendelés-id&gt;</code>, így egy esetleges duplikált beküldést a Meta összevon. Teszteléshez a <code>META_CAPI_TEST_EVENT_CODE</code> környezeti változó a kérést a Test Events fülre irányítja (élesben nincs beállítva). Minden esemény előbb a saját naplóba kerül (<code>INSERT OR IGNORE</code>, <code>event_id</code> UNIQUE), és csak azután, ha új és a felhasználó hozzájárult, megy a Metának; a naplóba a hozzájárulástól függetlenül bekerül. Admin-megtekintésből (a partner nevében járó admin) Metának nem küldünk.</p>
   <div class="scroll">
     <table>
       <thead><tr><th>Esemény</th><th>Mikor</th><th>Kézbesítés</th><th>Custom data</th></tr></thead>
@@ -140,9 +143,21 @@ const DOC_HTML = `<main class="doc">
           <td><code>account_type</code> (<code>individual</code> / <code>reseller</code>), <code>country</code></td>
         </tr>
         <tr>
+          <td><code>WeddingPagePublished</code> (egyéni esemény)</td>
+          <td>Az esküvői oldal létrehozásakor (<code>couple-create.js</code>), az oldal azonnal élesedik. <code>event_id</code>: <code>page_published_&lt;pár-id&gt;</code>.</td>
+          <td><code>waitUntil</code>, újrapróbálás nincs</td>
+          <td><code>account_type</code>, <code>country</code>, <code>language</code></td>
+        </tr>
+        <tr>
+          <td><code>InitiateCheckout</code></td>
+          <td>Sikeres Stripe Checkout Session létrehozása után (<code>couple-pay.js</code>, <code>order-save-the-date.js</code>). <code>event_id</code>: <code>checkout_&lt;rendelés-id&gt;</code>.</td>
+          <td><code>waitUntil</code> (a Stripe-ra átirányítást nem lassítja)</td>
+          <td><code>value</code>, <code>currency</code>, <code>order_id</code>, <code>account_type</code>, <code>product_type</code>, <code>quantity</code>, <code>country</code></td>
+        </tr>
+        <tr>
           <td><code>Purchase</code></td>
           <td>A <code>fulfillStripeOrder()</code> végén (webhook, success_url vagy admin kézi jelölés). Csak hozzájárulással. <code>event_source_url</code>: az esküvői oldal címe.</td>
-          <td><code>await</code>, ugyanabban a <code>try/catch</code>-ben, mint az admin email; hiba nem töri meg a fizetés feldolgozását, újrapróbálás nincs</td>
+          <td><code>await</code>, az admin email <b>előtt</b> (egy sikertelen email nem akadályozza meg); a mérés hibája nem töri meg a fizetés feldolgozását, újrapróbálás nincs</td>
           <td><code>value</code> = <code>rendelesek.ar_osszesen</code> (fő pénzegység, pl. 19990), <code>currency</code> = <code>rendelesek.penznem</code>, <code>order_id</code>, <code>account_type</code>, <code>product_type</code> (<code>wedding_website</code>, ha 50 db alatti; <code>save_the_date</code>, ha legalább 50 db), <code>quantity</code>, <code>country</code></td>
         </tr>
       </tbody>
@@ -157,8 +172,8 @@ const DOC_HTML = `<main class="doc">
         <tr><td><code>ph</code></td><td>Telefon, csak számjegyek országhívóval. Normalizálás: <code>+</code> és <code>00</code> előtag megtartva; magyar <code>06…</code> → <code>36…</code>; DE/AT/CH nemzeti <code>0…</code> → az ország hívószáma; ismeretlen országnál előtag nélküli szám kimarad</td><td>SHA-256</td></tr>
         <tr><td><code>fn</code>, <code>ln</code></td><td>Keresztnév, vezetéknév (csak a 2026-09-18 óta regisztrált magánszemélyeknél; viszonteladónál nincs)</td><td>SHA-256</td></tr>
         <tr><td><code>external_id</code></td><td><code>viszontelado.id</code></td><td>SHA-256</td></tr>
-        <tr><td><code>fbp</code>, <code>fbc</code></td><td>A regisztrációkor mentett érték</td><td>nem</td></tr>
-        <tr><td><code>client_ip_address</code>, <code>client_user_agent</code></td><td>A regisztrációkor mentett érték (a webhook nem a felhasználó böngészőjéből jön, ezért a <code>Purchase</code> is ezt használja)</td><td>nem</td></tr>
+        <tr><td><code>fbp</code>, <code>fbc</code></td><td>Az aktuális kérés sütijeiből (a Pixel first-party sütik, a szerver minden kérésnél megkapja); ennek hiányában a regisztrációkor mentett érték</td><td>nem</td></tr>
+        <tr><td><code>client_ip_address</code>, <code>client_user_agent</code></td><td>Az aktuális kérésből; a <code>Purchase</code>-nél (a webhook nem a felhasználó böngészőjéből jön) a fizetés INDÍTÁSAKOR a rendeléshez mentett friss érték (<code>rendelesek.mero_kontextus</code>), admin kézi jelölésnél a regisztrációkori</td><td>nem</td></tr>
       </tbody>
     </table>
   </div>
@@ -186,7 +201,8 @@ const DOC_HTML = `<main class="doc">
       <tbody>
         <tr><td><code>viszontelado</code></td><td><code>id</code>, <code>email</code>, <code>telefon</code>, <code>vezeteknev</code>, <code>keresztnev</code>, <code>ceg_nev</code> (magánszemélynél "Vezetéknév Keresztnév"), <code>fiok_tipus</code> (<code>maganszemely</code> / <code>viszontelado</code>), <code>orszag</code>, <code>letrehozva</code>, <code>adatkezeles_elfogadva</code> (időbélyeg), <code>marketing_hozzajarulas</code> (0/1), <code>attribucio</code> (JSON)</td></tr>
         <tr><td><code>parok</code></td><td>Az esküvői oldalak: <code>viszontelado_id</code>, <code>letrehozva</code>, <code>rendeles_id</code> (NULL = még fizetetlen, fut a 24 órás határidő)</td></tr>
-        <tr><td><code>rendelesek</code></td><td><code>par_id</code>, <code>viszontelado_id</code>, <code>mennyiseg</code>, <code>ar_osszesen</code>, <code>penznem</code>, <code>allapot</code> (<code>Fizetésre vár</code> / <code>Fizetve</code>), <code>stripe_session_id</code></td></tr>
+        <tr><td><code>rendelesek</code></td><td><code>par_id</code>, <code>viszontelado_id</code>, <code>mennyiseg</code>, <code>ar_osszesen</code>, <code>penznem</code>, <code>allapot</code> (<code>Fizetésre vár</code> / <code>Fizetve</code>), <code>stripe_session_id</code>, <code>mero_kontextus</code> (JSON: friss fbp/fbc/IP/User-Agent a fizetés indításakor, csak hozzájárulással)</td></tr>
+        <tr><td><code>measurement_events</code></td><td>Saját eseménynapló: <code>event_id</code> (UNIQUE), <code>event_name</code> (belső: <code>account_registered</code>, <code>wedding_page_published</code>, <code>checkout_started</code>, <code>payment_completed</code>), <code>meta_event_name</code>, <code>viszontelado_id</code>, <code>par_id</code>, <code>rendeles_id</code>, <code>ertek</code>, <code>penznem</code>, <code>adat</code> (üzleti mezők JSON-ban, hirdetési azonosító nélkül), <code>letrehozva</code>, <code>meta_statusz</code> (<code>fuggoben</code> / <code>elkuldve</code> / <code>hiba</code> / <code>nincs_hozzajarulas</code> / <code>admin_nezet</code> / <code>nincs_meta_esemeny</code>), <code>meta_kiserletek</code>, <code>meta_utolso_kiserlet</code>, <code>meta_valasz</code></td></tr>
       </tbody>
     </table>
   </div>
@@ -195,7 +211,7 @@ const DOC_HTML = `<main class="doc">
   <h2 id="kampany">8. Kampányterv (Meta)</h2>
   <ul>
     <li>Cél: <b>Értékesítés (Sales)</b>, konverziós helyszín: weboldal, a fenti Pixel.</li>
-    <li>Optimalizálási esemény induláskor: <code>CompleteRegistration</code>, mert a <code>Purchase</code> a 24 órás fizetési ablak miatt várhatóan ritka. Váltás <code>Purchase</code>-re, ha ad set szinten tartósan eléri a heti ~50-et; utána érték-alapú optimalizálás is szóba jöhet.</li>
+    <li>Optimalizálási esemény induláskor: <code>CompleteRegistration</code>. A <code>WeddingPagePublished</code> egyéni eseményből az Events Managerben egyéni konverziót kell létrehozni (az első esemény beérkezése után); ez az esküvői oldal létrehozását méri, ami erősebb szándékjel a puszta regisztrációnál, és gyakoribb a <code>Purchase</code>-nél. Javasolt sorrend: <code>CompleteRegistration</code> → <code>WeddingPagePublished</code> → <code>Purchase</code> (váltás, ha az adott esemény ad set szinten tartósan eléri a heti ~50-et).</li>
     <li>Hirdetés-URL paraméterek: <code>utm_source=facebook&amp;utm_medium=paid_social&amp;utm_campaign={{campaign.id}}&amp;utm_content={{ad.id}}&amp;utm_term={{adset.id}}</code></li>
     <li>Regisztrációs kísérlet-korlát: óránként 5 kísérlet IP-nként (a sikertelenek is számítanak).</li>
   </ul>
@@ -209,7 +225,10 @@ const DOC_HTML = `<main class="doc">
         <tr><td>Attribúció tárolódik és a fiókhoz kerül</td><td><span class="pill ok">élesben</span></td><td>Valódi regisztráció, a D1-ben lekérdezve</td></tr>
         <tr><td>Hozzájárulás nélkül nincs tárolt attribúció</td><td><span class="pill ok">élesben</span></td><td><code>marketing_hozzajarulas=0</code>, <code>attribucio</code> NULL</td></tr>
         <tr><td><code>CompleteRegistration</code> a Meta által elfogadva</td><td><span class="pill ok">élesben</span></td><td>Valódi regisztrációval, Test Events kóddal küldve: a Meta válasza <code>events_received: 1</code>, üzenet és figyelmeztetés nélkül. Az Event Match Quality értéket az Events Managerben még nem néztük.</td></tr>
-        <tr><td>Atomi fizetés-átvétel</td><td><span class="pill part">részben</span></td><td>SQL-szemantika valódi SQLite-on tesztelve; élesben két egyidejű fizetettnek jelölő kérésből pontosan egy <code>Purchase</code>-küldés történt. Valódi, mikroszekundumos versenyhelyzetet nem sikerült reprodukálni.</td></tr>
+        <tr><td>Atomi fizetés-átvétel</td><td><span class="pill ok">élesben</span></td><td>SQL-szemantika valódi SQLite-on tesztelve; élesben két egyidejű fizetettnek jelölő kérésnél <b>valódi versenyhelyzet alakult ki</b>: a másik hívás a naplóba "versenyhelyzet, kihagyva" sort írt, és az eseménynaplóban egyetlen <code>purchase_&lt;id&gt;</code> sor, egy Meta-küldés maradt.</td></tr>
+        <tr><td><code>WeddingPagePublished</code>, <code>InitiateCheckout</code></td><td><span class="pill ok">élesben</span></td><td>Valódi regisztrációból kiindulva a teljes út végigfuttatva Test Events kóddal: mindkettőre <code>events_received: 1</code>, figyelmeztetés nélkül (az egyéni eseménynevet is elfogadta).</td></tr>
+        <tr><td>Saját eseménynapló</td><td><span class="pill ok">élesben</span></td><td>A teljes út négy eseménye rögzült, mind <code>elkuldve</code>, <code>meta_kiserletek=1</code>, a Meta válasza mentve; az azonos <code>event_id</code> másodszor nem rögzül (valódi SQLite-on tesztelve), hozzájárulás nélkül <code>nincs_hozzajarulas</code>, admin-nézetből <code>admin_nezet</code>.</td></tr>
+        <tr><td>Friss böngészőadat a fizetés indításakor</td><td><span class="pill ok">élesben</span></td><td>A <code>rendelesek.mero_kontextus</code>-ban a kérésből olvasott <code>_fbp</code>, <code>_fbc</code>, IP és User-Agent megjelent, kliens-oldali szkript nélkül a dashboardon.</td></tr>
         <tr><td><code>Purchase</code> a Meta által elfogadva</td><td><span class="pill ok">élesben</span></td><td>A valódi útvonalon (admin kézi jelölés → <code>fulfillStripeOrder()</code>, ugyanaz a függvény, mint a webhooknál), Test Events kóddal küldve: <code>events_received: 1</code>, figyelmeztetés nélkül. Stripe-on keresztüli valódi fizetéssel még nem futott le.</td></tr>
         <tr><td>Domain-verifikáció</td><td><span class="pill ok">kész</span></td><td>A Business Managerben ellenőrzött (a felhasználó megerősítette)</td></tr>
         <tr><td>Event Match Quality</td><td><span class="pill no">nincs</span></td><td>Az Events Manager Test Events fülén a két teszt-esemény látszik; az EMQ értéket a felhasználó ellenőrzi.</td></tr>
@@ -218,21 +237,18 @@ const DOC_HTML = `<main class="doc">
   </div>
 
   <h2 id="hianyossagok">10. Ismert hiányosságok és kockázatok</h2>
-  <p class="note">Javítva az 1. csomagban: a <code>Purchase</code> dupla kézbesítésének kockázata (atomi átvétel + determinisztikus <code>event_id</code>), és az események megkapták az <code>account_type</code> / termék adatokat.</p>
+  <p class="note">Javítva az 1. és 2. csomagban: a <code>Purchase</code> dupla kézbesítése (atomi átvétel + determinisztikus <code>event_id</code>), az események <code>account_type</code> / termék adatai, az aktivációs esemény, a <code>CheckoutStarted</code>, a saját eseménynapló és a friss böngészőadat a fizetés indításakor.</p>
   <div class="gap hi">
     <p><b>Rate limit és megosztott IP-k.</b> Óránként 5 regisztrációs kísérlet engedélyezett IP-nként. Mobilhálózati (CGNAT) vagy irodai megosztott IP mögött legitim regisztrációk is elutasításra kerülhetnek, és a hirdetésből érkező konverzió csendben elveszik (a felhasználó hibaüzenetet kap).</p>
-  </div>
-  <div class="gap">
-    <p><b>Nincs aktivációs esemény.</b> A regisztráció után az "esküvői oldal létrehozva" lépés nem mérhető, holott ez a jobb optimalizálási jel a puszta regisztrációnál. A dashboardon a Pixel nem fut, a <code>trackEvent()</code> pontok nincsenek bekötve.</p>
-  </div>
-  <div class="gap">
-    <p><b>Nincs saját eseménynapló.</b> Nem tudjuk visszakeresni, mit küldtünk el és mit válaszolt a Meta, a hibák csak a Cloudflare naplókban látszanak (nem tartós). Újrapróbálás és újraküldés sincs.</p>
   </div>
   <div class="gap">
     <p><b>A hozzájárulás visszavonása regisztráció után nem terjed át automatikusan.</b> A mentett állapot addig érvényes, amíg a felhasználó nem jelzi, és kézzel nem töröljük az attribúciót és nem nullázzuk a <code>marketing_hozzajarulas</code>-t.</p>
   </div>
   <div class="gap">
-    <p><b>A <code>Purchase</code> a regisztrációkori böngésző-adatokkal megy ki</b> (fbp, fbc, IP, User-Agent), akár 24 órával később. Az IP és a User-Agent ilyenkor nem a vásárlás pillanatában érvényes érték.</p>
+    <p><b>Nincs automatikus újrapróbálás és nincs admin-nézet az eseménynaplóhoz.</b> A <code>hiba</code> és a beragadt <code>fuggoben</code> állapot a naplóban látszik, de újraküldő mechanizmus (ütemezett feladat) és egyeztető felület (D1 és Meta darabszámai) még nincs; jelenleg SQL-lel kérdezhető le.</p>
+  </div>
+  <div class="gap">
+    <p><b>A <code>mero_kontextus</code> (IP, User-Agent, fbp, fbc) a rendelésen marad a <code>Purchase</code> után is.</b> Adatminimalizálási szempontból törölhető lenne az elküldés után; jelenleg nincs törlés.</p>
   </div>
   <div class="gap">
     <p><b>Egyéb:</b> nincs GA4/Google Ads; nincs kampány-szintű riport az adminban (a D1 és a Meta-riport összevetése kézi); a Graph API verzió (<code>v21.0</code>) rögzített, élettartamát ellenőrizni kell; a telefon-normalizálás heurisztikus; az adatkezelési tájékoztató még helykitöltős és jogilag átnézetlen.</p>
@@ -240,9 +256,9 @@ const DOC_HTML = `<main class="doc">
 
   <h2 id="kerdesek">11. Kérdések a szakértőnek</h2>
   <ol>
-    <li>A jelenlegi <code>CompleteRegistration</code>-optimalizálás elég-e induláskor, vagy érdemes rögtön egy aktivációs eseményre (oldal létrehozva) építeni, még ha ehhez kliens-oldali eseményt és deduplikációt is kell bevezetni?</li>
-    <li>Elfogadható-e a <code>Purchase</code>-nél a regisztrációkori IP/User-Agent/fbp/fbc, vagy érdemes a fizetés előtti utolsó böngésző-kontextust is menteni (pl. a Checkout indításakor)?</li>
     <li>A hozzájárulás-kezelés (kliens-állítás a rejtett mezőben, mentett állapot a fiókon) jogilag és technikailag elég-e, és hogyan kezeljük a visszavonást a már regisztrált fiókoknál?</li>
+    <li>A <code>WeddingPagePublished</code> egyéni eseményből létrehozott egyéni konverzió jól optimalizálható-e a Sales célnál, vagy érdemesebb egy szabványos eseménynevet (pl. <code>Lead</code>) használni?</li>
+    <li>A saját eseménynaplóban a hozzájárulás nélküli események tárolása (üzleti adat, hirdetési azonosító nélkül, funnel-számoláshoz) jogilag rendben van-e, milyen jogalappal?</li>
     <li>Érdemes-e most GA4-et is bekötni, vagy a D1 + Events Manager páros elég az induláshoz?</li>
     <li>A telefonos utánkövetés eredménye (lezárt eladás) hogyan töltendő vissza offline konverzióként?</li>
   </ol>
