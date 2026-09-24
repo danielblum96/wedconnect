@@ -24,6 +24,12 @@ export const PAYMENT_DEADLINE_HOURS = 24;
 // ennyi napig megmaradnak, és fizetéssel (vagy 50+ db Save the Date rendeléssel)
 // visszaállíthatók - utána véglegesen törlődik (ld. _utils/reminders.js).
 export const RESTORE_WINDOW_DAYS = 7;
+// KAPCSOLÓ (2026-09-24, a partneres modellre váltás miatt): amíg false, SEMMI nem
+// töröl automatikusan (sem az ütemezett Worker, sem a dashboard tartaléka), és az
+// emlékeztető emailek sem mennek. Az új modellben a fizetetlen oldal ingyenes
+// vázlat, amit nem szabad törölni. Az emailek és a törlés kódja megmaradt, a
+// modell végleges kialakításáig szünetel; visszakapcsolás: true + deploy.
+export const AUTO_CLEANUP_ENABLED = false;
 
 function createdAtMs(p) {
   return new Date(`${p.letrehozva.replace(" ", "T")}Z`).getTime();
@@ -47,7 +53,7 @@ export function restoreDeadlineMs(p) {
 
 // Lejárt ÉS a visszaállítási ablak is elmúlt: ezt az oldalt véglegesen törölni kell.
 export function isPurgeable(p, now) {
-  return isExpiredUnpaid(p, now) && now > restoreDeadlineMs(p);
+  return AUTO_CLEANUP_ENABLED && isExpiredUnpaid(p, now) && now > restoreDeadlineMs(p);
 }
 
 function utf8ToBase64(str) {

@@ -1,5 +1,5 @@
 import { sendEmail } from "./mailer.js";
-import { paymentDeadlineMs, restoreDeadlineMs, PAYMENT_DEADLINE_HOURS, RESTORE_WINDOW_DAYS } from "./paymentFulfillment.js";
+import { paymentDeadlineMs, restoreDeadlineMs, PAYMENT_DEADLINE_HOURS, RESTORE_WINDOW_DAYS, AUTO_CLEANUP_ENABLED } from "./paymentFulfillment.js";
 import { purgePage } from "./pageLifecycle.js";
 import { recordEvent } from "./measurement.js";
 import { getPricing, formatPrice } from "./i18n.js";
@@ -196,6 +196,8 @@ async function deliver(env, p, tipus, opts) {
 // opts: { tesztCimzett, csakParId, maxActions } - a teszt-cím felülírja a címzettet
 // (csak a CRON_SECRET-tel hívható végponton át érhető el).
 export async function runReminderJob(env, opts = {}) {
+  // Szüneteltetve (ld. AUTO_CLEANUP_ENABLED): sem email, sem törlés.
+  if (!AUTO_CLEANUP_ENABLED) return { szunetel: true, elkuldve: 0, hiba: 0, torolve: 0, kihagyva: 0 };
   const now = Date.now();
   const params = [];
   let where = "p.rendeles_id IS NULL AND p.viszontelado_id IS NOT NULL";
