@@ -24,7 +24,7 @@ export async function onRequestPost(context) {
   if (!account) return back("");
 
   const blocking = await env.DB.prepare(
-    "SELECT COUNT(*) AS n FROM rendelesek WHERE viszontelado_id = ? AND allapot != 'Fizetésre vár'"
+    "SELECT COUNT(*) AS n FROM rendelesek WHERE viszontelado_id = ? AND allapot NOT IN ('Fizetésre vár', 'Ingyenes')"
   )
     .bind(id)
     .first();

@@ -1,7 +1,6 @@
 import { FONT_RECIPES, namesFontSize, resolveStyleByStoredValue } from "./_utils/styles.js";
 import { escapeHtml, safeHref } from "./_utils/html.js";
 import { getCopy } from "./_utils/i18n.js";
-import { isExpiredUnpaid } from "./_utils/paymentFulfillment.js";
 
 function notFound() {
   const html = `<!DOCTYPE html>
@@ -54,17 +53,23 @@ export async function onRequestGet(context) {
   if (staticResp) return staticResp;
 
   const par = await env.DB.prepare(
-    "SELECT par_neve, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id FROM parok WHERE slug = ?"
+    "SELECT par_neve, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
   )
     .bind(slug)
     .first();
 
   if (!par) return notFound();
-  // Ha az oldal 24 órán belül nem lett rendezve (fizetve, vagy 50+ Save the
-  // Date rendeléssel elengedve), a nyilvános oldal ne legyen elérhető - a
-  // tényleges törlés a viszonteladó dashboard-jának következő betöltésekor
-  // történik (ld. functions/partner/dashboard.js).
-  if (isExpiredUnpaid(par, Date.now())) return notFound();
+  // Partneres modell: az oldal PUBLIKUS, ha publikálták (parok.rendeles_id be van
+  // állítva: fizetéssel vagy az első, ingyenes publikálással), vagy nincs
+  // tulajdonosa (a régi, kézzel épített demo-oldalak). Minden más VÁZLAT: csak a
+  // titkos előnézeti linkkel (?elonezet=<token>) érhető el, jelzéssel, és nem
+  // gyorsítótárazható.
+  const published = !par.viszontelado_id || !!par.rendeles_id;
+  const isDraft = !published;
+  if (isDraft) {
+    const previewToken = new URL(request.url).searchParams.get("elonezet") || "";
+    if (!par.elonezet_token || previewToken !== par.elonezet_token) return notFound();
+  }
 
   const style = resolveStyleByStoredValue(par.valasztott_stilus);
   const fontRecipe = FONT_RECIPES[style.font] || FONT_RECIPES.sans;
@@ -318,6 +323,7 @@ export async function onRequestGet(context) {
 </style>
 </head>
 <body>
+  ${isDraft ? `<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#2b2620;color:#fff;text-align:center;font:600 12px/1.4 Arial,sans-serif;padding:7px 10px;">${escapeHtml(copy.draftRibbon)}</div>` : ""}
   <div class="card">
     ${photoHtml}
     <div class="eyebrow">${escapeHtml(copy.eyebrow)}</div>
@@ -331,5 +337,7 @@ export async function onRequestGet(context) {
 </body>
 </html>`;
 
-  return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8", "X-Frame-Options": "SAMEORIGIN" } });
+  const headers = { "Content-Type": "text/html; charset=utf-8", "X-Frame-Options": "SAMEORIGIN" };
+  if (isDraft) headers["Cache-Control"] = "no-store";
+  return new Response(html, { headers });
 }

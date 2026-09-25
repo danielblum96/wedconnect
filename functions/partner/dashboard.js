@@ -4,8 +4,7 @@ import { escapeHtml, safeHref } from "../_utils/html.js";
 import { getCopy, getStatusLabel, getResellerCopy, getPricing, formatPrice } from "../_utils/i18n.js";
 import { countryOptions } from "../_utils/countries.js";
 import { retrieveCheckoutSession } from "../_utils/stripe.js";
-import { fulfillStripeOrder, isExpiredUnpaid, isPurgeable, paymentDeadlineMs, restoreDeadlineMs } from "../_utils/paymentFulfillment.js";
-import { purgePage } from "../_utils/pageLifecycle.js";
+import { fulfillStripeOrder } from "../_utils/paymentFulfillment.js";
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -33,6 +32,7 @@ export async function renderDashboard(context, reseller) {
   const stdError = url.searchParams.get("stderror");
   const stripeSessionId = url.searchParams.get("stripe_session_id");
   const stripeCancelled = url.searchParams.get("stripe_cancelled");
+  const publishedFlash = url.searchParams.get("published");
 
   const lang = reseller.nyelv || "de";
   const isIndividual = reseller.fiok_tipus === "maganszemely";
@@ -60,7 +60,7 @@ export async function renderDashboard(context, reseller) {
   }
 
   const { results: parokRaw } = await env.DB.prepare(
-    `SELECT p.id, p.par_neve, p.nev1, p.nev2, p.eskuvo_datuma, p.slug, p.allapot, p.valasztott_stilus, p.egyedi_uzenet, p.egyedi_gombok, p.esemenyek, p.fenykep_frissitve, p.nyelv, p.letrehozva, p.rendeles_id, p.viszontelado_id,
+    `SELECT p.id, p.par_neve, p.nev1, p.nev2, p.eskuvo_datuma, p.slug, p.allapot, p.valasztott_stilus, p.egyedi_uzenet, p.egyedi_gombok, p.esemenyek, p.fenykep_frissitve, p.nyelv, p.letrehozva, p.rendeles_id, p.viszontelado_id, p.elonezet_token, p.publikalva,
             (SELECT 1 FROM rendelesek r2 WHERE r2.par_id = p.id AND r2.allapot = 'Fizetve' AND r2.mennyiseg > 1 LIMIT 1) AS has_std_order
      FROM parok p
      WHERE p.viszontelado_id = ?
@@ -69,18 +69,12 @@ export async function renderDashboard(context, reseller) {
     .bind(reseller.id)
     .all();
 
-  // A 24 órán belül ki nem fizetett oldal a vendégeknek azonnal elérhetetlen, de az
-  // adatai a visszaállítási ablak (7 nap) végéig megmaradnak, és fizetéssel
-  // visszaállíthatók (a dashboardon "lejárt" sávval látszik). A VÉGLEGES törlést az
-  // ütemezett Worker végzi (ld. _utils/reminders.js); ez a lazy takarítás csak
-  // tartalék arra az esetre, ha a Worker nem futna.
+  // Partneres modell: a ki nem fizetett oldal VÁZLAT, ami tartósan megmarad (nincs
+  // határidő, nincs automatikus törlés), és a titkos előnézeti linkkel osztható meg.
   const now = Date.now();
-  for (const p of (parokRaw || []).filter((p) => isPurgeable(p, now))) {
-    await purgePage(env, p);
-  }
-  const parok = (parokRaw || [])
-    .filter((p) => !isPurgeable(p, now))
-    .map((p) => (isExpiredUnpaid(p, now) ? { ...p, lejart: true } : p));
+  const parok = parokRaw || [];
+  // Az első publikált oldal ingyenes a partnereknek (magánszemély fióknál nem).
+  const freeEligible = !isIndividual && !parok.some((p) => p.rendeles_id);
 
   const createdCouple = created ? parok.find((p) => p.slug === created) : null;
 
@@ -111,19 +105,6 @@ export async function renderDashboard(context, reseller) {
     const now = new Date();
     const todayUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
     return Math.round((target.getTime() - todayUTC) / 86400000);
-  }
-
-  function formatRestoreDate(ms) {
-    const locale = lang === "hu" ? "hu-HU" : lang === "de" ? "de-DE" : "en-GB";
-    return new Intl.DateTimeFormat(locale, { timeZone: "Europe/Budapest", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(ms));
-  }
-
-  function formatCountdown(ms) {
-    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-    const h = Math.floor(totalSeconds / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    const s = totalSeconds % 60;
-    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   }
 
   const stylePicker = STYLES.map((s) => {
@@ -206,10 +187,13 @@ export async function renderDashboard(context, reseller) {
         })
         .join("");
 
-      const pageUrl = `https://wedconnect.eu/${p.slug}`;
+      const isPublished = !!p.rendeles_id;
+      const pageUrl = isPublished
+        ? `https://wedconnect.eu/${p.slug}`
+        : `https://wedconnect.eu/${p.slug}?elonezet=${p.elonezet_token}`;
       const resolvedStyle = resolveStyleByStoredValue(p.valasztott_stilus);
       const styleName = getStyleName(resolvedStyle, lang);
-      const statusLabel = getStatusLabel(p.allapot, lang);
+      const statusLabel = isPublished ? getStatusLabel(p.allapot, lang) : t.draftLabel;
       const searchText = `${p.par_neve} ${p.eskuvo_datuma} ${styleName}`.toLowerCase();
       const nev1 = p.nev1 || (p.par_neve || "").split(" & ")[0] || "";
       const nev2 = p.nev2 || (p.par_neve || "").split(" & ")[1] || "";
@@ -245,8 +229,8 @@ export async function renderDashboard(context, reseller) {
               <a class="couple-link" href="${safeHref(pageUrl)}" target="_blank" rel="noopener">${escapeHtml(pageUrl)}</a>
             </div>
             <div class="couple-actions">
-              <button type="button" class="btn-qr btn-copy" data-copy="${escapeHtml(pageUrl)}">${t.copyLink}</button>
-              <button type="button" class="btn-qr" data-url="${escapeHtml(pageUrl)}" data-filename="${escapeHtml(p.slug)}-qr.png">${t.qrCode}</button>
+              <button type="button" class="btn-qr btn-copy" data-copy="${escapeHtml(pageUrl)}">${isPublished ? t.copyLink : t.copyPreviewLink}</button>
+              ${isPublished ? `<button type="button" class="btn-qr" data-url="${escapeHtml(pageUrl)}" data-filename="${escapeHtml(p.slug)}-qr.png">${t.qrCode}</button>` : ""}
               <form method="POST" action="/api/couple-delete" class="delete-form" onsubmit="return confirm('${t.confirmDelete.replace(/'/g, "\\'")}')">
                 <input type="hidden" name="par_id" value="${p.id}">
                 <button type="submit" class="btn-delete">${t.delete}</button>
@@ -254,23 +238,15 @@ export async function renderDashboard(context, reseller) {
             </div>
           </div>
           ${
-            !p.rendeles_id
-              ? p.lejart
-                ? `<div class="urgent-banner">
-                  <span>${t.expiredBanner(formatRestoreDate(restoreDeadlineMs(p)), formatPrice(PAGE_PRICE, lang))}</span>
+            !isPublished
+              ? `<div class="urgent-banner">
+                  <span>${freeEligible ? t.draftBannerFree : t.draftBanner(formatPrice(PAGE_PRICE, lang))}</span>
                   <form method="POST" action="/api/couple-pay">
                     <input type="hidden" name="par_id" value="${p.id}">
-                    <button type="submit" class="btn-pay-now">${t.restoreNow}</button>
+                    <button type="submit" class="btn-pay-now">${freeEligible ? t.publishFree : t.publishNow}</button>
                   </form>
                 </div>`
-                : `<div class="urgent-banner">
-                  <span>${t.urgentBanner(paymentDeadlineMs(p), formatCountdown(paymentDeadlineMs(p) - now), formatPrice(PAGE_PRICE, lang))}</span>
-                  <form method="POST" action="/api/couple-pay">
-                    <input type="hidden" name="par_id" value="${p.id}">
-                    <button type="submit" class="btn-pay-now">${t.payNow}</button>
-                  </form>
-                </div>`
-              : `<div class="settled-banner"><span>${t.settledBanner}</span></div>`
+              : `<div class="settled-banner"><span>${t.publishedBanner}</span></div>`
           }
           <button type="button" class="btn-edit-open" data-edit-target="edit-modal-${p.id}" data-page-url="${escapeHtml(pageUrl)}">${t.edit}</button>
           <dialog class="std-modal edit-modal" id="edit-modal-${p.id}">
@@ -379,26 +355,6 @@ export async function renderDashboard(context, reseller) {
               </div>
             </div>
           </dialog>
-          ${
-            hasStdOrder
-              ? ""
-              : `<div class="checkout-row">
-                  <button
-                    type="button"
-                    class="btn-std-open btn-checkout"
-                    data-par-id="${p.id}"
-                    data-nev1="${escapeHtml(nev1)}"
-                    data-nev2="${escapeHtml(nev2)}"
-                    data-datum="${escapeHtml(p.eskuvo_datuma)}"
-                    data-nyelv="${escapeHtml(p.nyelv || "hu")}"
-                    data-url="${escapeHtml(pageUrl)}"
-                    data-stilus="${escapeHtml(resolvedStyle.id)}"
-                    data-uzenet="${escapeHtml(p.egyedi_uzenet || defaultMessage)}"
-                    data-gombok='${escapeHtml(JSON.stringify(mockGombok))}'
-                    data-fenykep="${p.fenykep_frissitve ? escapeHtml(`/foto/${p.slug}?v=${p.fenykep_frissitve}`) : ""}"
-                  >${t.createStd}</button>
-                </div>`
-          }
         </div>`;
     })
     .join("");
@@ -742,6 +698,7 @@ ${
   ${deleted ? `<div class="info-box">${t.coupleDeleted}</div>` : ""}
   ${stripeBannerType === "std" ? `<div class="info-box">${t.stdOrdered}</div>` : ""}
   ${stripeBannerType === "oldal" ? `<div class="info-box">${t.pagePaidBanner}</div>` : ""}
+  ${publishedFlash ? `<div class="info-box">${t.publishedFlash}</div>` : ""}
   ${stripeCancelled ? `<div class="error-box">${t.stripeCancelled}</div>` : ""}
   ${stdError ? `<div class="error-box">${escapeHtml(stdErrorMessages[stdError] || t.genericError)}</div>` : ""}
   ${
@@ -1078,19 +1035,6 @@ ${
   </div>
   <div class="preview-modal-body">
     <div class="preview-showcase">
-      <div class="preview-showcase-std">
-        <div class="preview-showcase-std-bg" id="preview-modal-std-mock"></div>
-      </div>
-      <div class="preview-showcase-signal" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <g transform="translate(0,-3.9)">
-            <circle cx="7.2" cy="16.8" r="1.4" fill="currentColor"/>
-            <path d="M10.6 13.4a5 5 0 0 1 0 7.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-            <path d="M13.4 10.6a9 9 0 0 1 0 12.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-            <path d="M16.2 7.8a13 13 0 0 1 0 18.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </g>
-        </svg>
-      </div>
       <div class="preview-showcase-phone">
         <div class="preview-showcase-phone-frame">
           <iframe id="preview-modal-iframe" class="preview-showcase-phone-iframe" title="${t.previewModalTitle}"></iframe>
@@ -1596,7 +1540,6 @@ ${
     if (savedPageUrl && previewModal && typeof previewModal.showModal === "function") {
       launchConfetti();
       previewLink.href = savedPageUrl;
-      if (previewStdCta) previewStdCta.hidden = !previewStdTriggerBtn;
       var previewStdMock = document.getElementById("preview-modal-std-mock");
       var previewIframe = document.getElementById("preview-modal-iframe");
       // A "koppintsd a telefonhoz, és megnyílik az oldal" élményt szemlélteti

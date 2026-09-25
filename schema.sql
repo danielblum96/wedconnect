@@ -130,3 +130,10 @@ CREATE TABLE IF NOT EXISTS email_kuldesek (
   UNIQUE (par_id, tipus)
 );
 CREATE INDEX IF NOT EXISTS idx_email_kuldesek_viszontelado ON email_kuldesek (viszontelado_id);
+
+-- Partneres modell (2026-09-25): vázlat -> publikálás. Az oldal PUBLIKÁLT, ha a
+-- parok.rendeles_id be van állítva (fizetéssel VAGY az első, ingyenes publikálással:
+-- rendelesek.allapot = 'Ingyenes', ar_osszesen = 0). publikalva: a publikálás
+-- időpontja (a későbbi 24 hónapos élettartamhoz). elonezet_token: a vázlat titkos
+-- előnézeti linkje (/<slug>?elonezet=<token>), az ügyfélnek megosztható.
+--   parok: publikalva TEXT, elonezet_token TEXT

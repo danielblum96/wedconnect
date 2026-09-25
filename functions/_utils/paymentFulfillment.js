@@ -100,7 +100,7 @@ export async function fulfillStripeOrder(env, rendelesId) {
   // 50+ darabos Save the Date rendelés (ami az oldal díját elengedi). A jelenlegi
   // üzleti szabályok mellett köztes (2-49 db) rendelés párhoz kötve nem létezik.
   if (rendeles.par_id) {
-    await env.DB.prepare("UPDATE parok SET rendeles_id = ? WHERE id = ? AND rendeles_id IS NULL")
+    await env.DB.prepare("UPDATE parok SET rendeles_id = ?, publikalva = datetime('now') WHERE id = ? AND rendeles_id IS NULL")
       .bind(rendelesId, rendeles.par_id)
       .run();
   }
@@ -157,6 +157,27 @@ export async function fulfillStripeOrder(env, rendelesId) {
         quantity: rendeles.mennyiseg,
         country: reseller.orszag,
       },
+      user: buildMetaUser(
+        { ...reseller, id: rendeles.viszontelado_id },
+        parseStoredAttribution(reseller.attribucio),
+        checkoutContext
+      ),
+    });
+
+    // A fizetéssel publikált oldal: WeddingPagePublished (a tényleges publikálás; a
+    // vázlat létrehozása külön esemény, DraftCreated). Az ingyenes publikálásnál ez
+    // a couple-pay.js-ben tüzel.
+    await recordEvent(env, {
+      eventId: `published_${rendeles.par_id}`,
+      name: "wedding_page_published",
+      metaEventName: "WeddingPagePublished",
+      viszonteladoId: rendeles.viszontelado_id,
+      parId: rendeles.par_id,
+      rendelesId,
+      data: { account_type: accountType(reseller.fiok_tipus), free: false, country: reseller.orszag },
+      consent: reseller.marketing_hozzajarulas === 1,
+      eventSourceUrl: `https://wedconnect.eu/${par.slug}`,
+      customData: { account_type: accountType(reseller.fiok_tipus), free: false, country: reseller.orszag },
       user: buildMetaUser(
         { ...reseller, id: rendeles.viszontelado_id },
         parseStoredAttribution(reseller.attribucio),

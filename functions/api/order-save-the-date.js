@@ -5,6 +5,8 @@ import { getPricing } from "../_utils/i18n.js";
 import { createCheckoutSession } from "../_utils/stripe.js";
 
 export async function onRequestPost(context) {
+  // Save the Date (2026-09-25): a partneres modellben nincs ilyen termék, a végpont ki van vezetve.
+  return new Response("Not found", { status: 404 });
   const { request, env, waitUntil } = context;
   const reseller = await getSessionReseller(request, env.DB);
   if (!reseller) return Response.redirect(new URL("/partner/login", request.url).href, 303);

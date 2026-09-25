@@ -6,6 +6,12 @@ import { normalizeUrl } from "../_utils/html.js";
 import { recordEvent, browserContext, buildMetaUser, accountType } from "../_utils/measurement.js";
 import { parseStoredAttribution } from "../_utils/attribution.js";
 
+// Titkos előnézeti link tokenje (a vázlat ezzel osztható meg az ügyféllel).
+function previewToken() {
+  const bytes = crypto.getRandomValues(new Uint8Array(12));
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 export async function onRequestPost(context) {
   const { request, env, waitUntil } = context;
   const reseller = await getSessionReseller(request, env.DB);
@@ -72,7 +78,7 @@ export async function onRequestPost(context) {
   }
 
   const insert = await env.DB.prepare(
-    "INSERT INTO parok (par_neve, nev1, nev2, eskuvo_datuma, slug, allapot, valasztott_stilus, viszontelado_id, nyelv, egyedi_uzenet, egyedi_gombok, esemenyek) VALUES (?, ?, ?, ?, ?, 'Aktív', ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO parok (par_neve, nev1, nev2, eskuvo_datuma, slug, allapot, valasztott_stilus, viszontelado_id, nyelv, egyedi_uzenet, egyedi_gombok, esemenyek, elonezet_token) VALUES (?, ?, ?, ?, ?, 'Aktív', ?, ?, ?, ?, ?, ?, ?)"
   )
     .bind(
       `${nev1} & ${nev2}`,
@@ -85,19 +91,20 @@ export async function onRequestPost(context) {
       reseller.nyelv || "de",
       uzenetToStore,
       gombok.length ? JSON.stringify(gombok) : null,
-      esemenyek.length ? JSON.stringify(esemenyek) : null
+      esemenyek.length ? JSON.stringify(esemenyek) : null,
+      previewToken()
     )
     .run();
 
-  // Aktivációs esemény: az esküvői oldal létrejött (az oldal azonnal élesedik).
-  // A backend biztosan tudja, hogy megtörtént, ezért nem kell a böngészőtől
-  // megkérdezni (nincs kliens-oldali Pixel-esemény, nincs deduplikáció).
+  // Vázlat létrejött (az oldal NEM publikus, amíg a partner nem publikálja). A
+  // Meta-esemény neve DraftCreated; a WeddingPagePublished a tényleges publikáláskor
+  // tüzel (couple-pay.js ingyenes ág / paymentFulfillment.js fizetett ág).
   const parId = insert.meta.last_row_id;
   waitUntil(
     recordEvent(env, {
-      eventId: `page_published_${parId}`,
-      name: "wedding_page_published",
-      metaEventName: "WeddingPagePublished",
+      eventId: `draft_created_${parId}`,
+      name: "wedding_draft_created",
+      metaEventName: "DraftCreated",
       viszonteladoId: reseller.id,
       parId,
       data: { account_type: accountType(reseller.fiok_tipus), country: reseller.orszag },

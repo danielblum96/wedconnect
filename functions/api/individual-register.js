@@ -15,6 +15,9 @@ const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
 
 export async function onRequestPost(context) {
+  // Magánszemély-regisztráció (2026-09-25): a partneres modellben egyelőre nem foglalkozunk
+  // magánszemélyekkel, az új regisztráció a partner-oldalra irányít. A meglévő fiókok maradnak.
+  return Response.redirect(new URL("/hu/regisztracio", context.request.url).href, 303);
   const { request, env, waitUntil } = context;
   const formData = await request.formData();
   const vezeteknev = (formData.get("vezeteknev") || "").toString().trim();
