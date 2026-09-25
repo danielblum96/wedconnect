@@ -14,6 +14,7 @@ const DOC_HTML = `<main class="doc">
       <span><b>Domain:</b> wedconnect.eu, Metában ellenőrzött</span>
       <span><b>Infrastruktúra:</b> Cloudflare Pages + Functions, D1 (SQLite)</span>
     </div>
+    <div class="gap hi"><p><b>Frissítési megjegyzés (2026-09-25):</b> a WedConnect partneres modellre váltott (esküvői partnerek publikálják az oldalt, az első oldal ingyenes, utána 9 990 Ft). Változások: a magánszemély-regisztráció megszűnt; a <code>WeddingPagePublished</code> mostantól a PUBLIKÁLÁSKOR tüzel, a vázlat létrehozása <code>DraftCreated</code> (belső nevek: <code>wedding_draft_created</code>, <code>wedding_page_published</code>); az emlékeztető emailek és az automatikus törlés szünetelnek; a Save the Date kivezetve; az ingyenes publikálásról nem megy <code>Purchase</code>. A dokumentum további részei a korábbi (magánszemély-központú) állapotot írják le, a teljes átdolgozás a partner-szerzési fázissal jön.</p></div>
     <nav class="toc" aria-label="Tartalom">
       <a href="#tolcser">Tölcsér</a>
       <a href="#adatfolyam">Adatfolyam</a>
