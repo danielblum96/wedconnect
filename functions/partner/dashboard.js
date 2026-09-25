@@ -291,9 +291,10 @@ export async function renderDashboard(context, reseller) {
                   <div class="wizard-nav">
                     <button type="button" class="btn-back" data-back="1">${t.back}</button>
                     <button type="button" class="btn-next" data-next="3">${t.next}</button>
+                    <button type="submit" class="btn-save" form="edit-form-${p.id}">${t.save}</button>
                   </div>
                 </div>
-                <form method="POST" action="/api/couple-update" class="edit-form" data-nev1="${escapeHtml(nev1)}" data-nev2="${escapeHtml(nev2)}" data-datetext="${escapeHtml(dateText)}">
+                <form method="POST" action="/api/couple-update" id="edit-form-${p.id}" class="edit-form" data-nev1="${escapeHtml(nev1)}" data-nev2="${escapeHtml(nev2)}" data-datetext="${escapeHtml(dateText)}">
                   <input type="hidden" name="par_id" value="${p.id}">
                   <div class="wizard-step" data-step="1">
                     <div class="wizard-step-fields">
@@ -302,6 +303,7 @@ export async function renderDashboard(context, reseller) {
                     </div>
                     <div class="wizard-nav">
                       <button type="button" class="btn-next edit-style-next" data-next="2">${t.next}</button>
+                      <button type="submit" class="btn-save">${t.save}</button>
                     </div>
                   </div>
                   <div class="wizard-step" data-step="3" hidden>
@@ -316,6 +318,7 @@ export async function renderDashboard(context, reseller) {
                     <div class="wizard-nav">
                       <button type="button" class="btn-back" data-back="2">${t.back}</button>
                       <button type="button" class="btn-next" data-next="4">${t.next}</button>
+                      <button type="submit" class="btn-save">${t.save}</button>
                     </div>
                   </div>
                   <div class="wizard-step" data-step="4" hidden>
@@ -334,6 +337,7 @@ export async function renderDashboard(context, reseller) {
                     <div class="wizard-nav">
                       <button type="button" class="btn-back" data-back="3">${t.back}</button>
                       <button type="button" class="btn-next" data-next="5">${t.next}</button>
+                      <button type="submit" class="btn-save">${t.save}</button>
                     </div>
                   </div>
                   <div class="wizard-step" data-step="5" hidden>
@@ -528,14 +532,20 @@ export async function renderDashboard(context, reseller) {
     .wizard-nav { padding-bottom:calc(4px + env(safe-area-inset-bottom)); }
     .wizard-nav:has(.btn-back) .btn-next { flex:1; }
     .wizard-nav:not(:has(.btn-back)) .btn-next { width:100%; }
+    .wizard-nav:has(.btn-save) { gap:6px; }
+    .wizard-nav:has(.btn-save) .btn-back { padding:14px 10px; flex:none; white-space:nowrap; }
+    .wizard-nav:has(.btn-save) .btn-next, .wizard-nav:has(.btn-save) button.btn-save { padding-left:14px; padding-right:14px; white-space:nowrap; }
+    .wizard-nav:has(.btn-save) button.btn-save { flex:none; }
   }
   .btn-row { display:flex; gap:8px; align-items:center; }
   .btn-remove-row { flex:none; border:none; background:none; color:var(--muted); font-size:1.2rem; line-height:1; cursor:pointer; padding:0 4px 14px; }
   .btn-add-row { border:1px dashed #ddd6c9; background:none; color:var(--accent); border-radius:8px; padding:9px 14px; font-size:0.95rem; font-weight:600; cursor:pointer; font-family:inherit; margin-bottom:20px; }
   .edit-tabs, .new-couple-tabs { min-width:0; flex:1; }
   .edit-tabs .wizard-progress, .new-couple-tabs .wizard-progress { margin-bottom:22px; }
-  .edit-tabs .wizard-progress-step { cursor:default; width:74px; }
-  .edit-tabs .wizard-progress-step.completed, .edit-tabs .wizard-progress-step.active { cursor:pointer; }
+  .edit-tabs .wizard-progress-step { cursor:pointer; width:74px; }
+  .edit-tabs .wizard-progress-step:hover .wizard-progress-circle { border-color:var(--accent); }
+  .edit-tabs .wizard-progress-step:hover .wizard-progress-label { color:var(--fg); }
+  .edit-tabs .wizard-progress-step:focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:10px; }
   .photo-edit-block { margin-bottom:18px; }
   .photo-dropzone { position:relative; border:1.5px dashed #ddd6c9; border-radius:10px; padding:10px; text-align:center; margin-bottom:10px; transition:border-color 0.15s ease, background 0.15s ease; }
   .photo-dropzone:hover, .photo-dropzone.drag-over { border-color:var(--accent); background:#fbf7ef; }
@@ -1404,17 +1414,14 @@ ${
       tabs.querySelectorAll(".wizard-progress-step").forEach(function (el) {
         var stepNum = parseInt(el.getAttribute("data-progress-step"), 10);
         var circle = el.querySelector(".wizard-progress-circle");
+        // Szerkesztésnél a lépések egyenrangú "fülek": bármelyikre közvetlenül rá lehet
+        // ugrani, ezért nincs "kipipált" (bejárt) állapot, csak az aktív van kiemelve.
         el.classList.remove("active", "completed");
-        if (stepNum < n) {
-          el.classList.add("completed");
-          circle.textContent = "✓";
-        } else {
-          if (stepNum === n) el.classList.add("active");
-          circle.textContent = String(stepNum);
-        }
+        if (stepNum === n) el.classList.add("active");
+        circle.textContent = String(stepNum);
       });
       tabs.querySelectorAll(".wizard-progress-line").forEach(function (el) {
-        el.classList.toggle("completed", parseInt(el.getAttribute("data-progress-line"), 10) < n);
+        el.classList.remove("completed");
       });
       // A dialog maga görget (position:sticky nav-val) - lépésváltáskor a
       // görgetési pozíció enélkül megmaradna az előző lépésről, ezért úgy
@@ -1433,13 +1440,20 @@ ${
         showEditStep(parseInt(btn.getAttribute("data-back"), 10));
       });
     });
-    // A már bejárt (kipipált) vagy épp aktív lépésre vissza lehet ugrani
-    // közvetlenül a jelző-körre kattintva is, nem csak a Vissza gombbal -
-    // ez a modern checkout-oldalak bevett mintája.
+    // Egy már kész oldal szerkesztésekor BÁRMELYIK lépésre közvetlenül rá lehet ugrani a
+    // jelző-körre/címkére kattintva (pl. csak a Program szerkesztéséhez), és minden
+    // lépésen van Mentés gomb - nem kell végigkattintani a varázslót.
     tabs.querySelectorAll(".wizard-progress-step").forEach(function (el) {
-      el.addEventListener("click", function () {
-        if (el.classList.contains("completed") || el.classList.contains("active")) {
-          showEditStep(parseInt(el.getAttribute("data-progress-step"), 10));
+      el.setAttribute("role", "button");
+      el.setAttribute("tabindex", "0");
+      function goToStep() {
+        showEditStep(parseInt(el.getAttribute("data-progress-step"), 10));
+      }
+      el.addEventListener("click", goToStep);
+      el.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          goToStep();
         }
       });
     });
