@@ -1,5 +1,5 @@
 import { getAdminSession } from "../_utils/adminAuth.js";
-import { adminNav, adminNavCss } from "../_utils/adminNav.js";
+import { adminNav, adminNavCss, adminNotice } from "../_utils/adminNav.js";
 import { escapeHtml } from "../_utils/html.js";
 
 export async function onRequestGet(context) {
@@ -48,7 +48,9 @@ export async function onRequestGet(context) {
             </form>`
           : "";
       const markPaidAction =
-        r.allapot !== "Fizetve"
+        r.allapot !== "Fizetve" && !r.par_neve
+          ? `<span class="muted-note">Nem jelölhető (nincs oldal)</span>`
+          : r.allapot !== "Fizetve"
           ? `<form method="POST" action="/api/admin-mark-paid" onsubmit="return confirm('Biztosan fizetettként jelöli ezt a rendelést? (pl. készpénz/utalás esetén)')">
               <input type="hidden" name="rendeles_id" value="${r.id}">
               <button type="submit" class="btn-small btn-small-green">Fizetettként jelölés</button>
@@ -62,7 +64,7 @@ export async function onRequestGet(context) {
         <tr>
           <td>${escapeHtml((r.letrehozva || "").slice(0, 16).replace("T", " "))}</td>
           <td>${escapeHtml(r.ceg_nev || "—")}<br><span class="muted">${escapeHtml(r.email || "")}</span></td>
-          <td>${escapeHtml(r.par_neve || "—")}</td>
+          <td>${r.par_neve ? escapeHtml(r.par_neve) : `<span class="muted-note">(az oldal törölve lett)</span>`}</td>
           <td>${escapeHtml(r.csomag)}</td>
           <td>${r.mennyiseg}</td>
           <td>${(r.ar_osszesen || 0).toLocaleString("hu-HU")} ${escapeHtml(r.penznem || "")}</td>
@@ -123,6 +125,7 @@ ${adminNavCss}
   ${adminNav("rendelesek")}
 </header>
 <main>
+  ${adminNotice(request.url)}
   <h2>Rendelések</h2>
   <div class="stats-bar">
     <div class="stat"><div class="stat-value">${paid.length}</div><div class="stat-label">kifizetett rendelés</div></div>

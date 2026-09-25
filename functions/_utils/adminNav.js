@@ -27,6 +27,9 @@ export function adminNotice(url) {
   if (q.get("hiba") === "fizetett_rendeles") {
     return '<div class="notice notice-err">A fiók nem törölhető, mert van fizetett rendelése (számviteli bizonylat).</div>';
   }
+  if (q.get("hiba") === "nincs_oldal") {
+    return '<div class="notice notice-err">Ehhez a rendeléshez már nincs oldal (a partner törölte), ezért nem jelölhető fizetettnek. Ha egy oldalt szeretnél publikálni, a partner nyomja meg az oldalán a Publikálás gombot, és az új rendelést jelöld fizetettnek.</div>';
+  }
   return "";
 }
 

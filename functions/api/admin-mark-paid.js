@@ -17,6 +17,12 @@ export async function onRequestPost(context) {
 
   if (!rendelesId) return Response.redirect(backUrl, 303);
 
+  // Ha a rendeléshez már nincs oldal (a partner törölte az oldalt, a rendelés leválasztva),
+  // nincs mit publikálni: a "fizetve" jelölés csak bevételként számolna egy nem létező
+  // oldalra. Ilyenkor nem jelöljük fizetettnek, hanem hibaüzenetet adunk.
+  const order = await env.DB.prepare("SELECT par_id FROM rendelesek WHERE id = ?").bind(rendelesId).first();
+  if (order && !order.par_id) return Response.redirect(`${backUrl}?hiba=nincs_oldal`, 303);
+
   await fulfillStripeOrder(env, rendelesId);
 
   return Response.redirect(backUrl, 303);
