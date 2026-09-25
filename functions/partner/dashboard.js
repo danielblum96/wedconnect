@@ -594,7 +594,7 @@ export async function renderDashboard(context, reseller) {
   .preview-showcase-signal::before, .preview-showcase-signal::after { content:""; position:absolute; inset:0; border-radius:50%; border:1.5px solid var(--accent); opacity:0; animation:std-nfc-pulse 2.2s ease-out infinite; }
   .preview-showcase-signal::after { animation-delay:0.6s; }
   .preview-showcase-phone { flex:none; }
-  .preview-showcase-phone-frame { position:relative; width:112px; height:224px; border-radius:20px; border:3px solid #2b2620; background:#fff; box-shadow:0 14px 26px -14px rgba(0,0,0,0.45); overflow:hidden; }
+  .preview-showcase-phone-frame { box-sizing:content-box; position:relative; width:112px; height:224px; border-radius:20px; border:3px solid #2b2620; background:#fff; box-shadow:0 14px 26px -14px rgba(0,0,0,0.45); overflow:hidden; }
   .preview-showcase-phone-iframe { position:absolute; top:0; left:0; width:390px; height:780px; border:none; transform:scale(0.287); transform-origin:top left; pointer-events:none; }
   @media (max-width: 480px) {
     .preview-showcase { gap:6px; }
