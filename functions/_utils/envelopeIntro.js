@@ -107,8 +107,8 @@ export function envelopeMarkup({ monogram, copy, style, names = "", dateText = "
 export const envelopeCss = `
   html.wc-env-skip #wc-env { display: none !important; }
   html.wc-env-lock, html.wc-env-lock body { overflow: hidden; }
-  #wc-env { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; padding-top: 12vh; background: var(--bg); text-align: center; overflow: hidden; -webkit-tap-highlight-color: transparent; transition: background 0.9s ease 2.35s; }
-  #wc-env::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 45%, rgba(255,255,255,0.2), rgba(60,40,20,0.2) 100%); transition: opacity 0.9s ease 2.35s; }
+  #wc-env { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; padding-top: 12vh; background: var(--bg); text-align: center; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+  #wc-env::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 45%, rgba(255,255,255,0.2), rgba(60,40,20,0.2) 100%); }
   #wc-env * { box-sizing: border-box; }
   #wc-env .env-stage { --ew: min(calc(100vw - 40px), 640px); --eh: min(calc(var(--ew) * 0.7), 40vh); position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; transition: transform 0.95s cubic-bezier(0.4, 0, 0.2, 1) 2.3s, opacity 0.8s ease 2.5s; }
   @media (max-width: 699px) { #wc-env .env-stage { --eh: min(calc(var(--ew) * 0.95), 56vh); } }
@@ -149,8 +149,8 @@ export const envelopeCss = `
   #wc-env .env-petal { position: absolute; top: -4%; left: var(--x); width: 11px; height: 15px; border-radius: 70% 0 70% 0; background: var(--env-seal, var(--accent)); opacity: 0; transform: scale(var(--s)); }
   #wc-env .env-petal.alt { background: var(--env-orn, var(--accent)); }
   /* Nyitás: pecsét megtörik -> fedél felnyílik -> a kártya kicsúszik -> a boríték feloldódik, előbukkan az oldal */
-  #wc-env.env-opening { background: transparent; }
-  #wc-env.env-opening::before { opacity: 0; }
+  /* A háttér a nyitás végéig TELJESEN ér (a gradiens hátterek nem animálhatók), csak a legvégén oldódik fel az egész boríték együtt. */
+  #wc-env.env-opening { animation: env-root-out 0.9s ease 2.4s forwards; }
   #wc-env.env-opening .env-seal { animation: env-seal-break 0.55s ease-out forwards; }
   #wc-env.env-opening .env-hint { opacity: 0; transition: opacity 0.25s; animation: none; }
   #wc-env.env-opening .env-skip { opacity: 0; transition: opacity 0.25s; }
@@ -159,8 +159,9 @@ export const envelopeCss = `
   #wc-env.env-opening .env-stage { transform: scale(1.12); opacity: 0; }
   #wc-env.env-opening .env-petal { animation: env-petal 3.4s ease-in calc(1.1s + var(--d)) forwards; }
   #wc-env.env-opening, #wc-env.env-fast { pointer-events: none; }
-  #wc-env.env-fast { background: transparent; opacity: 0; transition: opacity 0.3s ease; }
+  #wc-env.env-fast { opacity: 0; transition: opacity 0.3s ease; }
   @keyframes env-flap { 0% { transform: perspective(1600px) rotateX(0deg); z-index: 4; } 49% { z-index: 4; } 50% { z-index: 1; } 100% { transform: perspective(1600px) rotateX(180deg); z-index: 1; } }
+  @keyframes env-root-out { to { opacity: 0; } }
   @keyframes env-card { to { transform: translateY(calc(var(--eh) * -0.52)); } }
   @keyframes env-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
   @keyframes env-pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.85; } }
