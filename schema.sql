@@ -168,3 +168,7 @@ CREATE INDEX IF NOT EXISTS idx_email_kuldesek_viszontelado ON email_kuldesek (vi
 -- Módosítás (2026-09-27): a "A mi történetünk" állomásai FOTÓ NÉLKÜL készülnek. A parok.tortenet elemei:
 -- {"id":"a1b2c3d4","datum":"YYYY-MM-DD","cim":"...","szoveg":"..."} (a dátum naptári választóból jön, a dátummal
 -- rendelkező elemek mentéskor időrendbe rendeződnek). A fenti "foto" mező és az R2 "tortenet" képek megszűntek.
+
+-- Felirat a nevek fölött (2026-09-27; alapból "Esküvő"): NULL = az oldal nyelvének alapértelmezett szövege,
+-- szöveg = egyedi felirat, üres string = nincs felirat (törölve).
+--   parok: felirat TEXT

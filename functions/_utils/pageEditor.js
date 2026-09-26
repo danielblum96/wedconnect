@@ -179,7 +179,7 @@ function panelForm(parId, section, body, t) {
   return `<form class="wc-form" method="POST" action="/api/couple-section-update"><input type="hidden" name="par_id" value="${parId}"><input type="hidden" name="section" value="${section}">${body}<div class="wc-error" hidden></div>${footer(t)}</form>`;
 }
 
-function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, nyitoOn, dividerKey, storyItems, countdownOn, countdownTime, nev1, nev2, hasPhoto, photoVersion, currentStyleId }) {
+function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, nyitoOn, dividerKey, eyebrowText, storyItems, countdownOn, countdownTime, nev1, nev2, hasPhoto, photoVersion, currentStyleId }) {
   const eventVisible = Math.min(EDIT_MAX_EVENTS, Math.max(esemenyek.length + 1, 2));
   const eventRows = Array.from({ length: EDIT_MAX_EVENTS }, (_, i) => {
     const ev = esemenyek[i] || { ido: "", nev: "" };
@@ -312,7 +312,10 @@ function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, 
         <label for="wc-nev2">${escapeHtml(t.editorName2)}</label>
         <input type="text" id="wc-nev2" name="nev2" value="${escapeHtml(nev2)}" maxlength="60" required autocomplete="off">
         <label for="wc-datum">${escapeHtml(t.editorDate)}</label>
-        <input type="date" id="wc-datum" name="eskuvo_datuma" value="${escapeHtml(par.eskuvo_datuma)}" required>`,
+        <input type="date" id="wc-datum" name="eskuvo_datuma" value="${escapeHtml(par.eskuvo_datuma)}" required>
+        <label for="wc-felirat">${escapeHtml(t.editorEyebrow)}</label>
+        <input type="text" id="wc-felirat" name="felirat" value="${escapeHtml(eyebrowText)}" maxlength="40" autocomplete="off">
+        <p class="wc-hint">${escapeHtml(t.editorEyebrowHint)}</p>`,
         t
       )
     ),

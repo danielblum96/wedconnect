@@ -59,7 +59,7 @@ export async function onRequestGet(context) {
   if (staticResp) return staticResp;
 
   const par = await env.DB.prepare(
-    "SELECT id, slug, par_neve, nev1, nev2, helyszin, foto_beallitas, szekcio_sorrend, nyito_animacio, elvalaszto, tortenet, visszaszamlalo, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
+    "SELECT id, slug, par_neve, nev1, nev2, helyszin, foto_beallitas, szekcio_sorrend, nyito_animacio, elvalaszto, tortenet, visszaszamlalo, felirat, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
   )
     .bind(slug)
     .first();
@@ -204,9 +204,10 @@ export async function onRequestGet(context) {
   const storyZone = editZone("story", storyHtml({ items: storyItems, lang: ["de", "en", "hu"].includes(par.nyelv) ? par.nyelv : "hu", copy }), zoneOpts({ sortable: true, removable: true, empty: !storyItems.length, addLabel: et && et.editorAddStory, penLabel: et && et.editorPen }));
   const dividerKey = resolveDivider(par.elvalaszto);
   const dividerZone = editZone("divider", dividerHtml(dividerKey), zoneOpts({ sortable: true, removable: true, empty: dividerKey === "nincs", addLabel: et && et.editorAddDivider, penLabel: et && et.editorPen }));
+  const eyebrowText = par.felirat == null ? copy.eyebrow : par.felirat;
   const namesZone = editZone(
     "names",
-    `<div class="eyebrow reveal">${escapeHtml(copy.eyebrow)}</div>
+    `${eyebrowText ? `<div class="eyebrow reveal">${escapeHtml(eyebrowText)}</div>` : ""}
     <h1 class="names reveal" style="--d:120ms">${escapeHtml(par.par_neve)}</h1>
     <div class="date reveal" style="--d:240ms">${displayDate}</div>`,
     zoneOpts({ sortable: true, empty: false, penLabel: et && et.editorPen })
@@ -494,6 +495,7 @@ ${scrollAnimCss}
           esemenyek,
           helyek,
           fotoBeallitas,
+          eyebrowText,
           storyItems,
           countdownOn: targetMs != null,
           countdownTime: (vs && vs.ido) || "",

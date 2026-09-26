@@ -54,9 +54,17 @@ export async function onRequestPost(context) {
     const validDate = /^\d{4}-\d{2}-\d{2}$/.test(datum) && !Number.isNaN(Date.parse(datum));
     if (!nev1 || !nev2 || !validDate) return fail("invalid", 400) || Response.redirect(`${new URL(`/${par.slug}`, request.url).href}?szerkesztes=1`, 303);
     // A slug (és vele a link, a QR-kód, a fotó R2-kulcsa) szándékosan NEM változik.
-    await env.DB.prepare("UPDATE parok SET nev1 = ?, nev2 = ?, par_neve = ?, eskuvo_datuma = ? WHERE id = ?")
-      .bind(nev1, nev2, `${nev1} & ${nev2}`, datum, parId)
-      .run();
+    // A nevek fölötti felirat: üres = nincs felirat; a mező hiánya (régi kliens) nem módosítja.
+    if (formData.has("felirat")) {
+      const felirat = (formData.get("felirat") || "").toString().trim().slice(0, 40);
+      await env.DB.prepare("UPDATE parok SET nev1 = ?, nev2 = ?, par_neve = ?, eskuvo_datuma = ?, felirat = ? WHERE id = ?")
+        .bind(nev1, nev2, `${nev1} & ${nev2}`, datum, felirat, parId)
+        .run();
+    } else {
+      await env.DB.prepare("UPDATE parok SET nev1 = ?, nev2 = ?, par_neve = ?, eskuvo_datuma = ? WHERE id = ?")
+        .bind(nev1, nev2, `${nev1} & ${nev2}`, datum, parId)
+        .run();
+    }
   } else if (section === "location") {
     const labels = formData.getAll("hely_cimke");
     const nevek = formData.getAll("hely_nev");
