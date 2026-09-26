@@ -125,7 +125,13 @@ export async function onRequestPost(context) {
     await env.DB.prepare("UPDATE parok SET foto_beallitas = ? WHERE id = ?").bind(beallitas, parId).run();
   } else if (section === "style") {
     const style = getStyle((formData.get("stilus") || "").toString().trim());
-    await env.DB.prepare("UPDATE parok SET valasztott_stilus = ? WHERE id = ?").bind(style.id, parId).run();
+    // A Design panel a nyitó animáció kapcsolóját is ide küldi (nyito_mezo = jelen van a mező).
+    if (formData.get("nyito_mezo")) {
+      const nyito = formData.get("nyito") === "1" ? "boritek" : null;
+      await env.DB.prepare("UPDATE parok SET valasztott_stilus = ?, nyito_animacio = ? WHERE id = ?").bind(style.id, nyito, parId).run();
+    } else {
+      await env.DB.prepare("UPDATE parok SET valasztott_stilus = ? WHERE id = ?").bind(style.id, parId).run();
+    }
   } else {
     if (wantsJson) return Response.json({ error: "invalid_section" }, { status: 400 });
     return Response.redirect(`${new URL(`/${par.slug}`, request.url).href}?szerkesztes=1`, 303);

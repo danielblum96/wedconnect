@@ -150,3 +150,7 @@ CREATE INDEX IF NOT EXISTS idx_email_kuldesek_viszontelado ON email_kuldesek (vi
 -- Szekciók sorrendje az esküvői oldalon (2026-09-27): JSON-tömb az átrendezhető szekciókról,
 -- pl. ["message","location","program","buttons"]. NULL = alapértelmezett sorrend.
 --   parok: szekcio_sorrend TEXT
+
+-- Nyitó animáció a publikus oldalon (2026-09-27): NULL = nincs, 'boritek' = lezárt boríték, koppintásra
+-- kinyílik (functions/_utils/envelopeIntro.js). Alapértelmezetten ki van kapcsolva.
+--   parok: nyito_animacio TEXT

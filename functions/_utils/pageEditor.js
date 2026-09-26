@@ -91,6 +91,9 @@ export const editorCss = `
     .wc-dlg:not(#panel-design) { position:fixed; inset:auto 0 0 0; margin:0; width:100%; max-width:100%; max-height:90vh; max-height:90dvh; border-radius:18px 18px 0 0; padding-bottom:calc(14px + env(safe-area-inset-bottom)); animation:wc-up 0.22s ease-out; }
     .wc-tip { bottom:14px; }
   }
+  .wc-env-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:10px 0 2px; }
+  .wc-check { display:flex; align-items:center; gap:8px; font-weight:600; font-size:0.9rem; cursor:pointer; margin:0 !important; }
+  .wc-check input { width:18px; height:18px; margin:0; accent-color:#b48b56; }
   .wc-toast.error { background:#b1451f; }
   .wc-loc-block { border:1px solid #ece4d6; border-radius:10px; padding:12px 12px 2px; margin-bottom:10px; }
   .wc-loc-block[hidden] { display:none; }
@@ -126,7 +129,7 @@ function panelForm(parId, section, body, t) {
   return `<form class="wc-form" method="POST" action="/api/couple-section-update"><input type="hidden" name="par_id" value="${parId}"><input type="hidden" name="section" value="${section}">${body}<div class="wc-error" hidden></div>${footer(t)}</form>`;
 }
 
-function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, nev1, nev2, hasPhoto, photoVersion, currentStyleId }) {
+function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, nyitoOn, nev1, nev2, hasPhoto, photoVersion, currentStyleId }) {
   const eventVisible = Math.min(EDIT_MAX_EVENTS, Math.max(esemenyek.length + 1, 2));
   const eventRows = Array.from({ length: EDIT_MAX_EVENTS }, (_, i) => {
     const ev = esemenyek[i] || { ido: "", nev: "" };
@@ -273,7 +276,13 @@ function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, 
         "style",
         `<p class="wc-hint">${escapeHtml(t.editorDesignHint)}</p>
         <input type="hidden" name="stilus" id="wc-stilus" value="${escapeHtml(currentStyleId)}">
-        <div class="wc-styles">${styleButtons}</div>`,
+        <div class="wc-styles">${styleButtons}</div>
+        <input type="hidden" name="nyito_mezo" value="1">
+        <div class="wc-env-row">
+          <label class="wc-check"><input type="checkbox" name="nyito" id="wc-nyito" value="1"${nyitoOn ? " checked" : ""}> ${escapeHtml(t.editorEnvelope)}</label>
+          <button type="button" class="wc-chip" data-play-envelope>${escapeHtml(t.editorEnvelopePreview)}</button>
+        </div>
+        <p class="wc-hint">${escapeHtml(t.editorEnvelopeHint)}</p>`,
         t
       )
     ),
@@ -306,12 +315,25 @@ function script({ t }) {
   var root = document.documentElement;
   var designPanel = document.getElementById("panel-design");
   var NONMODAL = ["panel-design"];
+  function playEnvelope() {
+    var tpl = document.getElementById("wc-env-tpl");
+    if (!tpl || !window.wcEnvelopeInit) return;
+    var old = document.getElementById("wc-env");
+    if (old) old.remove();
+    var root = tpl.content.cloneNode(true).querySelector("#wc-env");
+    var parts = ((document.querySelector(".names") || {}).textContent || "").split("&");
+    function ini(x) { var c = Array.from((x || "").trim())[0]; return c ? c.toLocaleUpperCase() : "\u2665"; }
+    root.querySelector(".env-mono").innerHTML = ini(parts[0]) + "<i>&amp;</i>" + ini(parts[1]);
+    document.body.appendChild(root);
+    window.wcEnvelopeInit(root, { preview: true });
+  }
   function closeNonModal(d) {
     if (!d || !d.open) return;
     d.close();
     if (d.id === "panel-design") revertDesign();
   }
   var currentId = document.getElementById("wc-stilus").value;
+  var currentEnv = document.getElementById("wc-nyito").checked;
 
   // Minden eseménykezelő delegált (a document-en), mert mentés után a kártya és a
   // panelek a szerverről frissen betöltött példányra cserélődnek (refresh()).
@@ -507,6 +529,7 @@ function script({ t }) {
   function revertDesign() {
     applyStyle(currentId);
     document.getElementById("wc-stilus").value = currentId;
+    document.getElementById("wc-nyito").checked = currentEnv;
     document.querySelectorAll(".wc-style").forEach(function (x) { x.classList.toggle("selected", x.getAttribute("data-style") === currentId); });
   }
   function firstEmpty(rows, field) {
@@ -540,6 +563,7 @@ function script({ t }) {
   document.addEventListener("click", function (e) {
     var t = e.target;
     if (t.closest(".wc-drag")) return;
+    if (t.closest("[data-play-envelope]")) { playEnvelope(); return; }
     if (t.closest("[data-tip-close]")) { hideTip(); return; }
     var opener = t.closest("[data-open]");
     if (opener) { e.preventDefault(); hideTip(); openPanel(opener.getAttribute("data-open")); return; }
@@ -622,7 +646,7 @@ function script({ t }) {
     fetch(form.action, { method: "POST", body: new FormData(form), headers: { Accept: "application/json" }, credentials: "same-origin" })
       .then(function (r) { if (!r.ok) throw new Error("save"); return r.json(); })
       .then(function () {
-        if (isStyle) { currentId = document.getElementById("wc-stilus").value; designPanel.close(); toast(COPY.saved); return; }
+        if (isStyle) { currentId = document.getElementById("wc-stilus").value; currentEnv = document.getElementById("wc-nyito").checked; designPanel.close(); toast(COPY.saved); return; }
         return refresh().then(function () { toast(COPY.saved); });
       })
       .catch(function () { toast(COPY.saveFailed, true); })

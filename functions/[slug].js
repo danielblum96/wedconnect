@@ -3,6 +3,7 @@ import { escapeHtml, safeHref } from "./_utils/html.js";
 import { getCopy, getResellerCopy } from "./_utils/i18n.js";
 import { getSessionReseller } from "./_utils/auth.js";
 import { editZone, editorCss, editorLayer } from "./_utils/pageEditor.js";
+import { envelopeCss, envelopeMarkup, envelopeHeadScript, envelopeRuntime, monogramHtml } from "./_utils/envelopeIntro.js";
 
 function notFound() {
   const html = `<!DOCTYPE html>
@@ -55,7 +56,7 @@ export async function onRequestGet(context) {
   if (staticResp) return staticResp;
 
   const par = await env.DB.prepare(
-    "SELECT id, slug, par_neve, nev1, nev2, helyszin, foto_beallitas, szekcio_sorrend, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
+    "SELECT id, slug, par_neve, nev1, nev2, helyszin, foto_beallitas, szekcio_sorrend, nyito_animacio, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
   )
     .bind(slug)
     .first();
@@ -219,6 +220,18 @@ export async function onRequestGet(context) {
 
   const lang = ["de", "en", "hu"].includes(par.nyelv) ? par.nyelv : "hu";
   const origin = new URL(request.url).origin;
+  const envelopeEnabled = par.nyito_animacio === "boritek";
+  const envelopeOn = envelopeEnabled && !edit;
+  const envelopeHtml =
+    envelopeEnabled || edit
+      ? envelopeMarkup({
+          monogram: monogramHtml(
+            par.nev1 || (par.par_neve || "").split("&")[0],
+            par.nev2 || (par.par_neve || "").split("&")[1]
+          ),
+          copy,
+        })
+      : "";
   const ogDescription = `${displayDate} · ${(par.egyedi_uzenet || copy.defaultMessage).replace(/\s+/g, " ").slice(0, 160)}`;
   const previewHref = published ? `/${slug}` : `/${slug}?elonezet=${encodeURIComponent(par.elonezet_token || "")}`;
 
@@ -229,6 +242,8 @@ export async function onRequestGet(context) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>${escapeHtml(copy.pageTitle(par.par_neve))}</title>
+${envelopeOn ? envelopeHeadScript(slug) : ""}
+${envelopeOn || edit ? envelopeRuntime : ""}
 <meta property="og:type" content="website">
 <meta property="og:title" content="${escapeHtml(copy.pageTitle(par.par_neve))}">
 <meta property="og:description" content="${escapeHtml(ogDescription)}">
@@ -441,9 +456,12 @@ ${published && par.fenykep_frissitve ? `<meta property="og:image" content="${esc
     padding-bottom: 22px;
   }
 ${edit ? editorCss : ""}
+${envelopeOn || edit ? envelopeCss : ""}
 </style>
 </head>
 <body${edit ? ' class="wc-editing"' : ""}>
+  ${envelopeOn ? envelopeHtml : ""}
+  ${edit ? `<template id="wc-env-tpl">${envelopeHtml}</template>` : ""}
   ${isDraft && !edit ? `<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#2b2620;color:#fff;text-align:center;font:600 12px/1.4 Arial,sans-serif;padding:7px 10px;">${escapeHtml(copy.draftRibbon)}</div>` : ""}
   <div class="card">
     ${photoZone}
@@ -452,6 +470,7 @@ ${edit ? editorCss : ""}
     <div class="divider"><span class="line"></span><span class="mark">❖</span><span class="line"></span></div>
     ${sectionsHtml}
   </div>
+  ${envelopeOn ? `<script>wcEnvelopeInit(document.getElementById("wc-env"), { key: ${JSON.stringify("wc_env_" + slug)} });</script>` : ""}
   ${
     edit
       ? editorLayer({
@@ -463,6 +482,7 @@ ${edit ? editorCss : ""}
           esemenyek,
           helyek,
           fotoBeallitas,
+          nyitoOn: envelopeEnabled,
           nev1: par.nev1 || (par.par_neve || "").split(" & ")[0] || "",
           nev2: par.nev2 || (par.par_neve || "").split(" & ")[1] || "",
           freeEligible,
