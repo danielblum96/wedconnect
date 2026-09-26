@@ -158,3 +158,9 @@ CREATE INDEX IF NOT EXISTS idx_email_kuldesek_viszontelado ON email_kuldesek (vi
 -- Díszítő elválasztó a nevek és az üzenet között (2026-09-27): 'ag' (ágacska, alapértelmezett), 'gyuru',
 -- 'sziv', 'virag', 'csillag' vagy 'nincs'. NULL = alapértelmezett (functions/_utils/dividers.js).
 --   parok: elvalaszto TEXT
+
+-- "A mi történetünk" idővonal és esküvői visszaszámláló (2026-09-27; csak a szerkesztőben adhatók hozzá):
+--   parok: tortenet TEXT        JSON-tömb, max. 8 elem: [{"id":"a1b2c3d4","datum":"2019 nyara","cim":"...","szoveg":"...","foto":"<verzió>|null"}]
+--                               A fotók az R2-ben: parok/<slug>/tortenet/<id>.webp (kiszolgálás: /foto/<slug>/<id>)
+--   parok: visszaszamlalo TEXT  JSON {"ido":"15:00"} = be van kapcsolva (az "ido" opcionális); NULL = ki
+-- Az átrendezhető szekciók kulcsai (szekcio_sorrend): message, countdown, story, location, program, buttons.

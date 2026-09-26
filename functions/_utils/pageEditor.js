@@ -106,6 +106,17 @@ export const editorCss = `
   .wc-div-tile input:checked ~ .wc-div-prev { border-color:#b48b56; outline-color:#b48b56; }
   .wc-div-tile input:focus-visible ~ .wc-div-prev { outline:2px solid #2b2620; }
   .wc-div-name { display:block; text-align:center; font-size:0.8rem; font-weight:600; margin-top:5px; }
+  .wc-zone .cover-wrap { margin-bottom: 0; }
+  .wc-story-row { border:1px solid #ece4d6; border-radius:10px; padding:12px 12px 4px; margin-bottom:12px; }
+  .wc-story-top { display:flex; gap:8px; align-items:flex-start; }
+  .wc-story-top input { flex:1; min-width:0; }
+  .wc-story-tools { display:flex; gap:4px; flex:none; }
+  .wc-story-tools button { width:32px; height:40px; border:1px solid #ddd6c9; background:#fff; border-radius:8px; cursor:pointer; color:#2b2620; font-size:13px; }
+  .wc-story-row textarea { min-height:64px; }
+  .wc-story-photo { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 10px; }
+  .wc-story-thumb { width:64px; height:48px; object-fit:cover; border-radius:6px; }
+  .wc-story-thumb[hidden], .wc-story-photo [hidden] { display:none !important; }
+  .wc-story-upload { cursor:pointer; }
   .wc-toast.error { background:#b1451f; }
   .wc-loc-block { border:1px solid #ece4d6; border-radius:10px; padding:12px 12px 2px; margin-bottom:10px; }
   .wc-loc-block[hidden] { display:none; }
@@ -141,7 +152,7 @@ function panelForm(parId, section, body, t) {
   return `<form class="wc-form" method="POST" action="/api/couple-section-update"><input type="hidden" name="par_id" value="${parId}"><input type="hidden" name="section" value="${section}">${body}<div class="wc-error" hidden></div>${footer(t)}</form>`;
 }
 
-function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, nyitoOn, dividerKey, nev1, nev2, hasPhoto, photoVersion, currentStyleId }) {
+function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, nyitoOn, dividerKey, storyItems, countdownOn, countdownTime, nev1, nev2, hasPhoto, photoVersion, currentStyleId }) {
   const eventVisible = Math.min(EDIT_MAX_EVENTS, Math.max(esemenyek.length + 1, 2));
   const eventRows = Array.from({ length: EDIT_MAX_EVENTS }, (_, i) => {
     const ev = esemenyek[i] || { ido: "", nev: "" };
@@ -175,6 +186,23 @@ function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, 
     (s) =>
       `<button type="button" class="wc-style${s.id === currentStyleId ? " selected" : ""}" data-style="${s.id}" style="background:${s.bg}; color:${s.fg};"><span class="wc-dot" style="background:${s.accent}"></span>${escapeHtml(getStyleName(s, lang))}</button>`
   ).join("");
+
+  const storyRow = (it) => `<div class="wc-story-row">
+      <input type="hidden" name="story_id" value="${escapeHtml(it.id || "")}">
+      <input type="hidden" name="story_foto" value="${escapeHtml(it.foto || "")}">
+      <div class="wc-story-top">
+        <input type="text" name="story_datum" maxlength="60" placeholder="${escapeHtml(t.editorStoryDate)}" value="${escapeHtml(it.datum || "")}" autocomplete="off">
+        <span class="wc-story-tools"><button type="button" data-story-move="-1" aria-label="${escapeHtml(t.editorStoryUp)}">▲</button><button type="button" data-story-move="1" aria-label="${escapeHtml(t.editorStoryDown)}">▼</button><button type="button" data-story-remove aria-label="${escapeHtml(t.editorStoryRemove)}" title="${escapeHtml(t.editorStoryRemove)}">✕</button></span>
+      </div>
+      <input type="text" name="story_cim" maxlength="100" placeholder="${escapeHtml(t.editorStoryTitle)}" value="${escapeHtml(it.cim || "")}" autocomplete="off">
+      <textarea name="story_szoveg" maxlength="500" rows="3" placeholder="${escapeHtml(t.editorStoryText)}">${escapeHtml(it.szoveg || "")}</textarea>
+      <div class="wc-story-photo">
+        <img class="wc-story-thumb" alt=""${it.foto && it.id ? ` src="/foto/${encodeURIComponent(slug)}/${encodeURIComponent(it.id)}?v=${encodeURIComponent(it.foto)}"` : " hidden"}>
+        <label class="wc-chip wc-story-upload">📷 <span class="wc-story-uptxt">${escapeHtml(it.foto ? t.editorStoryPhotoChange : t.editorStoryPhoto)}</span><input type="file" accept="image/*" class="wc-story-file" hidden></label>
+        <button type="button" class="wc-btn-danger" data-story-photo-remove${it.foto ? "" : " hidden"}>${escapeHtml(t.editorStoryPhotoRemove)}</button>
+        <span class="wc-status"></span>
+      </div>
+    </div>`;
 
   const dlg = (id, title, body, extra = "") =>
     `<dialog class="wc-dlg" id="panel-${id}"${extra}><h3>${escapeHtml(title)}</h3>${body}</dialog>`;
@@ -210,6 +238,33 @@ function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, 
             : `<div class="wc-foot"><button type="button" class="wc-btn-ghost" data-close>${escapeHtml(t.modalClose)}</button></div>`
         }
       </div>`
+    ),
+    dlg(
+      "story",
+      t.editorTitleStory,
+      panelForm(
+        par.id,
+        "story",
+        `<p class="wc-hint">${escapeHtml(t.editorStoryHint)}</p>
+        ${chips(t.inspirationLabel, t.editorStorySuggestions, "data-fill-story")}
+        <div class="wc-story-list">${storyItems.map(storyRow).join("")}</div>
+        <template id="wc-story-row-tpl">${storyRow({})}</template>
+        <button type="button" class="wc-add-row" data-story-add${storyItems.length >= 8 ? " hidden" : ""}>${escapeHtml(t.editorStoryAdd)}</button>`,
+        t
+      )
+    ),
+    dlg(
+      "countdown",
+      t.editorTitleCountdown,
+      panelForm(
+        par.id,
+        "countdown",
+        `<label class="wc-check"><input type="checkbox" name="vissza_be" value="1"${countdownOn ? " checked" : ""}> ${escapeHtml(t.editorCountdownShow)}</label>
+        <label for="wc-vissza-ido" style="margin-top:12px">${escapeHtml(t.editorCountdownTime)}</label>
+        <input type="time" id="wc-vissza-ido" name="vissza_ido" value="${escapeHtml(countdownTime)}">
+        <p class="wc-hint">${escapeHtml(t.editorCountdownHint)}</p>`,
+        t
+      )
     ),
     dlg(
       "divider",
@@ -332,6 +387,8 @@ function script({ t }) {
     errButton: t.editorErrButton,
     errUrl: t.editorErrUrl,
     errEvent: t.editorErrEvent,
+    storyPhoto: t.editorStoryPhoto,
+    storyPhotoChange: t.editorStoryPhotoChange,
   });
   return `<script type="module">
   import { resizeImageToWebp } from "/assets/photo-upload.js?v=1";
@@ -342,6 +399,25 @@ function script({ t }) {
   var root = document.documentElement;
   var designPanel = document.getElementById("panel-design");
   var NONMODAL = ["panel-design"];
+  function storyRandId() {
+    var a = new Uint8Array(4);
+    crypto.getRandomValues(a);
+    return Array.prototype.map.call(a, function (b) { return ("0" + b.toString(16)).slice(-2); }).join("");
+  }
+  function storyToggleAdd() {
+    var list = document.querySelector(".wc-story-list"), add = document.querySelector("[data-story-add]");
+    if (list && add) add.hidden = list.children.length >= 8;
+  }
+  function storyAdd(cim) {
+    var list = document.querySelector(".wc-story-list"), tpl = document.getElementById("wc-story-row-tpl");
+    if (!list || !tpl || list.children.length >= 8) return null;
+    var row = tpl.content.firstElementChild.cloneNode(true);
+    row.querySelector('[name="story_id"]').value = storyRandId();
+    if (cim) row.querySelector('[name="story_cim"]').value = cim;
+    list.appendChild(row);
+    storyToggleAdd();
+    return row;
+  }
   function playEnvelope() {
     var tpl = document.getElementById("wc-env-tpl");
     if (!tpl || !window.wcEnvelopeInit) return;
@@ -439,7 +515,7 @@ function script({ t }) {
   document.addEventListener("pointerup", function () { cropDrag = null; });
   // Szekciók húzása közvetlenül az oldalon (fogantyú: .wc-drag): a zóna követi az ujjat/egeret,
   // a beszúrási vonal jelzi a célhelyet, elengedéskor átrendeződik és azonnal mentődik.
-  var SORTABLE = ["message", "location", "program", "buttons"];
+  var SORTABLE = ["message", "countdown", "story", "location", "program", "buttons"];
   var drag = null;
   var dropLine = document.getElementById("wc-drop-line");
   function sortableZones() {
@@ -596,6 +672,28 @@ function script({ t }) {
     var t = e.target;
     if (t.closest(".wc-drag")) return;
     if (t.closest("[data-play-envelope]")) { playEnvelope(); return; }
+    var sadd = t.closest("[data-story-add]");
+    if (sadd) { var nr = storyAdd(""); if (nr) nr.querySelector('[name="story_datum"]').focus(); return; }
+    var sfill = t.closest("[data-fill-story]");
+    if (sfill) { var fr = storyAdd(sfill.getAttribute("data-fill-story")); if (fr) fr.querySelector('[name="story_datum"]').focus(); return; }
+    var srem = t.closest("[data-story-remove]");
+    if (srem) { srem.closest(".wc-story-row").remove(); storyToggleAdd(); return; }
+    var smove = t.closest("[data-story-move]");
+    if (smove) {
+      var srow = smove.closest(".wc-story-row"), sdir = parseInt(smove.getAttribute("data-story-move"), 10);
+      if (sdir < 0 && srow.previousElementSibling) srow.parentNode.insertBefore(srow, srow.previousElementSibling);
+      else if (sdir > 0 && srow.nextElementSibling) srow.parentNode.insertBefore(srow.nextElementSibling, srow);
+      return;
+    }
+    var sprem = t.closest("[data-story-photo-remove]");
+    if (sprem) {
+      var prow = sprem.closest(".wc-story-row");
+      prow.querySelector('[name="story_foto"]').value = "";
+      prow.querySelector(".wc-story-thumb").hidden = true;
+      prow.querySelector(".wc-story-uptxt").textContent = COPY.storyPhoto;
+      sprem.hidden = true;
+      return;
+    }
     if (t.closest("[data-tip-close]")) { hideTip(); return; }
     var opener = t.closest("[data-open]");
     if (opener) { e.preventDefault(); hideTip(); openPanel(opener.getAttribute("data-open")); return; }
@@ -687,6 +785,30 @@ function script({ t }) {
 
   // Borítókép: a böngészőben átméretezve/WebP-re alakítva megy fel.
   document.addEventListener("change", function (e) {
+    if (e.target.classList && e.target.classList.contains("wc-story-file")) {
+      var sin = e.target, srow = sin.closest(".wc-story-row"), sfile = sin.files && sin.files[0];
+      if (!sfile) return;
+      var sstatus = srow.querySelector(".wc-status"), sid = srow.querySelector('[name="story_id"]').value;
+      sstatus.className = "wc-status"; sstatus.textContent = COPY.uploading;
+      resizeImageToWebp(sfile, 1400).then(function (blob) {
+        var body = new FormData();
+        body.append("par_id", document.querySelector(".wc-bar").getAttribute("data-par-id"));
+        body.append("item_id", sid);
+        body.append("fenykep", blob, "s.webp");
+        return fetch("/api/couple-story-photo", { method: "POST", body: body, credentials: "same-origin" });
+      }).then(function (r) { if (!r.ok) throw new Error("upload"); return r.json(); })
+        .then(function (j) {
+          srow.querySelector('[name="story_foto"]').value = j.version;
+          var th = srow.querySelector(".wc-story-thumb");
+          th.src = "/foto/" + document.getElementById("wc-photo").getAttribute("data-slug") + "/" + sid + "?v=" + j.version;
+          th.hidden = false;
+          srow.querySelector("[data-story-photo-remove]").hidden = false;
+          srow.querySelector(".wc-story-uptxt").textContent = COPY.storyPhotoChange;
+          sstatus.textContent = ""; sin.value = "";
+        })
+        .catch(function () { sstatus.className = "wc-status error"; sstatus.textContent = COPY.uploadError; });
+      return;
+    }
     if (e.target.id !== "wc-photo-input") return;
     var file = e.target.files && e.target.files[0];
     if (!file) return;

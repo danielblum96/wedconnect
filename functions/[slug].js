@@ -3,6 +3,7 @@ import { escapeHtml, safeHref } from "./_utils/html.js";
 import { getCopy, getResellerCopy } from "./_utils/i18n.js";
 import { getSessionReseller } from "./_utils/auth.js";
 import { dividerHtml, resolveDivider } from "./_utils/dividers.js";
+import { parseJson, zonedToUtcMs, countdownHtml, countdownScript, storyHtml, sectionsCss, scrollAnimCss, scrollAnimHeadScript, scrollAnimScript } from "./_utils/pageSections.js";
 import { editZone, editorCss, editorLayer } from "./_utils/pageEditor.js";
 import { envelopeCss, envelopeMarkup, envelopeHeadScript, envelopeRuntime, monogramHtml } from "./_utils/envelopeIntro.js";
 
@@ -57,7 +58,7 @@ export async function onRequestGet(context) {
   if (staticResp) return staticResp;
 
   const par = await env.DB.prepare(
-    "SELECT id, slug, par_neve, nev1, nev2, helyszin, foto_beallitas, szekcio_sorrend, nyito_animacio, elvalaszto, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
+    "SELECT id, slug, par_neve, nev1, nev2, helyszin, foto_beallitas, szekcio_sorrend, nyito_animacio, elvalaszto, tortenet, visszaszamlalo, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
   )
     .bind(slug)
     .first();
@@ -136,14 +137,14 @@ export async function onRequestGet(context) {
     : "";
 
   const photoHtml = par.fenykep_frissitve
-    ? `<img class="cover-photo"${photoStyle} src="/foto/${encodeURIComponent(slug)}?v=${encodeURIComponent(par.fenykep_frissitve)}" alt="">`
+    ? `<div class="cover-wrap"><img class="cover-photo"${photoStyle} src="/foto/${encodeURIComponent(slug)}?v=${encodeURIComponent(par.fenykep_frissitve)}" alt=""></div>`
     : "";
 
   const zoneOpts = (extra) => ({ edit, dragLabel: (editReseller && getResellerCopy(editReseller.nyelv, editReseller.fiok_tipus).dashboard.editorDrag) || "", ...extra });
   const et = edit ? getResellerCopy(editReseller.nyelv, editReseller.fiok_tipus).dashboard : null;
 
   const buttonsHtml0 = gombok.length
-    ? `<div class="cta-row">${gombok
+    ? `<div class="cta-row reveal">${gombok
         .map(
           (g, i) =>
             `<a class="cta${i > 0 ? " cta-secondary" : ""}" href="${safeHref(g.url)}" target="_blank" rel="noopener">${escapeHtml(g.label)}</a>`
@@ -156,11 +157,11 @@ export async function onRequestGet(context) {
     `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([h.nev, h.cim].filter(Boolean).join(", "))}`;
   const locationHtml0 = helyek.length
     ? `<div class="locations">
-        <div class="loc-title">${escapeHtml(copy.locationTitle)}</div>
+        <div class="loc-title reveal">${escapeHtml(copy.locationTitle)}</div>
         ${helyek
           .map(
-            (h) => `
-        <div class="loc">
+            (h, i) => `
+        <div class="loc reveal" style="--d:${i * 120}ms">
           ${h.cimke ? `<div class="loc-label">${escapeHtml(h.cimke)}</div>` : ""}
           ${h.nev ? `<div class="loc-name">${escapeHtml(h.nev)}</div>` : ""}
           ${h.cim ? `<div class="loc-addr">${escapeHtml(h.cim)}</div>` : ""}
@@ -173,12 +174,12 @@ export async function onRequestGet(context) {
 
   const timelineHtml0 = esemenyek.length
     ? `<div class="timeline">
-        <div class="timeline-title">${escapeHtml(copy.programTitle)}</div>
+        <div class="timeline-title reveal">${escapeHtml(copy.programTitle)}</div>
         <div class="timeline-list">
           ${esemenyek
             .map(
               (ev, i) => `
-            <div class="timeline-item">
+            <div class="timeline-item reveal" style="--d:${Math.min(i, 6) * 80}ms">
               <div class="timeline-time">${escapeHtml(ev.ido || "")}</div>
               <div class="timeline-marker">
                 <span class="timeline-dot"></span>
@@ -195,18 +196,23 @@ export async function onRequestGet(context) {
   const buttonsHtml = editZone("buttons", buttonsHtml0, zoneOpts({ sortable: true, empty: !gombok.length, addLabel: et && et.editorAddButtons, penLabel: et && et.editorPen }));
   const timelineHtml = editZone("program", timelineHtml0, zoneOpts({ sortable: true, empty: !esemenyek.length, addLabel: et && et.editorAddProgram, penLabel: et && et.editorPen }));
   const locationZone = editZone("location", locationHtml0, zoneOpts({ sortable: true, empty: !helyek.length, addLabel: et && et.editorAddLocation, penLabel: et && et.editorPen }));
+  const vs = parseJson(par.visszaszamlalo, null);
+  const targetMs = vs ? zonedToUtcMs(par.eskuvo_datuma, vs.ido) : null;
+  const countdownZone = editZone("countdown", countdownHtml({ targetMs, copy }), zoneOpts({ sortable: true, empty: targetMs == null, addLabel: et && et.editorAddCountdown, penLabel: et && et.editorPen }));
+  const storyItems = parseJson(par.tortenet, []).filter((x) => x && /^[a-f0-9]{8}$/.test(x.id || ""));
+  const storyZone = editZone("story", storyHtml({ items: storyItems, slug, copy }), zoneOpts({ sortable: true, empty: !storyItems.length, addLabel: et && et.editorAddStory, penLabel: et && et.editorPen }));
   const dividerKey = resolveDivider(par.elvalaszto);
   const dividerZone = editZone("divider", dividerHtml(dividerKey), zoneOpts({ empty: dividerKey === "nincs", addLabel: et && et.editorAddDivider, penLabel: et && et.editorPen }));
   const namesZone = editZone(
     "names",
-    `<h1 class="names">${escapeHtml(par.par_neve)}</h1>
-    <div class="date">${displayDate}</div>`,
+    `<h1 class="names reveal" style="--d:120ms">${escapeHtml(par.par_neve)}</h1>
+    <div class="date reveal" style="--d:240ms">${displayDate}</div>`,
     zoneOpts({ empty: false, penLabel: et && et.editorPen })
   );
   const photoZone = editZone("photo", photoHtml, zoneOpts({ empty: !par.fenykep_frissitve, addLabel: et && et.editorAddPhoto, penLabel: et && et.editorPen }));
-  const messageZone = editZone("message", `<p class="message">${message}</p>`, zoneOpts({ sortable: true, empty: false, penLabel: et && et.editorPen }));
+  const messageZone = editZone("message", `<p class="message reveal">${message}</p>`, zoneOpts({ sortable: true, empty: false, penLabel: et && et.editorPen }));
 
-  const DEFAULT_ORDER = ["message", "location", "program", "buttons"];
+  const DEFAULT_ORDER = ["message", "countdown", "story", "location", "program", "buttons"];
   let sorrend = DEFAULT_ORDER;
   try {
     const saved = par.szekcio_sorrend ? JSON.parse(par.szekcio_sorrend) : null;
@@ -218,7 +224,7 @@ export async function onRequestGet(context) {
     sorrend = DEFAULT_ORDER;
   }
   const sectionsHtml = sorrend
-    .map((k) => ({ message: messageZone, location: locationZone, program: timelineHtml, buttons: buttonsHtml })[k])
+    .map((k) => ({ message: messageZone, countdown: countdownZone, story: storyZone, location: locationZone, program: timelineHtml, buttons: buttonsHtml })[k])
     .join("\n    ");
 
   const lang = ["de", "en", "hu"].includes(par.nyelv) ? par.nyelv : "hu";
@@ -248,6 +254,7 @@ export async function onRequestGet(context) {
 <title>${escapeHtml(copy.pageTitle(par.par_neve))}</title>
 ${envelopeOn ? envelopeHeadScript(slug) : ""}
 ${envelopeOn || edit ? envelopeRuntime : ""}
+${edit ? "" : scrollAnimHeadScript}
 <meta property="og:type" content="website">
 <meta property="og:title" content="${escapeHtml(copy.pageTitle(par.par_neve))}">
 <meta property="og:description" content="${escapeHtml(ogDescription)}">
@@ -464,6 +471,8 @@ ${published && par.fenykep_frissitve ? `<meta property="og:image" content="${esc
   }
 ${edit ? editorCss : ""}
 ${envelopeOn || edit ? envelopeCss : ""}
+${sectionsCss}
+${scrollAnimCss}
 </style>
 </head>
 <body${edit ? ' class="wc-editing"' : ""}>
@@ -472,11 +481,13 @@ ${envelopeOn || edit ? envelopeCss : ""}
   ${isDraft && !edit ? `<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#2b2620;color:#fff;text-align:center;font:600 12px/1.4 Arial,sans-serif;padding:7px 10px;">${escapeHtml(copy.draftRibbon)}</div>` : ""}
   <div class="card">
     ${photoZone}
-    <div class="eyebrow">${escapeHtml(copy.eyebrow)}</div>
+    <div class="eyebrow reveal">${escapeHtml(copy.eyebrow)}</div>
     ${namesZone}
     ${dividerZone}
     ${sectionsHtml}
   </div>
+  ${targetMs != null || edit ? countdownScript : ""}
+  ${edit ? "" : scrollAnimScript}
   ${envelopeOn ? `<script>wcEnvelopeInit(document.getElementById("wc-env"), { key: ${JSON.stringify("wc_env_" + slug)} });</script>` : ""}
   ${
     edit
@@ -489,6 +500,9 @@ ${envelopeOn || edit ? envelopeCss : ""}
           esemenyek,
           helyek,
           fotoBeallitas,
+          storyItems,
+          countdownOn: targetMs != null,
+          countdownTime: (vs && vs.ido) || "",
           dividerKey,
           nyitoOn: envelopeEnabled,
           nev1: par.nev1 || (par.par_neve || "").split(" & ")[0] || "",

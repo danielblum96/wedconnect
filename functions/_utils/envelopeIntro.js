@@ -210,6 +210,7 @@ export const envelopeRuntime = `<script>
     function finish() {
       if (root.parentNode) root.parentNode.removeChild(root);
       document.documentElement.classList.remove("wc-env-lock");
+      document.dispatchEvent(new Event("wc-env-done"));
     }
     function open(fast) {
       if (opened) return;

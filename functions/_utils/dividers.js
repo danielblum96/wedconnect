@@ -47,5 +47,5 @@ const GLYPHS = {
 export function dividerHtml(key) {
   const k = resolveDivider(key);
   if (k === "nincs") return "";
-  return `<div class="divider divider-${k}"><span class="line"></span><span class="mark">${GLYPHS[k]}</span><span class="line"></span></div>`;
+  return `<div class="divider divider-${k} reveal" style="--d:180ms"><span class="line"></span><span class="mark">${GLYPHS[k]}</span><span class="line"></span></div>`;
 }
