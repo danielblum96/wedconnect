@@ -14,12 +14,15 @@ export const EDIT_MAX_EVENTS = 8;
 export const EDIT_MAX_BUTTONS = 5;
 export const EDIT_MAX_LOCATIONS = 2;
 
-// Egy szekció becsomagolása: szerkesztő módban kattintható zóna ceruza-címkével,
-// üres szekciónál "+ hozzáadás" helykitöltővel; egyébként a tartalom változatlan.
-export function editZone(name, contentHtml, { edit, empty, addLabel, penLabel, sortable, dragLabel }) {
+// Egy szekció becsomagolása: szerkesztő módban kattintható zóna ceruza-címkével (és húzó-fogantyúval /
+// eltávolító gombbal). Az ÜRES (még nem hozzáadott) elem NEM jelenik meg az oldalon: azt csak a bal oldali
+// "Elemek" oszlopból lehet hozzáadni.
+export function editZone(name, contentHtml, { edit, empty, penLabel, sortable, dragLabel, removable, removeLabel }) {
   if (!edit) return contentHtml;
-  const inner = empty ? `<div class="wc-zone-placeholder">${escapeHtml(addLabel)}</div>` : contentHtml;
-  return `<div class="wc-zone${empty ? " wc-zone-empty" : ""}" id="zone-${name}" data-open="panel-${name}" role="button" tabindex="0" aria-label="${escapeHtml(penLabel)}">${inner}<span class="wc-pen">✎ ${escapeHtml(penLabel)}</span>${
+  if (empty) return "";
+  return `<div class="wc-zone" id="zone-${name}" data-open="panel-${name}" role="button" tabindex="0" aria-label="${escapeHtml(penLabel)}">${contentHtml}<span class="wc-tools"><span class="wc-pen">✎ ${escapeHtml(penLabel)}</span>${
+    removable ? `<button type="button" class="wc-del" data-remove-el="${name}" aria-label="${escapeHtml(removeLabel)}" title="${escapeHtml(removeLabel)}">✕</button>` : ""
+  }</span>${
     sortable ? `<span class="wc-drag" role="button" tabindex="0" aria-label="${escapeHtml(dragLabel)}" title="${escapeHtml(dragLabel)}">⠿</span>` : ""
   }</div>`;
 }
@@ -38,7 +41,10 @@ export const editorCss = `
   .wc-zone .cover-photo { margin-bottom:0; }
   .wc-zone-empty { margin-bottom:30px; }
   .wc-zone-placeholder { display:flex; align-items:center; justify-content:center; min-height:72px; padding:14px; text-align:center; font:500 0.95rem/1.4 "Poppins",sans-serif; color:var(--fg); opacity:0.8; }
-  .wc-pen { position:absolute; top:-13px; right:-4px; z-index:5; background:#2b2620; color:#fff; border-radius:999px; padding:4px 11px; font:600 11px/1.4 "Poppins",Arial,sans-serif; letter-spacing:0.02em; box-shadow:0 3px 8px rgba(0,0,0,0.25); }
+  .wc-tools { position:absolute; top:-13px; right:-4px; z-index:5; display:flex; gap:6px; align-items:center; }
+  .wc-del { border:none; cursor:pointer; background:#2b2620; color:#fff; border-radius:999px; width:26px; height:24px; font:600 11px/1 Arial,sans-serif; box-shadow:0 3px 8px rgba(0,0,0,0.25); }
+  .wc-del:hover { background:#b1451f; }
+  .wc-pen { position:static; z-index:5; background:#2b2620; color:#fff; border-radius:999px; padding:4px 11px; font:600 11px/1.4 "Poppins",Arial,sans-serif; letter-spacing:0.02em; box-shadow:0 3px 8px rgba(0,0,0,0.25); }
   .wc-zone a { pointer-events:none; }
   .wc-dlg { border:none; border-radius:16px; padding:22px 20px 18px; width:min(560px, calc(100vw - 24px)); max-height:88vh; overflow:auto; background:#fff; color:#2b2620; text-align:left; font:400 15px/1.5 "Poppins",Arial,sans-serif; box-shadow:0 24px 60px -20px rgba(0,0,0,0.5); }
   .wc-dlg::backdrop { background:rgba(20,16,12,0.5); }
@@ -114,6 +120,25 @@ export const editorCss = `
   .wc-story-tools { display:flex; gap:4px; flex:none; }
   .wc-story-tools button { width:32px; height:40px; border:1px solid #ddd6c9; background:#fff; border-radius:8px; cursor:pointer; color:#2b2620; font-size:13px; }
   .wc-story-row textarea { min-height:64px; }
+  .wc-side { position:fixed; left:0; top:52px; bottom:0; width:300px; z-index:9990; background:#fff; color:#2b2620; border-right:1px solid #e6dfd0; overflow:auto; padding:18px 16px 24px; text-align:left; font:400 14px/1.45 "Poppins",Arial,sans-serif; }
+  .wc-side h2 { margin:0 0 4px; font:600 1.05rem/1.3 "Poppins",Arial,sans-serif; }
+  .wc-side .wc-hint { margin:0 0 14px; }
+  .wc-el { display:flex; align-items:center; gap:12px; width:100%; margin:0 0 10px; padding:12px; border:1px solid #e6dfd0; border-radius:12px; background:#fff; color:#2b2620; text-align:left; cursor:pointer; font:inherit; }
+  .wc-el:hover { border-color:#b48b56; background:#faf6ee; }
+  .wc-el .wc-el-ico { flex:none; width:38px; height:38px; display:flex; align-items:center; justify-content:center; font-size:19px; border-radius:10px; background:#f6efe0; }
+  .wc-el .wc-el-txt { flex:1; min-width:0; }
+  .wc-el .wc-el-txt b { display:block; font-size:0.92rem; font-weight:600; }
+  .wc-el .wc-el-txt small { display:block; color:#7a7266; font-size:0.78rem; line-height:1.35; }
+  .wc-el .wc-el-state { flex:none; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#f0c988,#b48b56); color:#1a1408; font-weight:700; font-size:14px; }
+  .wc-el.on { background:#faf9f5; }
+  .wc-el.on .wc-el-state { background:#e6efe0; color:#3d6b2e; }
+  .wc-side-backdrop { display:none; }
+  @media (min-width:900px) { body.wc-editing { padding-left:300px; } .wc-bar-elements { display:none !important; } }
+  @media (max-width:899px) {
+    .wc-side { top:46px; width:min(86vw, 340px); transform:translateX(-104%); transition:transform 0.22s ease; box-shadow:8px 0 30px rgba(0,0,0,0.25); }
+    .wc-side.open { transform:none; }
+    .wc-side-backdrop.open { display:block; position:fixed; inset:46px 0 0 0; z-index:9989; background:rgba(20,16,12,0.4); }
+  }
   .wc-toast.error { background:#b1451f; }
   .wc-loc-block { border:1px solid #ece4d6; border-radius:10px; padding:12px 12px 2px; margin-bottom:10px; }
   .wc-loc-block[hidden] { display:none; }
@@ -123,11 +148,15 @@ export const editorCss = `
 `;
 
 function toolbar({ par, t, previewHref, isDraft, freeEligible }) {
+  const pubLabel = freeEligible ? t.publishFree : t.publishNow;
+  const cut = pubLabel.indexOf(" (");
+  const pubHtml = cut > 0 ? `${escapeHtml(pubLabel.slice(0, cut))}<span class="wc-bar-lbl">${escapeHtml(pubLabel.slice(cut))}</span>` : escapeHtml(pubLabel);
   const publish = isDraft
-    ? `<form method="POST" action="/api/couple-pay"><input type="hidden" name="par_id" value="${par.id}"><button type="submit" class="wc-bar-primary">${escapeHtml(freeEligible ? t.publishFree : t.publishNow)}</button></form>`
+    ? `<form method="POST" action="/api/couple-pay"><input type="hidden" name="par_id" value="${par.id}"><button type="submit" class="wc-bar-primary">${pubHtml}</button></form>`
     : `<span class="wc-pill">${escapeHtml(t.editorPublished)}</span>`;
   return `<div class="wc-bar" data-par-id="${par.id}">
     <div class="wc-bar-title">✎ ${escapeHtml(t.editorBadge)}<small>${escapeHtml(t.editorBadgeHint)}${isDraft ? " · " + escapeHtml(t.draftLabel) : ""}</small></div>
+    <button type="button" class="wc-bar-elements" data-toggle-side aria-label="${escapeHtml(t.editorElements)}">＋<span class="wc-bar-lbl"> ${escapeHtml(t.editorElements)}</span></button>
     <button type="button" data-open="panel-design" aria-label="${escapeHtml(t.editorDesign)}">🎨<span class="wc-bar-lbl"> ${escapeHtml(t.editorDesign)}</span></button>
     <a href="${escapeHtml(previewHref)}">${escapeHtml(t.editorPreview)}</a>
     <a href="/partner/dashboard">${escapeHtml(t.editorDone)}</a>
@@ -377,6 +406,9 @@ function script({ t }) {
     errButton: t.editorErrButton,
     errUrl: t.editorErrUrl,
     errEvent: t.editorErrEvent,
+    removeConfirm2: t.editorRemoveConfirm,
+    elOn: t.editorElOn,
+    elAdd: t.editorElAdd,
   });
   return `<script type="module">
   import { resizeImageToWebp } from "/assets/photo-upload.js?v=1";
@@ -387,6 +419,58 @@ function script({ t }) {
   var root = document.documentElement;
   var designPanel = document.getElementById("panel-design");
   var NONMODAL = ["panel-design"];
+  var ELEMENT_KEYS = ["photo", "divider", "countdown", "story", "location", "program", "buttons"];
+  var side = document.getElementById("wc-side"), sideBackdrop = document.getElementById("wc-side-backdrop");
+  function updateSidebar() {
+    ELEMENT_KEYS.forEach(function (k) {
+      var btn = side.querySelector('[data-add-el="' + k + '"]');
+      if (!btn) return;
+      var on = !!document.getElementById("zone-" + k);
+      btn.classList.toggle("on", on);
+      btn.querySelector(".wc-el-state").textContent = on ? "\u2713" : "\uFF0B";
+      btn.title = on ? COPY.elOn : COPY.elAdd;
+    });
+  }
+  function closeSide() { side.classList.remove("open"); sideBackdrop.classList.remove("open"); }
+  function postSection(fields) {
+    var body = new FormData();
+    body.append("par_id", document.querySelector(".wc-bar").getAttribute("data-par-id"));
+    Object.keys(fields).forEach(function (k) { [].concat(fields[k]).forEach(function (v) { body.append(k, v); }); });
+    return fetch("/api/couple-section-update", { method: "POST", body: body, headers: { Accept: "application/json" }, credentials: "same-origin" })
+      .then(function (r) { if (!r.ok) throw new Error("save"); });
+  }
+  var pendingAdd = null;
+  function addElement(k) {
+    var zone = document.getElementById("zone-" + k);
+    if (zone) { zone.scrollIntoView({ behavior: "smooth", block: "center" }); openPanel("panel-" + k); return; }
+    if (k === "divider") {
+      postSection({ section: "divider", elvalaszto: "ag" })
+        .then(function () { return refresh(); })
+        .then(function () { var z = document.getElementById("zone-divider"); if (z) z.scrollIntoView({ behavior: "smooth", block: "center" }); toast(COPY.saved); })
+        .catch(function () { toast(COPY.saveFailed, true); });
+      return;
+    }
+    pendingAdd = k;
+    openPanel("panel-" + k);
+    if (k === "countdown") { var cb = document.querySelector('#panel-countdown [name="vissza_be"]'); if (cb) cb.checked = true; }
+    if (k === "story" && !document.querySelector(".wc-story-row")) storyAdd("");
+  }
+  function removeElement(k) {
+    if (!window.confirm(COPY.removeConfirm2)) return;
+    var keep = zoneKeys().filter(function (x) { return x !== k; });
+    var job;
+    if (k === "photo") {
+      var b = new FormData();
+      b.append("par_id", document.querySelector(".wc-bar").getAttribute("data-par-id"));
+      job = fetch("/api/couple-photo-delete", { method: "POST", body: b, credentials: "same-origin" }).then(function (r) { if (!r.ok) throw new Error("del"); });
+    } else if (k === "divider") {
+      job = postSection({ section: "divider", elvalaszto: "nincs" });
+    } else {
+      // Üres mentés = az elem törlése; utána a maradék sorrendje mentődik (az eltávolított a végére kerül).
+      job = postSection({ section: k }).then(function () { return postSection({ section: "order", sorrend: keep }); });
+    }
+    job.then(function () { return refresh(); }).then(function () { toast(COPY.saved); }).catch(function () { toast(COPY.saveFailed, true); });
+  }
   function storyRandId() {
     var a = new Uint8Array(4);
     crypto.getRandomValues(a);
@@ -511,7 +595,7 @@ function script({ t }) {
   }
   function zoneKeys() { return sortableZones().map(function (z) { return z.id.replace("zone-", ""); }); }
   function applyOrder(keys) {
-    var ref = document.getElementById("zone-divider") || document.querySelector(".card .divider");
+    var ref = document.getElementById("zone-divider") || document.getElementById("zone-names") || document.querySelector(".card .divider");
     if (!ref) return;
     keys.forEach(function (k) {
       var el = document.getElementById("zone-" + k);
@@ -652,6 +736,7 @@ function script({ t }) {
         });
         document.title = doc.title;
         applyStyle(currentId);
+        updateSidebar();
         if (reopenId) openPanel(reopenId);
       });
   }
@@ -659,6 +744,12 @@ function script({ t }) {
   document.addEventListener("click", function (e) {
     var t = e.target;
     if (t.closest(".wc-drag")) return;
+    var delBtn = t.closest("[data-remove-el]");
+    if (delBtn) { e.preventDefault(); removeElement(delBtn.getAttribute("data-remove-el")); return; }
+    if (t.closest("[data-toggle-side]")) { side.classList.toggle("open"); sideBackdrop.classList.toggle("open", side.classList.contains("open")); return; }
+    if (t === sideBackdrop) { closeSide(); return; }
+    var addEl = t.closest("[data-add-el]");
+    if (addEl) { closeSide(); addElement(addEl.getAttribute("data-add-el")); return; }
     if (t.closest("[data-play-envelope]")) { playEnvelope(); return; }
     var sadd = t.closest("[data-story-add]");
     if (sadd) { var nr = storyAdd(""); if (nr) nr.querySelector('[name="story_datum"]').focus(); return; }
@@ -756,7 +847,17 @@ function script({ t }) {
       .then(function (r) { if (!r.ok) throw new Error("save"); return r.json(); })
       .then(function () {
         if (isStyle) { currentId = document.getElementById("wc-stilus").value; currentEnv = document.getElementById("wc-nyito").checked; designPanel.close(); toast(COPY.saved); return; }
-        return refresh().then(function () { toast(COPY.saved); });
+        return refresh().then(function () {
+          // Az oldalhoz most hozzáadott elem az oldal aljára kerül (utána húzással átrendezhető), és odagörgetünk.
+          var fresh = pendingAdd && pendingAdd === sectionName ? document.getElementById("zone-" + pendingAdd) : null;
+          if (fresh) {
+            var prevKeys = zoneKeys(), nk = prevKeys.filter(function (x) { return x !== pendingAdd; }).concat(pendingAdd);
+            if (nk.join() !== prevKeys.join()) { applyOrder(nk); saveOrder(nk, prevKeys); }
+            fresh.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+          pendingAdd = null;
+          toast(COPY.saved);
+        });
       })
       .catch(function () { toast(COPY.saveFailed, true); })
       .then(function () { if (btn) btn.disabled = false; });
@@ -779,6 +880,8 @@ function script({ t }) {
       .catch(function () { status.className = "wc-status error"; status.textContent = COPY.uploadError; });
   });
 
+  updateSidebar();
+
   // JS nélküli mentés utáni visszatérés jelzése (?mentve=1).
   var q = new URLSearchParams(location.search);
   if (q.get("mentve")) {
@@ -789,7 +892,29 @@ function script({ t }) {
 </script>`;
 }
 
+const ELEMENTS = [
+  ["photo", "📷", "editorTitlePhoto"],
+  ["divider", "✨", "editorTitleDivider"],
+  ["countdown", "⏳", "editorTitleCountdown"],
+  ["story", "📖", "editorTitleStory"],
+  ["location", "📍", "editorTitleLocation"],
+  ["program", "🕒", "editorTitleProgram"],
+  ["buttons", "🔗", "editorTitleButtons"],
+];
+
+function sidebar({ t }) {
+  return `<aside class="wc-side" id="wc-side" aria-label="${escapeHtml(t.editorElements)}">
+    <h2>${escapeHtml(t.editorElements)}</h2>
+    <p class="wc-hint">${escapeHtml(t.editorElementsHint)}</p>
+    ${ELEMENTS.map(
+      ([k, ico, nameKey]) =>
+        `<button type="button" class="wc-el" data-add-el="${k}"><span class="wc-el-ico" aria-hidden="true">${ico}</span><span class="wc-el-txt"><b>${escapeHtml(t[nameKey])}</b><small>${escapeHtml(t.editorElDescs[k])}</small></span><span class="wc-el-state" aria-hidden="true">＋</span></button>`
+    ).join("")}
+  </aside>
+  <div class="wc-side-backdrop" id="wc-side-backdrop"></div>`;
+}
+
 // A teljes szerkesztő réteg a </body> elé: eszköztár + panelek + szkript.
 export function editorLayer(opts) {
-  return `${toolbar(opts)}\n${panels(opts)}\n<div id="wc-drop-line" hidden></div>\n<div class="wc-tip" id="wc-tip" hidden><span>${escapeHtml(opts.t.editorHint)}</span><button type="button" data-tip-close aria-label="×">✕</button></div>\n${script(opts)}`;
+  return `${toolbar(opts)}\n${sidebar(opts)}\n${panels(opts)}\n<div id="wc-drop-line" hidden></div>\n<div class="wc-tip" id="wc-tip" hidden><span>${escapeHtml(opts.t.editorHint)}</span><button type="button" data-tip-close aria-label="×">✕</button></div>\n${script(opts)}`;
 }

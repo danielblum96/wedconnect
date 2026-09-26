@@ -140,7 +140,7 @@ export async function onRequestGet(context) {
     ? `<div class="cover-wrap"><img class="cover-photo"${photoStyle} src="/foto/${encodeURIComponent(slug)}?v=${encodeURIComponent(par.fenykep_frissitve)}" alt=""></div>`
     : "";
 
-  const zoneOpts = (extra) => ({ edit, dragLabel: (editReseller && getResellerCopy(editReseller.nyelv, editReseller.fiok_tipus).dashboard.editorDrag) || "", ...extra });
+  const zoneOpts = (extra) => ({ edit, removeLabel: (editReseller && getResellerCopy(editReseller.nyelv, editReseller.fiok_tipus).dashboard.editorRemove) || "", dragLabel: (editReseller && getResellerCopy(editReseller.nyelv, editReseller.fiok_tipus).dashboard.editorDrag) || "", ...extra });
   const et = edit ? getResellerCopy(editReseller.nyelv, editReseller.fiok_tipus).dashboard : null;
 
   const buttonsHtml0 = gombok.length
@@ -193,23 +193,23 @@ export async function onRequestGet(context) {
       </div>`
     : "";
 
-  const buttonsHtml = editZone("buttons", buttonsHtml0, zoneOpts({ sortable: true, empty: !gombok.length, addLabel: et && et.editorAddButtons, penLabel: et && et.editorPen }));
-  const timelineHtml = editZone("program", timelineHtml0, zoneOpts({ sortable: true, empty: !esemenyek.length, addLabel: et && et.editorAddProgram, penLabel: et && et.editorPen }));
-  const locationZone = editZone("location", locationHtml0, zoneOpts({ sortable: true, empty: !helyek.length, addLabel: et && et.editorAddLocation, penLabel: et && et.editorPen }));
+  const buttonsHtml = editZone("buttons", buttonsHtml0, zoneOpts({ sortable: true, removable: true, empty: !gombok.length, addLabel: et && et.editorAddButtons, penLabel: et && et.editorPen }));
+  const timelineHtml = editZone("program", timelineHtml0, zoneOpts({ sortable: true, removable: true, empty: !esemenyek.length, addLabel: et && et.editorAddProgram, penLabel: et && et.editorPen }));
+  const locationZone = editZone("location", locationHtml0, zoneOpts({ sortable: true, removable: true, empty: !helyek.length, addLabel: et && et.editorAddLocation, penLabel: et && et.editorPen }));
   const vs = parseJson(par.visszaszamlalo, null);
   const targetMs = vs ? zonedToUtcMs(par.eskuvo_datuma, vs.ido) : null;
-  const countdownZone = editZone("countdown", countdownHtml({ targetMs, copy }), zoneOpts({ sortable: true, empty: targetMs == null, addLabel: et && et.editorAddCountdown, penLabel: et && et.editorPen }));
+  const countdownZone = editZone("countdown", countdownHtml({ targetMs, copy }), zoneOpts({ sortable: true, removable: true, empty: targetMs == null, addLabel: et && et.editorAddCountdown, penLabel: et && et.editorPen }));
   const storyItems = parseJson(par.tortenet, []).filter((x) => x && /^[a-f0-9]{8}$/.test(x.id || ""));
-  const storyZone = editZone("story", storyHtml({ items: storyItems, lang: ["de", "en", "hu"].includes(par.nyelv) ? par.nyelv : "hu", copy }), zoneOpts({ sortable: true, empty: !storyItems.length, addLabel: et && et.editorAddStory, penLabel: et && et.editorPen }));
+  const storyZone = editZone("story", storyHtml({ items: storyItems, lang: ["de", "en", "hu"].includes(par.nyelv) ? par.nyelv : "hu", copy }), zoneOpts({ sortable: true, removable: true, empty: !storyItems.length, addLabel: et && et.editorAddStory, penLabel: et && et.editorPen }));
   const dividerKey = resolveDivider(par.elvalaszto);
-  const dividerZone = editZone("divider", dividerHtml(dividerKey), zoneOpts({ empty: dividerKey === "nincs", addLabel: et && et.editorAddDivider, penLabel: et && et.editorPen }));
+  const dividerZone = editZone("divider", dividerHtml(dividerKey), zoneOpts({ removable: true, empty: dividerKey === "nincs", addLabel: et && et.editorAddDivider, penLabel: et && et.editorPen }));
   const namesZone = editZone(
     "names",
     `<h1 class="names reveal" style="--d:120ms">${escapeHtml(par.par_neve)}</h1>
     <div class="date reveal" style="--d:240ms">${displayDate}</div>`,
     zoneOpts({ empty: false, penLabel: et && et.editorPen })
   );
-  const photoZone = editZone("photo", photoHtml, zoneOpts({ empty: !par.fenykep_frissitve, addLabel: et && et.editorAddPhoto, penLabel: et && et.editorPen }));
+  const photoZone = editZone("photo", photoHtml, zoneOpts({ removable: true, empty: !par.fenykep_frissitve, addLabel: et && et.editorAddPhoto, penLabel: et && et.editorPen }));
   const messageZone = editZone("message", `<p class="message reveal">${message}</p>`, zoneOpts({ sortable: true, empty: false, penLabel: et && et.editorPen }));
 
   const DEFAULT_ORDER = ["message", "countdown", "story", "location", "program", "buttons"];
