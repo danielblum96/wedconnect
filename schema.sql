@@ -137,3 +137,8 @@ CREATE INDEX IF NOT EXISTS idx_email_kuldesek_viszontelado ON email_kuldesek (vi
 -- időpontja (a későbbi 24 hónapos élettartamhoz). elonezet_token: a vázlat titkos
 -- előnézeti linkje (/<slug>?elonezet=<token>), az ügyfélnek megosztható.
 --   parok: publikalva TEXT, elonezet_token TEXT
+
+-- Helyszín(ek) az esküvői oldalon (2026-09-26): JSON-tömb, max. 2 elem:
+--   [{"cimke":"Szertartás","nev":"...","cim":"...","terkep":"https://..."}]
+-- Ha a "terkep" üres, a publikus oldal a névből+címből Google Térkép-keresési linket készít.
+--   parok: helyszin TEXT

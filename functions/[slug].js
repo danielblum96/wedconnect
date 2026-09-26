@@ -55,7 +55,7 @@ export async function onRequestGet(context) {
   if (staticResp) return staticResp;
 
   const par = await env.DB.prepare(
-    "SELECT id, slug, par_neve, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
+    "SELECT id, slug, par_neve, nev1, nev2, helyszin, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
   )
     .bind(slug)
     .first();
@@ -76,6 +76,13 @@ export async function onRequestGet(context) {
     if (r && r.id === par.viszontelado_id) editReseller = r;
   }
   const edit = !!editReseller;
+  let freeEligible = false;
+  if (edit && isDraft && editReseller.fiok_tipus !== "maganszemely") {
+    const published1 = await env.DB.prepare("SELECT 1 AS x FROM parok WHERE viszontelado_id = ? AND rendeles_id IS NOT NULL LIMIT 1")
+      .bind(editReseller.id)
+      .first();
+    freeEligible = !published1;
+  }
   if (isDraft && !edit) {
     const previewToken = new URL(request.url).searchParams.get("elonezet") || "";
     if (!par.elonezet_token || previewToken !== par.elonezet_token) return notFound();
@@ -100,6 +107,13 @@ export async function onRequestGet(context) {
     esemenyek = [];
   }
 
+  let helyek = [];
+  try {
+    helyek = par.helyszin ? JSON.parse(par.helyszin) : [];
+  } catch (e) {
+    helyek = [];
+  }
+
   const dateParts = (par.eskuvo_datuma || "").split("-");
   const displayDate =
     dateParts.length === 3 ? `${dateParts[0]}.${dateParts[1]}.${dateParts[2]}.` : escapeHtml(par.eskuvo_datuma || "");
@@ -120,6 +134,26 @@ export async function onRequestGet(context) {
             `<a class="cta${i > 0 ? " cta-secondary" : ""}" href="${safeHref(g.url)}" target="_blank" rel="noopener">${escapeHtml(g.label)}</a>`
         )
         .join("")}</div>`
+    : "";
+
+  const mapHref = (h) =>
+    h.terkep ||
+    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([h.nev, h.cim].filter(Boolean).join(", "))}`;
+  const locationHtml0 = helyek.length
+    ? `<div class="locations">
+        <div class="loc-title">${escapeHtml(copy.locationTitle)}</div>
+        ${helyek
+          .map(
+            (h) => `
+        <div class="loc">
+          ${h.cimke ? `<div class="loc-label">${escapeHtml(h.cimke)}</div>` : ""}
+          ${h.nev ? `<div class="loc-name">${escapeHtml(h.nev)}</div>` : ""}
+          ${h.cim ? `<div class="loc-addr">${escapeHtml(h.cim)}</div>` : ""}
+          <a class="cta cta-secondary loc-map" href="${safeHref(mapHref(h))}" target="_blank" rel="noopener">${escapeHtml(copy.openMap)}</a>
+        </div>`
+          )
+          .join("")}
+      </div>`
     : "";
 
   const timelineHtml0 = esemenyek.length
@@ -145,10 +179,19 @@ export async function onRequestGet(context) {
 
   const buttonsHtml = editZone("buttons", buttonsHtml0, zoneOpts({ empty: !gombok.length, addLabel: et && et.editorAddButtons, penLabel: et && et.editorPen }));
   const timelineHtml = editZone("program", timelineHtml0, zoneOpts({ empty: !esemenyek.length, addLabel: et && et.editorAddProgram, penLabel: et && et.editorPen }));
+  const locationZone = editZone("location", locationHtml0, zoneOpts({ empty: !helyek.length, addLabel: et && et.editorAddLocation, penLabel: et && et.editorPen }));
+  const namesZone = editZone(
+    "names",
+    `<h1 class="names">${escapeHtml(par.par_neve)}</h1>
+    <div class="date">${displayDate}</div>`,
+    zoneOpts({ empty: false, penLabel: et && et.editorPen })
+  );
   const photoZone = editZone("photo", photoHtml, zoneOpts({ empty: !par.fenykep_frissitve, addLabel: et && et.editorAddPhoto, penLabel: et && et.editorPen }));
   const messageZone = editZone("message", `<p class="message">${message}</p>`, zoneOpts({ empty: false, penLabel: et && et.editorPen }));
 
   const lang = ["de", "en", "hu"].includes(par.nyelv) ? par.nyelv : "hu";
+  const origin = new URL(request.url).origin;
+  const ogDescription = `${displayDate} · ${(par.egyedi_uzenet || copy.defaultMessage).replace(/\s+/g, " ").slice(0, 160)}`;
   const previewHref = published ? `/${slug}` : `/${slug}?elonezet=${encodeURIComponent(par.elonezet_token || "")}`;
 
   const html = `<!DOCTYPE html>
@@ -158,6 +201,12 @@ export async function onRequestGet(context) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>${escapeHtml(copy.pageTitle(par.par_neve))}</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="${escapeHtml(copy.pageTitle(par.par_neve))}">
+<meta property="og:description" content="${escapeHtml(ogDescription)}">
+<meta property="og:locale" content="${lang === "de" ? "de_DE" : lang === "en" ? "en_US" : "hu_HU"}">
+${published ? `<meta property="og:url" content="${escapeHtml(origin)}/${escapeHtml(encodeURIComponent(slug))}">` : ""}
+${published && par.fenykep_frissitve ? `<meta property="og:image" content="${escapeHtml(origin)}/foto/${escapeHtml(encodeURIComponent(slug))}?v=${escapeHtml(encodeURIComponent(par.fenykep_frissitve))}">\n<meta name="twitter:card" content="summary_large_image">` : `<meta name="twitter:card" content="summary">`}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Great+Vibes&family=Cinzel:wght@500;600&family=Poppins:wght@400;500;600&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
@@ -332,6 +381,29 @@ export async function onRequestGet(context) {
     opacity: 0.35;
     margin-top: 2px;
   }
+  .locations { margin: 8px 0 30px; }
+  .loc-title {
+    font-family: "Poppins", sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--accent-text);
+    margin-bottom: 18px;
+  }
+  .loc { margin-bottom: 22px; }
+  .loc-label {
+    font-family: "Poppins", sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent-text);
+    margin-bottom: 4px;
+  }
+  .loc-name { font-size: 1.45rem; font-weight: 500; line-height: 1.25; color: var(--fg); }
+  .loc-addr { font-size: 1.1rem; line-height: 1.4; color: var(--fg); opacity: 0.85; margin-bottom: 12px; }
+  .loc-map { padding: 9px 22px; font-size: 0.72rem; }
   .timeline-name {
     font-family: "Cormorant Garamond", serif;
     font-size: 1.2rem;
@@ -347,10 +419,10 @@ ${edit ? editorCss : ""}
   <div class="card">
     ${photoZone}
     <div class="eyebrow">${escapeHtml(copy.eyebrow)}</div>
-    <h1 class="names">${escapeHtml(par.par_neve)}</h1>
-    <div class="date">${displayDate}</div>
+    ${namesZone}
     <div class="divider"><span class="line"></span><span class="mark">❖</span><span class="line"></span></div>
     ${messageZone}
+    ${locationZone}
     ${timelineHtml}
     ${buttonsHtml}
   </div>
@@ -363,6 +435,10 @@ ${edit ? editorCss : ""}
           lang: editReseller.nyelv,
           gombok,
           esemenyek,
+          helyek,
+          nev1: par.nev1 || (par.par_neve || "").split(" & ")[0] || "",
+          nev2: par.nev2 || (par.par_neve || "").split(" & ")[1] || "",
+          freeEligible,
           hasPhoto: !!par.fenykep_frissitve,
           photoVersion: par.fenykep_frissitve || "",
           currentStyleId: style.id,
