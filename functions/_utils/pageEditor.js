@@ -14,10 +14,12 @@ export const EDIT_MAX_LOCATIONS = 2;
 
 // Egy szekció becsomagolása: szerkesztő módban kattintható zóna ceruza-címkével,
 // üres szekciónál "+ hozzáadás" helykitöltővel; egyébként a tartalom változatlan.
-export function editZone(name, contentHtml, { edit, empty, addLabel, penLabel }) {
+export function editZone(name, contentHtml, { edit, empty, addLabel, penLabel, sortable, dragLabel }) {
   if (!edit) return contentHtml;
   const inner = empty ? `<div class="wc-zone-placeholder">${escapeHtml(addLabel)}</div>` : contentHtml;
-  return `<div class="wc-zone${empty ? " wc-zone-empty" : ""}" id="zone-${name}" data-open="panel-${name}" role="button" tabindex="0" aria-label="${escapeHtml(penLabel)}">${inner}<span class="wc-pen">✎ ${escapeHtml(penLabel)}</span></div>`;
+  return `<div class="wc-zone${empty ? " wc-zone-empty" : ""}" id="zone-${name}" data-open="panel-${name}" role="button" tabindex="0" aria-label="${escapeHtml(penLabel)}">${inner}<span class="wc-pen">✎ ${escapeHtml(penLabel)}</span>${
+    sortable ? `<span class="wc-drag" role="button" tabindex="0" aria-label="${escapeHtml(dragLabel)}" title="${escapeHtml(dragLabel)}">⠿</span>` : ""
+  }</div>`;
 }
 
 export const editorCss = `
@@ -60,15 +62,15 @@ export const editorCss = `
   .wc-photo-drop input[type=file] { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; }
   .wc-status { font-size:0.85rem; color:#7a7266; }
   .wc-status.error { color:#b1451f; }
-  #panel-design, #panel-order { z-index:9998; position:fixed; inset:auto 0 0 0; margin:0 auto 10px; max-height:52vh; }
-  #panel-design::backdrop, #panel-order::backdrop { background:transparent; }
-  .wc-order { list-style:none; margin:0 0 8px; padding:0; }
-  .wc-order li { display:flex; align-items:center; gap:8px; border:1px solid #ddd6c9; border-radius:10px; padding:8px 10px; margin-bottom:8px; background:#fff; }
-  .wc-order li.dragging { border-color:#b48b56; box-shadow:0 6px 16px rgba(0,0,0,0.18); background:#faf6ee; }
-  .wc-handle { flex:none; cursor:grab; touch-action:none; user-select:none; font-size:20px; line-height:1; padding:6px 8px; color:#7a7266; }
-  .wc-order-name { flex:1; font-weight:600; }
-  .wc-order button[data-move] { border:1px solid #ddd6c9; background:#fff; border-radius:8px; width:34px; height:34px; cursor:pointer; color:#2b2620; font-size:13px; }
+  #panel-design { z-index:9998; position:fixed; inset:auto 0 0 0; margin:0 auto 10px; max-height:52vh; }
+  #panel-design::backdrop { background:transparent; }
   .wc-bar-icon { display:none; }
+  .wc-drag { position:absolute; top:-13px; left:-4px; z-index:5; min-width:38px; text-align:center; background:#2b2620; color:#fff; border-radius:999px; padding:3px 12px; font:600 15px/1.5 "Poppins",Arial,sans-serif; cursor:grab; touch-action:none; user-select:none; box-shadow:0 3px 8px rgba(0,0,0,0.25); }
+  .wc-drag:focus-visible { outline:2px solid #b48b56; outline-offset:2px; }
+  .wc-zone.wc-dragging { z-index:30; will-change:transform; outline:2px solid #b48b56; background:var(--bg); box-shadow:0 16px 40px rgba(0,0,0,0.35); opacity:0.94; }
+  body.wc-drag-mode, body.wc-drag-mode * { cursor:grabbing !important; user-select:none !important; }
+  #wc-drop-line { position:fixed; height:4px; border-radius:2px; background:#b48b56; z-index:9996; pointer-events:none; box-shadow:0 0 0 2px rgba(255,255,255,0.7); }
+  #wc-drop-line[hidden] { display:none; }
   .wc-styles { display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; margin-bottom:6px; }
   @media (min-width:520px) { .wc-styles { grid-template-columns:repeat(3, 1fr); } }
   .wc-style { display:flex; align-items:center; gap:8px; border:2px solid transparent; outline:1px solid #ddd6c9; border-radius:10px; padding:10px; cursor:pointer; font:600 0.8rem/1.2 "Poppins",Arial,sans-serif; text-align:left; }
@@ -86,7 +88,7 @@ export const editorCss = `
   .wc-tip button { flex:none; border:none; background:rgba(255,255,255,0.16); color:#fff; border-radius:999px; width:26px; height:26px; cursor:pointer; font-size:12px; }
   @keyframes wc-up { from { transform:translateY(36px); opacity:0; } to { transform:none; opacity:1; } }
   @media (max-width:520px) {
-    .wc-dlg:not(#panel-design):not(#panel-order) { position:fixed; inset:auto 0 0 0; margin:0; width:100%; max-width:100%; max-height:90vh; max-height:90dvh; border-radius:18px 18px 0 0; padding-bottom:calc(14px + env(safe-area-inset-bottom)); animation:wc-up 0.22s ease-out; }
+    .wc-dlg:not(#panel-design) { position:fixed; inset:auto 0 0 0; margin:0; width:100%; max-width:100%; max-height:90vh; max-height:90dvh; border-radius:18px 18px 0 0; padding-bottom:calc(14px + env(safe-area-inset-bottom)); animation:wc-up 0.22s ease-out; }
     .wc-tip { bottom:14px; }
   }
   .wc-toast.error { background:#b1451f; }
@@ -101,10 +103,9 @@ function toolbar({ par, t, previewHref, isDraft, freeEligible }) {
   const publish = isDraft
     ? `<form method="POST" action="/api/couple-pay"><input type="hidden" name="par_id" value="${par.id}"><button type="submit" class="wc-bar-primary">${escapeHtml(freeEligible ? t.publishFree : t.publishNow)}</button></form>`
     : `<span class="wc-pill">${escapeHtml(t.editorPublished)}</span>`;
-  return `<div class="wc-bar">
+  return `<div class="wc-bar" data-par-id="${par.id}">
     <div class="wc-bar-title">✎ ${escapeHtml(t.editorBadge)}<small>${escapeHtml(t.editorBadgeHint)}${isDraft ? " · " + escapeHtml(t.draftLabel) : ""}</small></div>
     <button type="button" data-open="panel-design" aria-label="${escapeHtml(t.editorDesign)}">🎨<span class="wc-bar-lbl"> ${escapeHtml(t.editorDesign)}</span></button>
-    <button type="button" data-open="panel-order" aria-label="${escapeHtml(t.editorOrder)}">⇅<span class="wc-bar-lbl"> ${escapeHtml(t.editorOrder)}</span></button>
     <a href="${escapeHtml(previewHref)}">${escapeHtml(t.editorPreview)}</a>
     <a href="/partner/dashboard">${escapeHtml(t.editorDone)}</a>
     ${publish}
@@ -125,7 +126,7 @@ function panelForm(parId, section, body, t) {
   return `<form class="wc-form" method="POST" action="/api/couple-section-update"><input type="hidden" name="par_id" value="${parId}"><input type="hidden" name="section" value="${section}">${body}<div class="wc-error" hidden></div>${footer(t)}</form>`;
 }
 
-function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, sorrend, nev1, nev2, hasPhoto, photoVersion, currentStyleId }) {
+function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, nev1, nev2, hasPhoto, photoVersion, currentStyleId }) {
   const eventVisible = Math.min(EDIT_MAX_EVENTS, Math.max(esemenyek.length + 1, 2));
   const eventRows = Array.from({ length: EDIT_MAX_EVENTS }, (_, i) => {
     const ev = esemenyek[i] || { ido: "", nev: "" };
@@ -265,24 +266,6 @@ function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, 
       )
     ),
     dlg(
-      "order",
-      t.editorTitleOrder,
-      panelForm(
-        par.id,
-        "order",
-        `<p class="wc-hint">${escapeHtml(t.editorOrderHint)}</p>
-        <ul class="wc-order" id="wc-order">${sorrend
-          .map(
-            (k) =>
-              `<li data-key="${k}"><span class="wc-handle" aria-hidden="true">⠿</span><span class="wc-order-name">${escapeHtml(
-                { message: t.editorTitleMessage, location: t.editorTitleLocation, program: t.editorTitleProgram, buttons: t.editorTitleButtons }[k]
-              )}</span><button type="button" data-move="-1" aria-label="${escapeHtml(t.editorMoveUp)}">▲</button><button type="button" data-move="1" aria-label="${escapeHtml(t.editorMoveDown)}">▼</button><input type="hidden" name="sorrend" value="${k}"></li>`
-          )
-          .join("")}</ul>`,
-        t
-      )
-    ),
-    dlg(
       "design",
       t.editorTitleDesign,
       panelForm(
@@ -322,32 +305,11 @@ function script({ t }) {
   var COPY = ${copyForClient};
   var root = document.documentElement;
   var designPanel = document.getElementById("panel-design");
-  var NONMODAL = ["panel-design", "panel-order"];
-  var orderList = document.getElementById("wc-order");
-  function readOrder() { return Array.prototype.map.call(orderList.children, function (li) { return li.getAttribute("data-key"); }); }
-  var currentOrder = readOrder();
-  // A szekciók az oldalon a felező (.divider) után következnek; a sorrend élő előnézete
-  // az oldalon lévő zónák átrendezésével történik.
-  function applyOrder(keys) {
-    var ref = document.querySelector(".card .divider");
-    if (!ref) return;
-    keys.forEach(function (k) {
-      var el = document.getElementById("zone-" + k);
-      if (el) { ref.after(el); ref = el; }
-    });
-  }
-  function revertOrder() {
-    currentOrder.forEach(function (k) {
-      var li = orderList.querySelector('[data-key="' + k + '"]');
-      if (li) orderList.appendChild(li);
-    });
-    applyOrder(currentOrder);
-  }
+  var NONMODAL = ["panel-design"];
   function closeNonModal(d) {
     if (!d || !d.open) return;
     d.close();
     if (d.id === "panel-design") revertDesign();
-    if (d.id === "panel-order") revertOrder();
   }
   var currentId = document.getElementById("wc-stilus").value;
 
@@ -421,29 +383,99 @@ function script({ t }) {
   });
   document.addEventListener("pointermove", function (e) { if (cropDrag) cropFromEvent(cropDrag, e); });
   document.addEventListener("pointerup", function () { cropDrag = null; });
-  var orderDrag = null;
+  // Szekciók húzása közvetlenül az oldalon (fogantyú: .wc-drag): a zóna követi az ujjat/egeret,
+  // a beszúrási vonal jelzi a célhelyet, elengedéskor átrendeződik és azonnal mentődik.
+  var SORTABLE = ["message", "location", "program", "buttons"];
+  var drag = null;
+  var dropLine = document.getElementById("wc-drop-line");
+  function sortableZones() {
+    return Array.prototype.filter.call(document.querySelectorAll(".card .wc-zone"), function (z) { return SORTABLE.indexOf(z.id.replace("zone-", "")) > -1; });
+  }
+  function zoneKeys() { return sortableZones().map(function (z) { return z.id.replace("zone-", ""); }); }
+  function applyOrder(keys) {
+    var ref = document.querySelector(".card .divider");
+    if (!ref) return;
+    keys.forEach(function (k) {
+      var el = document.getElementById("zone-" + k);
+      if (el) { ref.after(el); ref = el; }
+    });
+  }
+  function saveOrder(keys, prevKeys) {
+    var body = new FormData();
+    body.append("par_id", document.querySelector(".wc-bar").getAttribute("data-par-id"));
+    body.append("section", "order");
+    keys.forEach(function (k) { body.append("sorrend", k); });
+    return fetch("/api/couple-section-update", { method: "POST", body: body, headers: { Accept: "application/json" }, credentials: "same-origin" })
+      .then(function (r) { if (!r.ok) throw new Error("order"); toast(COPY.saved); })
+      .catch(function () { applyOrder(prevKeys); toast(COPY.saveFailed, true); });
+  }
+  function dragTarget() {
+    var others = sortableZones().filter(function (z) { return z !== drag.zone; });
+    for (var i = 0; i < others.length; i++) {
+      var r = others[i].getBoundingClientRect();
+      if (drag.lastY < r.top + r.height / 2) return { before: others[i], others: others };
+    }
+    return { before: null, others: others };
+  }
+  function updateDrag() {
+    var dy = drag.lastY - drag.startY + (window.scrollY - drag.startScroll);
+    drag.zone.style.transform = "translateY(" + dy + "px)";
+    var tg = dragTarget(), card = document.querySelector(".card").getBoundingClientRect(), y;
+    if (tg.before) y = tg.before.getBoundingClientRect().top - 15;
+    else if (tg.others.length) y = tg.others[tg.others.length - 1].getBoundingClientRect().bottom + 15;
+    else y = drag.lastY;
+    dropLine.style.left = (card.left + 16) + "px"; dropLine.style.width = Math.max(0, card.width - 32) + "px"; dropLine.style.top = (y - 2) + "px";
+    dropLine.hidden = false;
+    drag.target = tg;
+  }
+  function dragLoop() {
+    if (!drag) return;
+    var y = drag.lastY, vh = window.innerHeight, d = 0;
+    if (y < 100) d = -Math.min(16, (100 - y) / 4 + 2);
+    else if (y > vh - 70) d = Math.min(16, (y - (vh - 70)) / 4 + 2);
+    if (d) window.scrollBy(0, d);
+    updateDrag();
+    drag.raf = requestAnimationFrame(dragLoop);
+  }
+  function endDrag(commit) {
+    if (!drag) return;
+    if (commit) updateDrag(); // a legutolsó egérállás szerinti célhely (nem a legutóbbi képkocka)
+    var dg = drag; drag = null;
+    cancelAnimationFrame(dg.raf);
+    dg.zone.style.transform = ""; dg.zone.classList.remove("wc-dragging");
+    document.body.classList.remove("wc-drag-mode"); dropLine.hidden = true;
+    if (!commit || !dg.target) return;
+    var prev = dg.prevKeys;
+    if (dg.target.before) dg.target.before.before(dg.zone);
+    else if (dg.target.others.length) dg.target.others[dg.target.others.length - 1].after(dg.zone);
+    var now = zoneKeys();
+    if (now.join() !== prev.join()) saveOrder(now, prev);
+  }
   document.addEventListener("pointerdown", function (e) {
-    var h = e.target.closest && e.target.closest(".wc-handle");
+    var h = e.target.closest && e.target.closest(".wc-drag");
     if (!h) return;
     e.preventDefault();
-    orderDrag = h.closest("li");
-    orderDrag.classList.add("dragging");
+    var zone = h.closest(".wc-zone");
+    drag = { zone: zone, startY: e.clientY, lastY: e.clientY, startScroll: window.scrollY, pid: e.pointerId, prevKeys: zoneKeys(), target: null, raf: 0 };
+    zone.classList.add("wc-dragging"); document.body.classList.add("wc-drag-mode");
+    try { h.setPointerCapture(e.pointerId); } catch (err) {}
+    hideTip();
+    dragLoop();
   });
-  document.addEventListener("pointermove", function (e) {
-    if (!orderDrag) return;
-    var items = Array.prototype.filter.call(orderList.children, function (x) { return x !== orderDrag; });
-    var before = null;
-    for (var i = 0; i < items.length; i++) {
-      var r = items[i].getBoundingClientRect();
-      if (e.clientY < r.top + r.height / 2) { before = items[i]; break; }
-    }
-    if (before) { if (orderDrag.nextElementSibling !== before) orderList.insertBefore(orderDrag, before); }
-    else if (orderList.lastElementChild !== orderDrag) orderList.appendChild(orderDrag);
-    applyOrder(readOrder());
+  document.addEventListener("pointermove", function (e) { if (drag && e.pointerId === drag.pid) drag.lastY = e.clientY; });
+  document.addEventListener("pointerup", function (e) { if (drag && e.pointerId === drag.pid) { drag.lastY = e.clientY; endDrag(true); } });
+  document.addEventListener("pointercancel", function () { endDrag(false); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && drag) { endDrag(false); return; }
+    var h = e.target.closest && e.target.closest(".wc-drag");
+    if (!h || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
+    e.preventDefault();
+    var keys = zoneKeys(), prev = keys.slice(), k = h.closest(".wc-zone").id.replace("zone-", ""), i = keys.indexOf(k), j = i + (e.key === "ArrowUp" ? -1 : 1);
+    if (j < 0 || j >= keys.length) return;
+    keys.splice(i, 1); keys.splice(j, 0, k);
+    applyOrder(keys); h.focus();
+    saveOrder(keys, prev);
   });
-  function endOrderDrag() { if (orderDrag) { orderDrag.classList.remove("dragging"); orderDrag = null; } }
-  document.addEventListener("pointerup", endOrderDrag);
-  document.addEventListener("pointercancel", endOrderDrag);
   document.addEventListener("cancel", function (e) {
     var d = e.target;
     if (d.matches && d.matches("dialog.wc-dlg") && isDirty(d) && !window.confirm(COPY.unsaved)) e.preventDefault();
@@ -507,6 +539,7 @@ function script({ t }) {
 
   document.addEventListener("click", function (e) {
     var t = e.target;
+    if (t.closest(".wc-drag")) return;
     if (t.closest("[data-tip-close]")) { hideTip(); return; }
     var opener = t.closest("[data-open]");
     if (opener) { e.preventDefault(); hideTip(); openPanel(opener.getAttribute("data-open")); return; }
@@ -516,14 +549,6 @@ function script({ t }) {
       var dlg = closer.closest("dialog");
       if (dlg && NONMODAL.indexOf(dlg.id) > -1) closeNonModal(dlg);
       else if (dlg) tryClose(dlg);
-      return;
-    }
-    var mv = t.closest("[data-move]");
-    if (mv) {
-      var li = mv.closest("li"), dir = parseInt(mv.getAttribute("data-move"), 10);
-      if (dir < 0 && li.previousElementSibling) li.parentNode.insertBefore(li, li.previousElementSibling);
-      else if (dir > 0 && li.nextElementSibling) li.parentNode.insertBefore(li.nextElementSibling, li);
-      applyOrder(readOrder());
       return;
     }
     var ratio = t.closest("[data-ratio]");
@@ -594,11 +619,9 @@ function script({ t }) {
     if (btn) btn.disabled = true;
     var sectionName = form.querySelector('[name="section"]').value;
     var isStyle = sectionName === "style";
-    var isOrder = sectionName === "order";
     fetch(form.action, { method: "POST", body: new FormData(form), headers: { Accept: "application/json" }, credentials: "same-origin" })
       .then(function (r) { if (!r.ok) throw new Error("save"); return r.json(); })
       .then(function () {
-        if (isOrder) { currentOrder = readOrder(); closeNonModal(document.getElementById("panel-order")); toast(COPY.saved); return; }
         if (isStyle) { currentId = document.getElementById("wc-stilus").value; designPanel.close(); toast(COPY.saved); return; }
         return refresh().then(function () { toast(COPY.saved); });
       })
@@ -635,5 +658,5 @@ function script({ t }) {
 
 // A teljes szerkesztő réteg a </body> elé: eszköztár + panelek + szkript.
 export function editorLayer(opts) {
-  return `${toolbar(opts)}\n${panels(opts)}\n<div class="wc-tip" id="wc-tip" hidden><span>${escapeHtml(opts.t.editorHint)}</span><button type="button" data-tip-close aria-label="×">✕</button></div>\n${script(opts)}`;
+  return `${toolbar(opts)}\n${panels(opts)}\n<div id="wc-drop-line" hidden></div>\n<div class="wc-tip" id="wc-tip" hidden><span>${escapeHtml(opts.t.editorHint)}</span><button type="button" data-tip-close aria-label="×">✕</button></div>\n${script(opts)}`;
 }

@@ -137,7 +137,7 @@ export async function onRequestGet(context) {
     ? `<img class="cover-photo"${photoStyle} src="/foto/${encodeURIComponent(slug)}?v=${encodeURIComponent(par.fenykep_frissitve)}" alt="">`
     : "";
 
-  const zoneOpts = (extra) => ({ edit, ...extra });
+  const zoneOpts = (extra) => ({ edit, dragLabel: (editReseller && getResellerCopy(editReseller.nyelv, editReseller.fiok_tipus).dashboard.editorDrag) || "", ...extra });
   const et = edit ? getResellerCopy(editReseller.nyelv, editReseller.fiok_tipus).dashboard : null;
 
   const buttonsHtml0 = gombok.length
@@ -190,9 +190,9 @@ export async function onRequestGet(context) {
       </div>`
     : "";
 
-  const buttonsHtml = editZone("buttons", buttonsHtml0, zoneOpts({ empty: !gombok.length, addLabel: et && et.editorAddButtons, penLabel: et && et.editorPen }));
-  const timelineHtml = editZone("program", timelineHtml0, zoneOpts({ empty: !esemenyek.length, addLabel: et && et.editorAddProgram, penLabel: et && et.editorPen }));
-  const locationZone = editZone("location", locationHtml0, zoneOpts({ empty: !helyek.length, addLabel: et && et.editorAddLocation, penLabel: et && et.editorPen }));
+  const buttonsHtml = editZone("buttons", buttonsHtml0, zoneOpts({ sortable: true, empty: !gombok.length, addLabel: et && et.editorAddButtons, penLabel: et && et.editorPen }));
+  const timelineHtml = editZone("program", timelineHtml0, zoneOpts({ sortable: true, empty: !esemenyek.length, addLabel: et && et.editorAddProgram, penLabel: et && et.editorPen }));
+  const locationZone = editZone("location", locationHtml0, zoneOpts({ sortable: true, empty: !helyek.length, addLabel: et && et.editorAddLocation, penLabel: et && et.editorPen }));
   const namesZone = editZone(
     "names",
     `<h1 class="names">${escapeHtml(par.par_neve)}</h1>
@@ -200,7 +200,7 @@ export async function onRequestGet(context) {
     zoneOpts({ empty: false, penLabel: et && et.editorPen })
   );
   const photoZone = editZone("photo", photoHtml, zoneOpts({ empty: !par.fenykep_frissitve, addLabel: et && et.editorAddPhoto, penLabel: et && et.editorPen }));
-  const messageZone = editZone("message", `<p class="message">${message}</p>`, zoneOpts({ empty: false, penLabel: et && et.editorPen }));
+  const messageZone = editZone("message", `<p class="message">${message}</p>`, zoneOpts({ sortable: true, empty: false, penLabel: et && et.editorPen }));
 
   const DEFAULT_ORDER = ["message", "location", "program", "buttons"];
   let sorrend = DEFAULT_ORDER;
@@ -463,7 +463,6 @@ ${edit ? editorCss : ""}
           esemenyek,
           helyek,
           fotoBeallitas,
-          sorrend,
           nev1: par.nev1 || (par.par_neve || "").split(" & ")[0] || "",
           nev2: par.nev2 || (par.par_neve || "").split(" & ")[1] || "",
           freeEligible,
