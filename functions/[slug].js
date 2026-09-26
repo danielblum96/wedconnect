@@ -233,6 +233,7 @@ export async function onRequestGet(context) {
             par.nev2 || (par.par_neve || "").split("&")[1]
           ),
           copy,
+          style,
         })
       : "";
   const ogDescription = `${displayDate} · ${(par.egyedi_uzenet || copy.defaultMessage).replace(/\s+/g, " ").slice(0, 160)}`;

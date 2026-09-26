@@ -1,6 +1,7 @@
 import { STYLES, FONT_RECIPES, namesFontSize, getStyleName } from "./styles.js";
 import { escapeHtml } from "./html.js";
 import { DIVIDER_KEYS, dividerHtml } from "./dividers.js";
+import { envelopePalette } from "./envelopeIntro.js";
 
 // Az esküvői oldalon belüli szerkesztő mód (?szerkesztes=1). CSAK a belépett
 // tulajdonos partnernek jelenik meg (a functions/[slug].js ellenőrzi), a
@@ -335,6 +336,7 @@ function script({ t }) {
   return `<script type="module">
   import { resizeImageToWebp } from "/assets/photo-upload.js?v=1";
   var STYLES = ${stylesForClient};
+  var envelopePalette = ${envelopePalette.toString()};
   var FONTS = ${fontsForClient};
   var COPY = ${copyForClient};
   var root = document.documentElement;
@@ -349,6 +351,11 @@ function script({ t }) {
     var parts = ((document.querySelector(".names") || {}).textContent || "").split("&");
     function ini(x) { var c = Array.from((x || "").trim())[0]; return c ? c.toLocaleUpperCase() : "\u2665"; }
     root.querySelector(".env-mono").innerHTML = ini(parts[0]) + "<i>&amp;</i>" + ini(parts[1]);
+    var st = STYLES.filter(function (x) { return x.id === document.getElementById("wc-stilus").value; })[0];
+    if (st) {
+      var pal = envelopePalette(st.accent, st.bg);
+      root.style.setProperty("--env-orn", pal.orn); root.style.setProperty("--env-seal", pal.seal); root.style.setProperty("--env-seal-fg", pal.sealFg);
+    }
     document.body.appendChild(root);
     window.wcEnvelopeInit(root, { preview: true });
   }
