@@ -239,6 +239,9 @@ export async function onRequestGet(context) {
           ),
           copy,
           style,
+          names: par.par_neve,
+          dateText: displayDate,
+          fontCss: fontRecipe,
         })
       : "";
   const ogDescription = `${displayDate} · ${(par.egyedi_uzenet || copy.defaultMessage).replace(/\s+/g, " ").slice(0, 160)}`;

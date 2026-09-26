@@ -49,3 +49,8 @@ export function dividerHtml(key) {
   if (k === "nincs") return "";
   return `<div class="divider divider-${k} reveal" style="--d:180ms"><span class="line"></span><span class="mark">${GLYPHS[k]}</span><span class="line"></span></div>`;
 }
+
+// Csak a jel (vonalak nélkül), pl. a nyitó boríték díszítéséhez.
+export function dividerGlyph(key) {
+  return GLYPHS[resolveDivider(key)] || GLYPHS[DEFAULT_DIVIDER];
+}

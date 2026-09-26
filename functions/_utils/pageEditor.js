@@ -569,8 +569,12 @@ function script({ t }) {
     var parts = ((document.querySelector(".names") || {}).textContent || "").split("&");
     function ini(x) { var c = Array.from((x || "").trim())[0]; return c ? c.toLocaleUpperCase() : "\u2665"; }
     root.querySelector(".env-mono").innerHTML = ini(parts[0]) + "<i>&amp;</i>" + ini(parts[1]);
+    var cardNames = root.querySelector(".env-card-names"), cardDate = root.querySelector(".env-card-date");
+    if (cardNames) cardNames.textContent = ((document.querySelector(".names") || {}).textContent || "").trim();
+    if (cardDate) cardDate.textContent = ((document.querySelector(".date") || {}).textContent || "").trim();
     var st = STYLES.filter(function (x) { return x.id === document.getElementById("wc-stilus").value; })[0];
     if (st) {
+      if (cardNames) cardNames.style.cssText = (FONTS[st.font] || FONTS.sans).recipe;
       var pal = envelopePalette(st.accent, st.bg);
       root.style.setProperty("--env-orn", pal.orn); root.style.setProperty("--env-seal", pal.seal); root.style.setProperty("--env-seal-fg", pal.sealFg);
     }
