@@ -60,8 +60,15 @@ export const editorCss = `
   .wc-photo-drop input[type=file] { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; }
   .wc-status { font-size:0.85rem; color:#7a7266; }
   .wc-status.error { color:#b1451f; }
-  #panel-design { z-index:9998; position:fixed; inset:auto 0 0 0; margin:0 auto 10px; max-height:52vh; }
-  #panel-design::backdrop { background:transparent; }
+  #panel-design, #panel-order { z-index:9998; position:fixed; inset:auto 0 0 0; margin:0 auto 10px; max-height:52vh; }
+  #panel-design::backdrop, #panel-order::backdrop { background:transparent; }
+  .wc-order { list-style:none; margin:0 0 8px; padding:0; }
+  .wc-order li { display:flex; align-items:center; gap:8px; border:1px solid #ddd6c9; border-radius:10px; padding:8px 10px; margin-bottom:8px; background:#fff; }
+  .wc-order li.dragging { border-color:#b48b56; box-shadow:0 6px 16px rgba(0,0,0,0.18); background:#faf6ee; }
+  .wc-handle { flex:none; cursor:grab; touch-action:none; user-select:none; font-size:20px; line-height:1; padding:6px 8px; color:#7a7266; }
+  .wc-order-name { flex:1; font-weight:600; }
+  .wc-order button[data-move] { border:1px solid #ddd6c9; background:#fff; border-radius:8px; width:34px; height:34px; cursor:pointer; color:#2b2620; font-size:13px; }
+  .wc-bar-icon { display:none; }
   .wc-styles { display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; margin-bottom:6px; }
   @media (min-width:520px) { .wc-styles { grid-template-columns:repeat(3, 1fr); } }
   .wc-style { display:flex; align-items:center; gap:8px; border:2px solid transparent; outline:1px solid #ddd6c9; border-radius:10px; padding:10px; cursor:pointer; font:600 0.8rem/1.2 "Poppins",Arial,sans-serif; text-align:left; }
@@ -79,7 +86,7 @@ export const editorCss = `
   .wc-tip button { flex:none; border:none; background:rgba(255,255,255,0.16); color:#fff; border-radius:999px; width:26px; height:26px; cursor:pointer; font-size:12px; }
   @keyframes wc-up { from { transform:translateY(36px); opacity:0; } to { transform:none; opacity:1; } }
   @media (max-width:520px) {
-    .wc-dlg:not(#panel-design) { position:fixed; inset:auto 0 0 0; margin:0; width:100%; max-width:100%; max-height:90vh; max-height:90dvh; border-radius:18px 18px 0 0; padding-bottom:calc(14px + env(safe-area-inset-bottom)); animation:wc-up 0.22s ease-out; }
+    .wc-dlg:not(#panel-design):not(#panel-order) { position:fixed; inset:auto 0 0 0; margin:0; width:100%; max-width:100%; max-height:90vh; max-height:90dvh; border-radius:18px 18px 0 0; padding-bottom:calc(14px + env(safe-area-inset-bottom)); animation:wc-up 0.22s ease-out; }
     .wc-tip { bottom:14px; }
   }
   .wc-toast.error { background:#b1451f; }
@@ -87,7 +94,7 @@ export const editorCss = `
   .wc-loc-block[hidden] { display:none; }
   .wc-dlg input[type=date] { width:100%; padding:10px 12px; border:1px solid #ddd6c9; border-radius:8px; font:inherit; font-size:16px; margin-bottom:10px; background:#fff; color:#2b2620; box-sizing:border-box; }
   .wc-toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); z-index:10000; background:#2b2620; color:#fff; padding:10px 20px; border-radius:999px; font:600 13px/1.3 "Poppins",Arial,sans-serif; box-shadow:0 8px 24px rgba(0,0,0,0.3); }
-  @media (max-width:520px) { .wc-bar { padding:8px 8px; gap:5px; justify-content:center; } .wc-bar a, .wc-bar button, .wc-pill { padding:8px 10px; font-size:12px; } .wc-bar-title { display:none; } body.wc-editing { padding-top:60px; } }
+  @media (max-width:520px) { .wc-bar-lbl { display:none; } .wc-bar-icon { display:inline; } .wc-bar { padding:8px 8px; gap:5px; justify-content:center; } .wc-bar a, .wc-bar button, .wc-pill { padding:8px 10px; font-size:12px; } .wc-bar-title { display:none; } body.wc-editing { padding-top:60px; } }
 `;
 
 function toolbar({ par, t, previewHref, isDraft, freeEligible }) {
@@ -96,7 +103,8 @@ function toolbar({ par, t, previewHref, isDraft, freeEligible }) {
     : `<span class="wc-pill">${escapeHtml(t.editorPublished)}</span>`;
   return `<div class="wc-bar">
     <div class="wc-bar-title">✎ ${escapeHtml(t.editorBadge)}<small>${escapeHtml(t.editorBadgeHint)}${isDraft ? " · " + escapeHtml(t.draftLabel) : ""}</small></div>
-    <button type="button" data-open="panel-design">🎨 ${escapeHtml(t.editorDesign)}</button>
+    <button type="button" data-open="panel-design" aria-label="${escapeHtml(t.editorDesign)}">🎨<span class="wc-bar-lbl"> ${escapeHtml(t.editorDesign)}</span></button>
+    <button type="button" data-open="panel-order" aria-label="${escapeHtml(t.editorOrder)}">⇅<span class="wc-bar-lbl"> ${escapeHtml(t.editorOrder)}</span></button>
     <a href="${escapeHtml(previewHref)}">${escapeHtml(t.editorPreview)}</a>
     <a href="/partner/dashboard">${escapeHtml(t.editorDone)}</a>
     ${publish}
@@ -117,7 +125,7 @@ function panelForm(parId, section, body, t) {
   return `<form class="wc-form" method="POST" action="/api/couple-section-update"><input type="hidden" name="par_id" value="${parId}"><input type="hidden" name="section" value="${section}">${body}<div class="wc-error" hidden></div>${footer(t)}</form>`;
 }
 
-function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, nev1, nev2, hasPhoto, photoVersion, currentStyleId }) {
+function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, sorrend, nev1, nev2, hasPhoto, photoVersion, currentStyleId }) {
   const eventVisible = Math.min(EDIT_MAX_EVENTS, Math.max(esemenyek.length + 1, 2));
   const eventRows = Array.from({ length: EDIT_MAX_EVENTS }, (_, i) => {
     const ev = esemenyek[i] || { ido: "", nev: "" };
@@ -257,6 +265,24 @@ function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, 
       )
     ),
     dlg(
+      "order",
+      t.editorTitleOrder,
+      panelForm(
+        par.id,
+        "order",
+        `<p class="wc-hint">${escapeHtml(t.editorOrderHint)}</p>
+        <ul class="wc-order" id="wc-order">${sorrend
+          .map(
+            (k) =>
+              `<li data-key="${k}"><span class="wc-handle" aria-hidden="true">⠿</span><span class="wc-order-name">${escapeHtml(
+                { message: t.editorTitleMessage, location: t.editorTitleLocation, program: t.editorTitleProgram, buttons: t.editorTitleButtons }[k]
+              )}</span><button type="button" data-move="-1" aria-label="${escapeHtml(t.editorMoveUp)}">▲</button><button type="button" data-move="1" aria-label="${escapeHtml(t.editorMoveDown)}">▼</button><input type="hidden" name="sorrend" value="${k}"></li>`
+          )
+          .join("")}</ul>`,
+        t
+      )
+    ),
+    dlg(
       "design",
       t.editorTitleDesign,
       panelForm(
@@ -296,6 +322,33 @@ function script({ t }) {
   var COPY = ${copyForClient};
   var root = document.documentElement;
   var designPanel = document.getElementById("panel-design");
+  var NONMODAL = ["panel-design", "panel-order"];
+  var orderList = document.getElementById("wc-order");
+  function readOrder() { return Array.prototype.map.call(orderList.children, function (li) { return li.getAttribute("data-key"); }); }
+  var currentOrder = readOrder();
+  // A szekciók az oldalon a felező (.divider) után következnek; a sorrend élő előnézete
+  // az oldalon lévő zónák átrendezésével történik.
+  function applyOrder(keys) {
+    var ref = document.querySelector(".card .divider");
+    if (!ref) return;
+    keys.forEach(function (k) {
+      var el = document.getElementById("zone-" + k);
+      if (el) { ref.after(el); ref = el; }
+    });
+  }
+  function revertOrder() {
+    currentOrder.forEach(function (k) {
+      var li = orderList.querySelector('[data-key="' + k + '"]');
+      if (li) orderList.appendChild(li);
+    });
+    applyOrder(currentOrder);
+  }
+  function closeNonModal(d) {
+    if (!d || !d.open) return;
+    d.close();
+    if (d.id === "panel-design") revertDesign();
+    if (d.id === "panel-order") revertOrder();
+  }
   var currentId = document.getElementById("wc-stilus").value;
 
   // Minden eseménykezelő delegált (a document-en), mert mentés után a kártya és a
@@ -304,7 +357,7 @@ function script({ t }) {
     var f = d.querySelector("form");
     return f ? new URLSearchParams(new FormData(f)).toString() : "";
   }
-  function isDirty(d) { return d.id !== "panel-design" && d.__snap !== undefined && snapshot(d) !== d.__snap; }
+  function isDirty(d) { return NONMODAL.indexOf(d.id) < 0 && d.__snap !== undefined && snapshot(d) !== d.__snap; }
   function tryClose(d) {
     if (isDirty(d) && !window.confirm(COPY.unsaved)) return false;
     d.close();
@@ -314,7 +367,13 @@ function script({ t }) {
     var d = document.getElementById(id);
     if (!d || d.open) return;
     d.__snap = snapshot(d);
-    if (id === "panel-design") d.show(); else d.showModal();
+    if (NONMODAL.indexOf(id) > -1) {
+      NONMODAL.forEach(function (other) { if (other !== id) closeNonModal(document.getElementById(other)); });
+      d.show();
+    } else {
+      NONMODAL.forEach(function (other) { closeNonModal(document.getElementById(other)); });
+      d.showModal();
+    }
   }
   function validUrl(v) {
     v = v.trim();
@@ -362,6 +421,29 @@ function script({ t }) {
   });
   document.addEventListener("pointermove", function (e) { if (cropDrag) cropFromEvent(cropDrag, e); });
   document.addEventListener("pointerup", function () { cropDrag = null; });
+  var orderDrag = null;
+  document.addEventListener("pointerdown", function (e) {
+    var h = e.target.closest && e.target.closest(".wc-handle");
+    if (!h) return;
+    e.preventDefault();
+    orderDrag = h.closest("li");
+    orderDrag.classList.add("dragging");
+  });
+  document.addEventListener("pointermove", function (e) {
+    if (!orderDrag) return;
+    var items = Array.prototype.filter.call(orderList.children, function (x) { return x !== orderDrag; });
+    var before = null;
+    for (var i = 0; i < items.length; i++) {
+      var r = items[i].getBoundingClientRect();
+      if (e.clientY < r.top + r.height / 2) { before = items[i]; break; }
+    }
+    if (before) { if (orderDrag.nextElementSibling !== before) orderList.insertBefore(orderDrag, before); }
+    else if (orderList.lastElementChild !== orderDrag) orderList.appendChild(orderDrag);
+    applyOrder(readOrder());
+  });
+  function endOrderDrag() { if (orderDrag) { orderDrag.classList.remove("dragging"); orderDrag = null; } }
+  document.addEventListener("pointerup", endOrderDrag);
+  document.addEventListener("pointercancel", endOrderDrag);
   document.addEventListener("cancel", function (e) {
     var d = e.target;
     if (d.matches && d.matches("dialog.wc-dlg") && isDirty(d) && !window.confirm(COPY.unsaved)) e.preventDefault();
@@ -413,7 +495,7 @@ function script({ t }) {
         if (!card || !fresh) throw new Error("refresh");
         card.innerHTML = fresh.innerHTML;
         doc.querySelectorAll("dialog.wc-dlg").forEach(function (nd) {
-          if (nd.id === "panel-design") return;
+          if (NONMODAL.indexOf(nd.id) > -1) return;
           var od = document.getElementById(nd.id);
           if (od) { if (od.open) od.close(); od.replaceWith(nd); }
         });
@@ -428,12 +510,20 @@ function script({ t }) {
     if (t.closest("[data-tip-close]")) { hideTip(); return; }
     var opener = t.closest("[data-open]");
     if (opener) { e.preventDefault(); hideTip(); openPanel(opener.getAttribute("data-open")); return; }
-    if (t.matches("dialog.wc-dlg") && t.id !== "panel-design") { tryClose(t); return; }
+    if (t.matches("dialog.wc-dlg") && NONMODAL.indexOf(t.id) < 0) { tryClose(t); return; }
     var closer = t.closest("[data-close]");
     if (closer) {
       var dlg = closer.closest("dialog");
-      if (dlg && dlg.id === "panel-design") { dlg.close(); revertDesign(); }
+      if (dlg && NONMODAL.indexOf(dlg.id) > -1) closeNonModal(dlg);
       else if (dlg) tryClose(dlg);
+      return;
+    }
+    var mv = t.closest("[data-move]");
+    if (mv) {
+      var li = mv.closest("li"), dir = parseInt(mv.getAttribute("data-move"), 10);
+      if (dir < 0 && li.previousElementSibling) li.parentNode.insertBefore(li, li.previousElementSibling);
+      else if (dir > 0 && li.nextElementSibling) li.parentNode.insertBefore(li.nextElementSibling, li);
+      applyOrder(readOrder());
       return;
     }
     var ratio = t.closest("[data-ratio]");
@@ -502,10 +592,13 @@ function script({ t }) {
     if (problem) return;
     var btn = form.querySelector('[type="submit"]');
     if (btn) btn.disabled = true;
-    var isStyle = form.querySelector('[name="section"]').value === "style";
+    var sectionName = form.querySelector('[name="section"]').value;
+    var isStyle = sectionName === "style";
+    var isOrder = sectionName === "order";
     fetch(form.action, { method: "POST", body: new FormData(form), headers: { Accept: "application/json" }, credentials: "same-origin" })
       .then(function (r) { if (!r.ok) throw new Error("save"); return r.json(); })
       .then(function () {
+        if (isOrder) { currentOrder = readOrder(); closeNonModal(document.getElementById("panel-order")); toast(COPY.saved); return; }
         if (isStyle) { currentId = document.getElementById("wc-stilus").value; designPanel.close(); toast(COPY.saved); return; }
         return refresh().then(function () { toast(COPY.saved); });
       })

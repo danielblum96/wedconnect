@@ -55,7 +55,7 @@ export async function onRequestGet(context) {
   if (staticResp) return staticResp;
 
   const par = await env.DB.prepare(
-    "SELECT id, slug, par_neve, nev1, nev2, helyszin, foto_beallitas, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
+    "SELECT id, slug, par_neve, nev1, nev2, helyszin, foto_beallitas, szekcio_sorrend, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
   )
     .bind(slug)
     .first();
@@ -202,6 +202,21 @@ export async function onRequestGet(context) {
   const photoZone = editZone("photo", photoHtml, zoneOpts({ empty: !par.fenykep_frissitve, addLabel: et && et.editorAddPhoto, penLabel: et && et.editorPen }));
   const messageZone = editZone("message", `<p class="message">${message}</p>`, zoneOpts({ empty: false, penLabel: et && et.editorPen }));
 
+  const DEFAULT_ORDER = ["message", "location", "program", "buttons"];
+  let sorrend = DEFAULT_ORDER;
+  try {
+    const saved = par.szekcio_sorrend ? JSON.parse(par.szekcio_sorrend) : null;
+    if (Array.isArray(saved)) {
+      const valid = saved.filter((k, i) => DEFAULT_ORDER.includes(k) && saved.indexOf(k) === i);
+      sorrend = [...valid, ...DEFAULT_ORDER.filter((k) => !valid.includes(k))];
+    }
+  } catch (e) {
+    sorrend = DEFAULT_ORDER;
+  }
+  const sectionsHtml = sorrend
+    .map((k) => ({ message: messageZone, location: locationZone, program: timelineHtml, buttons: buttonsHtml })[k])
+    .join("\n    ");
+
   const lang = ["de", "en", "hu"].includes(par.nyelv) ? par.nyelv : "hu";
   const origin = new URL(request.url).origin;
   const ogDescription = `${displayDate} · ${(par.egyedi_uzenet || copy.defaultMessage).replace(/\s+/g, " ").slice(0, 160)}`;
@@ -322,8 +337,9 @@ ${published && par.fenykep_frissitve ? `<meta property="og:image" content="${esc
     align-items: center;
     justify-content: center;
     gap: 16px;
-    margin-top: 20px;
+    margin: 20px 0 26px;
   }
+  .cta-row:last-child { margin-bottom: 0; }
   .cta {
     display: inline-block;
     padding: 14px 34px;
@@ -345,7 +361,7 @@ ${published && par.fenykep_frissitve ? `<meta property="og:image" content="${esc
     border: 1.5px solid var(--accent);
   }
   .timeline {
-    margin: 8px 0 30px;
+    margin: 20px 0 30px;
     text-align: left;
   }
   .timeline-title {
@@ -394,7 +410,7 @@ ${published && par.fenykep_frissitve ? `<meta property="og:image" content="${esc
     opacity: 0.35;
     margin-top: 2px;
   }
-  .locations { margin: 8px 0 30px; }
+  .locations { margin: 20px 0 30px; }
   .loc-title {
     font-family: "Poppins", sans-serif;
     font-size: 0.78rem;
@@ -434,10 +450,7 @@ ${edit ? editorCss : ""}
     <div class="eyebrow">${escapeHtml(copy.eyebrow)}</div>
     ${namesZone}
     <div class="divider"><span class="line"></span><span class="mark">❖</span><span class="line"></span></div>
-    ${messageZone}
-    ${locationZone}
-    ${timelineHtml}
-    ${buttonsHtml}
+    ${sectionsHtml}
   </div>
   ${
     edit
@@ -450,6 +463,7 @@ ${edit ? editorCss : ""}
           esemenyek,
           helyek,
           fotoBeallitas,
+          sorrend,
           nev1: par.nev1 || (par.par_neve || "").split(" & ")[0] || "",
           nev2: par.nev2 || (par.par_neve || "").split(" & ")[1] || "",
           freeEligible,

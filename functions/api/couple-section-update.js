@@ -111,6 +111,11 @@ export async function onRequestPost(context) {
     await env.DB.prepare("UPDATE parok SET egyedi_gombok = ? WHERE id = ?")
       .bind(gombok.length ? JSON.stringify(gombok) : null, parId)
       .run();
+  } else if (section === "order") {
+    const known = ["message", "location", "program", "buttons"];
+    const wanted = formData.getAll("sorrend").map((v) => v.toString()).filter((v, i, arr) => known.includes(v) && arr.indexOf(v) === i);
+    const sorrend = [...wanted, ...known.filter((k) => !wanted.includes(k))];
+    await env.DB.prepare("UPDATE parok SET szekcio_sorrend = ? WHERE id = ?").bind(JSON.stringify(sorrend), parId).run();
   } else if (section === "photo") {
     const arany = (formData.get("foto_arany") || "").toString();
     const clamp = (v) => Math.max(0, Math.min(100, Math.round(Number(v)) || 0));
