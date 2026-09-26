@@ -337,7 +337,7 @@ ${published && par.fenykep_frissitve ? `<meta property="og:image" content="${esc
     align-items: center;
     justify-content: center;
     gap: 16px;
-    margin: 20px 0 26px;
+    margin: 20px 0 36px;
   }
   .cta-row:last-child { margin-bottom: 0; }
   .cta {
