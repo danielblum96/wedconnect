@@ -248,7 +248,7 @@ export async function renderDashboard(context, reseller) {
                 </div>`
               : `<div class="settled-banner"><span>${t.publishedBanner}</span></div>`
           }
-          <button type="button" class="btn-edit-open" data-edit-target="edit-modal-${p.id}" data-page-url="${escapeHtml(pageUrl)}">${t.edit}</button>
+          <button type="button" class="btn-edit-open" data-edit-target="edit-modal-${p.id}" data-edit-url="/${escapeHtml(p.slug)}?szerkesztes=1" data-page-url="${escapeHtml(pageUrl)}">${t.edit}</button>
           <dialog class="std-modal edit-modal" id="edit-modal-${p.id}">
             <button type="button" class="std-modal-close" aria-label="${t.modalClose}">&times;</button>
             <div class="std-modal-head">
@@ -1481,6 +1481,10 @@ ${
   // legutóbb megnyitott lépést emlékezi vissza.
   document.querySelectorAll(".btn-edit-open").forEach(function (btn) {
     btn.addEventListener("click", function () {
+      // A szerkesztés az oldalon belüli szerkesztő módban történik (functions/_utils/pageEditor.js);
+      // a lenti popup csak tartalék, amíg a data-edit-url be van állítva, nem nyílik meg.
+      var editUrl = btn.getAttribute("data-edit-url");
+      if (editUrl) { window.location.href = editUrl; return; }
       var modal = document.getElementById(btn.getAttribute("data-edit-target"));
       if (!modal) return;
       var tabs = modal.querySelector(".edit-tabs");

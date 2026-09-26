@@ -1,6 +1,8 @@
 import { FONT_RECIPES, namesFontSize, resolveStyleByStoredValue } from "./_utils/styles.js";
 import { escapeHtml, safeHref } from "./_utils/html.js";
-import { getCopy } from "./_utils/i18n.js";
+import { getCopy, getResellerCopy } from "./_utils/i18n.js";
+import { getSessionReseller } from "./_utils/auth.js";
+import { editZone, editorCss, editorLayer } from "./_utils/pageEditor.js";
 
 function notFound() {
   const html = `<!DOCTYPE html>
@@ -53,7 +55,7 @@ export async function onRequestGet(context) {
   if (staticResp) return staticResp;
 
   const par = await env.DB.prepare(
-    "SELECT par_neve, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
+    "SELECT id, slug, par_neve, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
   )
     .bind(slug)
     .first();
@@ -66,7 +68,15 @@ export async function onRequestGet(context) {
   // gyorsítótárazható.
   const published = !par.viszontelado_id || !!par.rendeles_id;
   const isDraft = !published;
-  if (isDraft) {
+  // Szerkesztő mód (?szerkesztes=1): CSAK a belépett tulajdonos partnernek, és
+  // a vázlat-kapun is átenged (a tulajdonosnak nem kell az előnézeti token).
+  let editReseller = null;
+  if (new URL(request.url).searchParams.get("szerkesztes") === "1" && par.viszontelado_id) {
+    const r = await getSessionReseller(request, env.DB);
+    if (r && r.id === par.viszontelado_id) editReseller = r;
+  }
+  const edit = !!editReseller;
+  if (isDraft && !edit) {
     const previewToken = new URL(request.url).searchParams.get("elonezet") || "";
     if (!par.elonezet_token || previewToken !== par.elonezet_token) return notFound();
   }
@@ -100,7 +110,10 @@ export async function onRequestGet(context) {
     ? `<img class="cover-photo" src="/foto/${encodeURIComponent(slug)}?v=${encodeURIComponent(par.fenykep_frissitve)}" alt="">`
     : "";
 
-  const buttonsHtml = gombok.length
+  const zoneOpts = (extra) => ({ edit, ...extra });
+  const et = edit ? getResellerCopy(editReseller.nyelv, editReseller.fiok_tipus).dashboard : null;
+
+  const buttonsHtml0 = gombok.length
     ? `<div class="cta-row">${gombok
         .map(
           (g, i) =>
@@ -109,7 +122,7 @@ export async function onRequestGet(context) {
         .join("")}</div>`
     : "";
 
-  const timelineHtml = esemenyek.length
+  const timelineHtml0 = esemenyek.length
     ? `<div class="timeline">
         <div class="timeline-title">${escapeHtml(copy.programTitle)}</div>
         <div class="timeline-list">
@@ -130,7 +143,13 @@ export async function onRequestGet(context) {
       </div>`
     : "";
 
+  const buttonsHtml = editZone("buttons", buttonsHtml0, zoneOpts({ empty: !gombok.length, addLabel: et && et.editorAddButtons, penLabel: et && et.editorPen }));
+  const timelineHtml = editZone("program", timelineHtml0, zoneOpts({ empty: !esemenyek.length, addLabel: et && et.editorAddProgram, penLabel: et && et.editorPen }));
+  const photoZone = editZone("photo", photoHtml, zoneOpts({ empty: !par.fenykep_frissitve, addLabel: et && et.editorAddPhoto, penLabel: et && et.editorPen }));
+  const messageZone = editZone("message", `<p class="message">${message}</p>`, zoneOpts({ empty: false, penLabel: et && et.editorPen }));
+
   const lang = ["de", "en", "hu"].includes(par.nyelv) ? par.nyelv : "hu";
+  const previewHref = published ? `/${slug}` : `/${slug}?elonezet=${encodeURIComponent(par.elonezet_token || "")}`;
 
   const html = `<!DOCTYPE html>
 <html lang="${lang}">
@@ -320,24 +339,42 @@ export async function onRequestGet(context) {
     color: var(--fg);
     padding-bottom: 22px;
   }
+${edit ? editorCss : ""}
 </style>
 </head>
-<body>
-  ${isDraft ? `<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#2b2620;color:#fff;text-align:center;font:600 12px/1.4 Arial,sans-serif;padding:7px 10px;">${escapeHtml(copy.draftRibbon)}</div>` : ""}
+<body${edit ? ' class="wc-editing"' : ""}>
+  ${isDraft && !edit ? `<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#2b2620;color:#fff;text-align:center;font:600 12px/1.4 Arial,sans-serif;padding:7px 10px;">${escapeHtml(copy.draftRibbon)}</div>` : ""}
   <div class="card">
-    ${photoHtml}
+    ${photoZone}
     <div class="eyebrow">${escapeHtml(copy.eyebrow)}</div>
     <h1 class="names">${escapeHtml(par.par_neve)}</h1>
     <div class="date">${displayDate}</div>
     <div class="divider"><span class="line"></span><span class="mark">❖</span><span class="line"></span></div>
-    <p class="message">${message}</p>
+    ${messageZone}
     ${timelineHtml}
     ${buttonsHtml}
   </div>
+  ${
+    edit
+      ? editorLayer({
+          par,
+          slug,
+          t: et,
+          lang: editReseller.nyelv,
+          gombok,
+          esemenyek,
+          hasPhoto: !!par.fenykep_frissitve,
+          photoVersion: par.fenykep_frissitve || "",
+          currentStyleId: style.id,
+          previewHref,
+          isDraft,
+        })
+      : ""
+  }
 </body>
 </html>`;
 
   const headers = { "Content-Type": "text/html; charset=utf-8", "X-Frame-Options": "SAMEORIGIN" };
-  if (isDraft) headers["Cache-Control"] = "no-store";
+  if (isDraft || edit) headers["Cache-Control"] = "no-store";
   return new Response(html, { headers });
 }
