@@ -200,7 +200,7 @@ export async function onRequestGet(context) {
   const targetMs = vs ? zonedToUtcMs(par.eskuvo_datuma, vs.ido) : null;
   const countdownZone = editZone("countdown", countdownHtml({ targetMs, copy }), zoneOpts({ sortable: true, empty: targetMs == null, addLabel: et && et.editorAddCountdown, penLabel: et && et.editorPen }));
   const storyItems = parseJson(par.tortenet, []).filter((x) => x && /^[a-f0-9]{8}$/.test(x.id || ""));
-  const storyZone = editZone("story", storyHtml({ items: storyItems, slug, copy }), zoneOpts({ sortable: true, empty: !storyItems.length, addLabel: et && et.editorAddStory, penLabel: et && et.editorPen }));
+  const storyZone = editZone("story", storyHtml({ items: storyItems, lang: ["de", "en", "hu"].includes(par.nyelv) ? par.nyelv : "hu", copy }), zoneOpts({ sortable: true, empty: !storyItems.length, addLabel: et && et.editorAddStory, penLabel: et && et.editorPen }));
   const dividerKey = resolveDivider(par.elvalaszto);
   const dividerZone = editZone("divider", dividerHtml(dividerKey), zoneOpts({ empty: dividerKey === "nincs", addLabel: et && et.editorAddDivider, penLabel: et && et.editorPen }));
   const namesZone = editZone(

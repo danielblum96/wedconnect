@@ -110,13 +110,10 @@ export const editorCss = `
   .wc-story-row { border:1px solid #ece4d6; border-radius:10px; padding:12px 12px 4px; margin-bottom:12px; }
   .wc-story-top { display:flex; gap:8px; align-items:flex-start; }
   .wc-story-top input { flex:1; min-width:0; }
+  .wc-dlg .wc-story-top input[type=date] { flex:1 1 0; width:auto; min-width:0; }
   .wc-story-tools { display:flex; gap:4px; flex:none; }
   .wc-story-tools button { width:32px; height:40px; border:1px solid #ddd6c9; background:#fff; border-radius:8px; cursor:pointer; color:#2b2620; font-size:13px; }
   .wc-story-row textarea { min-height:64px; }
-  .wc-story-photo { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 10px; }
-  .wc-story-thumb { width:64px; height:48px; object-fit:cover; border-radius:6px; }
-  .wc-story-thumb[hidden], .wc-story-photo [hidden] { display:none !important; }
-  .wc-story-upload { cursor:pointer; }
   .wc-toast.error { background:#b1451f; }
   .wc-loc-block { border:1px solid #ece4d6; border-radius:10px; padding:12px 12px 2px; margin-bottom:10px; }
   .wc-loc-block[hidden] { display:none; }
@@ -189,19 +186,12 @@ function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, 
 
   const storyRow = (it) => `<div class="wc-story-row">
       <input type="hidden" name="story_id" value="${escapeHtml(it.id || "")}">
-      <input type="hidden" name="story_foto" value="${escapeHtml(it.foto || "")}">
       <div class="wc-story-top">
-        <input type="text" name="story_datum" maxlength="60" placeholder="${escapeHtml(t.editorStoryDate)}" value="${escapeHtml(it.datum || "")}" autocomplete="off">
+        <input type="date" name="story_datum" value="${escapeHtml(/^\d{4}-\d{2}-\d{2}$/.test(it.datum || "") ? it.datum : "")}" aria-label="${escapeHtml(t.editorStoryDate)}">
         <span class="wc-story-tools"><button type="button" data-story-move="-1" aria-label="${escapeHtml(t.editorStoryUp)}">▲</button><button type="button" data-story-move="1" aria-label="${escapeHtml(t.editorStoryDown)}">▼</button><button type="button" data-story-remove aria-label="${escapeHtml(t.editorStoryRemove)}" title="${escapeHtml(t.editorStoryRemove)}">✕</button></span>
       </div>
       <input type="text" name="story_cim" maxlength="100" placeholder="${escapeHtml(t.editorStoryTitle)}" value="${escapeHtml(it.cim || "")}" autocomplete="off">
       <textarea name="story_szoveg" maxlength="500" rows="3" placeholder="${escapeHtml(t.editorStoryText)}">${escapeHtml(it.szoveg || "")}</textarea>
-      <div class="wc-story-photo">
-        <img class="wc-story-thumb" alt=""${it.foto && it.id ? ` src="/foto/${encodeURIComponent(slug)}/${encodeURIComponent(it.id)}?v=${encodeURIComponent(it.foto)}"` : " hidden"}>
-        <label class="wc-chip wc-story-upload">📷 <span class="wc-story-uptxt">${escapeHtml(it.foto ? t.editorStoryPhotoChange : t.editorStoryPhoto)}</span><input type="file" accept="image/*" class="wc-story-file" hidden></label>
-        <button type="button" class="wc-btn-danger" data-story-photo-remove${it.foto ? "" : " hidden"}>${escapeHtml(t.editorStoryPhotoRemove)}</button>
-        <span class="wc-status"></span>
-      </div>
     </div>`;
 
   const dlg = (id, title, body, extra = "") =>
@@ -387,8 +377,6 @@ function script({ t }) {
     errButton: t.editorErrButton,
     errUrl: t.editorErrUrl,
     errEvent: t.editorErrEvent,
-    storyPhoto: t.editorStoryPhoto,
-    storyPhotoChange: t.editorStoryPhotoChange,
   });
   return `<script type="module">
   import { resizeImageToWebp } from "/assets/photo-upload.js?v=1";
@@ -685,15 +673,6 @@ function script({ t }) {
       else if (sdir > 0 && srow.nextElementSibling) srow.parentNode.insertBefore(srow.nextElementSibling, srow);
       return;
     }
-    var sprem = t.closest("[data-story-photo-remove]");
-    if (sprem) {
-      var prow = sprem.closest(".wc-story-row");
-      prow.querySelector('[name="story_foto"]').value = "";
-      prow.querySelector(".wc-story-thumb").hidden = true;
-      prow.querySelector(".wc-story-uptxt").textContent = COPY.storyPhoto;
-      sprem.hidden = true;
-      return;
-    }
     if (t.closest("[data-tip-close]")) { hideTip(); return; }
     var opener = t.closest("[data-open]");
     if (opener) { e.preventDefault(); hideTip(); openPanel(opener.getAttribute("data-open")); return; }
@@ -785,30 +764,6 @@ function script({ t }) {
 
   // Borítókép: a böngészőben átméretezve/WebP-re alakítva megy fel.
   document.addEventListener("change", function (e) {
-    if (e.target.classList && e.target.classList.contains("wc-story-file")) {
-      var sin = e.target, srow = sin.closest(".wc-story-row"), sfile = sin.files && sin.files[0];
-      if (!sfile) return;
-      var sstatus = srow.querySelector(".wc-status"), sid = srow.querySelector('[name="story_id"]').value;
-      sstatus.className = "wc-status"; sstatus.textContent = COPY.uploading;
-      resizeImageToWebp(sfile, 1400).then(function (blob) {
-        var body = new FormData();
-        body.append("par_id", document.querySelector(".wc-bar").getAttribute("data-par-id"));
-        body.append("item_id", sid);
-        body.append("fenykep", blob, "s.webp");
-        return fetch("/api/couple-story-photo", { method: "POST", body: body, credentials: "same-origin" });
-      }).then(function (r) { if (!r.ok) throw new Error("upload"); return r.json(); })
-        .then(function (j) {
-          srow.querySelector('[name="story_foto"]').value = j.version;
-          var th = srow.querySelector(".wc-story-thumb");
-          th.src = "/foto/" + document.getElementById("wc-photo").getAttribute("data-slug") + "/" + sid + "?v=" + j.version;
-          th.hidden = false;
-          srow.querySelector("[data-story-photo-remove]").hidden = false;
-          srow.querySelector(".wc-story-uptxt").textContent = COPY.storyPhotoChange;
-          sstatus.textContent = ""; sin.value = "";
-        })
-        .catch(function () { sstatus.className = "wc-status error"; sstatus.textContent = COPY.uploadError; });
-      return;
-    }
     if (e.target.id !== "wc-photo-input") return;
     var file = e.target.files && e.target.files[0];
     if (!file) return;

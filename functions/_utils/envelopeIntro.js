@@ -154,12 +154,12 @@ export const envelopeCss = `
   html.wc-env-lock, html.wc-env-lock body { overflow: hidden; }
   #wc-env { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; background: var(--bg); transition: background 0.9s ease 0.45s; -webkit-tap-highlight-color: transparent; text-align: center; }
   #wc-env * { box-sizing: border-box; }
-  #wc-env .env-stage { position: relative; width: 100%; max-width: 520px; height: 100%; perspective: 1500px; }
+  #wc-env .env-stage { position: relative; width: 100%; height: 100%; perspective: 1500px; }
   #wc-env .env-wing { position: absolute; top: 0; bottom: 0; width: 50%; overflow: hidden; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .33 0 0 0 0 .22 0 0 0 .5 -.14'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"), linear-gradient(90deg, rgba(120,90,50,0.05), rgba(255,255,255,0.08)), var(--bg); backface-visibility: hidden; will-change: transform; transition: transform 1.05s cubic-bezier(0.65, 0.05, 0.25, 1) 0.45s; }
   #wc-env .env-wing-l { left: 0; transform-origin: 0 50%; box-shadow: inset -12px 0 20px -14px rgba(0,0,0,0.35); }
   #wc-env .env-wing-r { right: 0; transform-origin: 100% 50%; box-shadow: inset 12px 0 20px -14px rgba(0,0,0,0.35); }
-  #wc-env .env-wing-r .env-orn { transform: scaleX(-1); }
-  #wc-env .env-orn { position: absolute; inset: 0; width: 100%; height: 100%; color: var(--env-orn, var(--accent)); opacity: 0.78; filter: drop-shadow(1px 1px 0 rgba(255,255,255,0.45)) drop-shadow(-1px -1px 0 rgba(0,0,0,0.16)); }
+  #wc-env .env-wing-r .env-orn { right: auto; left: 0; transform: scaleX(-1); }
+  #wc-env .env-orn { position: absolute; top: 0; bottom: 0; right: 0; width: min(100%, 380px); height: 100%; color: var(--env-orn, var(--accent)); opacity: 0.78; filter: drop-shadow(1px 1px 0 rgba(255,255,255,0.45)) drop-shadow(-1px -1px 0 rgba(0,0,0,0.16)); }
   #wc-env .env-open { position: absolute; inset: 0; z-index: 2; width: 100%; background: none; border: 0; padding: 0; cursor: pointer; outline: none; }
   #wc-env .env-open:focus-visible ~ .env-seal { box-shadow: 0 0 0 4px rgba(255,255,255,0.7), 0 0 0 6px var(--env-seal, var(--accent)), 0 10px 20px rgba(0,0,0,0.35); }
   #wc-env .env-seal { position: absolute; left: 50%; top: 50%; z-index: 3; width: 104px; height: 104px; margin: -52px 0 0 -52px; display: flex; align-items: center; justify-content: center; pointer-events: none;

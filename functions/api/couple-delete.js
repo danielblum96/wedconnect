@@ -1,5 +1,4 @@
 import { getSessionReseller, dashboardHref } from "../_utils/auth.js";
-import { deleteStoryPhotos } from "../_utils/pageLifecycle.js";
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -39,7 +38,6 @@ export async function onRequestPost(context) {
   if (par && par.slug) {
     try {
       await env.PHOTOS.delete(`parok/${par.slug}.webp`);
-      await deleteStoryPhotos(env, par.slug);
     } catch (e) {
       console.error(`couple-delete: borítókép törlése sikertelen (slug=${par.slug}): ${e.message}`);
     }

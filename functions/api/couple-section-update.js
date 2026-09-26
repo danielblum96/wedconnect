@@ -2,7 +2,6 @@ import { getSessionReseller, dashboardHref } from "../_utils/auth.js";
 import { getStyle } from "../_utils/styles.js";
 import { normalizeUrl } from "../_utils/html.js";
 import { DIVIDER_KEYS } from "../_utils/dividers.js";
-import { deleteStoryPhotos } from "../_utils/pageLifecycle.js";
 
 // Az oldalon belüli szerkesztő (functions/_utils/pageEditor.js) EGYETLEN szekciót
 // ment: az üzenetet, a programot, a gombokat vagy a stílust - a többi mezőhöz
@@ -124,28 +123,25 @@ export async function onRequestPost(context) {
     const datumok = formData.getAll("story_datum");
     const cimek = formData.getAll("story_cim");
     const szovegek = formData.getAll("story_szoveg");
-    const fotok = formData.getAll("story_foto");
     const items = [];
     const seen = new Set();
     for (let i = 0; i < ids.length && items.length < MAX_STORY; i++) {
       const cim = (cimek[i] || "").toString().trim().slice(0, 100);
       const szoveg = (szovegek[i] || "").toString().trim().slice(0, 500);
-      const datum = (datumok[i] || "").toString().trim().slice(0, 60);
+      let datum = (datumok[i] || "").toString().trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(datum) || Number.isNaN(Date.parse(datum))) datum = "";
       if (!cim && !szoveg && !datum) continue;
       let id = (ids[i] || "").toString();
       if (!/^[a-f0-9]{8}$/.test(id) || seen.has(id)) id = Array.from(crypto.getRandomValues(new Uint8Array(4)), (b) => b.toString(16).padStart(2, "0")).join("");
       seen.add(id);
-      let foto = (fotok[i] || "").toString().replace(/[^0-9]/g, "").slice(0, 16) || null;
-      if (foto && !(await env.PHOTOS.head(`parok/${par.slug}/tortenet/${id}.webp`))) foto = null;
-      items.push({ id, datum, cim, szoveg, foto });
+      items.push({ id, datum, cim, szoveg });
     }
-    await env.DB.prepare("UPDATE parok SET tortenet = ? WHERE id = ?").bind(items.length ? JSON.stringify(items) : null, parId).run();
-    // Árva fotók takarítása: csak a megmaradt állomások fotói maradnak az R2-ben.
-    try {
-      await deleteStoryPhotos(env, par.slug, items.filter((x) => x.foto).map((x) => x.id));
-    } catch (e) {
-      console.error(`story photo cleanup failed: ${e.message}`);
-    }
+    // Időrendbe rendezés: a dátummal rendelkező állomások a saját "helyeiken" belül rendeződnek
+    // dátum szerint, a dátum nélküliek a helyükön maradnak.
+    const dated = items.filter((x) => x.datum).sort((a, b) => a.datum.localeCompare(b.datum));
+    let k = 0;
+    const sorted = items.map((x) => (x.datum ? dated[k++] : x));
+    await env.DB.prepare("UPDATE parok SET tortenet = ? WHERE id = ?").bind(sorted.length ? JSON.stringify(sorted) : null, parId).run();
   } else if (section === "countdown") {
     let ido = (formData.get("vissza_ido") || "").toString().trim();
     if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(ido)) ido = "";

@@ -71,7 +71,17 @@ export const countdownScript = `<script>
 
 // "A mi történetünk": egyoszlopos idővonal (bal oldali vonal + pontok), állomásonként dátum, cím,
 // fotó és rövid szöveg.
-export function storyHtml({ items, slug, copy }) {
+// A dátum a kiválasztott naptári dátumból (YYYY-MM-DD) az oldal nyelvén formázva jelenik meg
+// (pl. "2019. június 14."). Régi, szabad szöveges érték változatlanul látszik.
+export function formatStoryDate(value, lang) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value || "")) return value || "";
+  const locale = { hu: "hu-HU", de: "de-DE", en: "en-GB" }[lang] || "hu-HU";
+  return new Intl.DateTimeFormat(locale, { timeZone: "UTC", year: "numeric", month: "long", day: "numeric" }).format(new Date(`${value}T00:00:00Z`));
+}
+
+// "A mi történetünk": egyoszlopos idővonal (bal oldali vonal + pontok), állomásonként dátum, cím
+// és rövid szöveg (fotó nélkül).
+export function storyHtml({ items, lang, copy }) {
   if (!items.length) return "";
   return `<div class="story">
     <div class="story-title reveal">${escapeHtml(copy.storyTitle)}</div>
@@ -81,9 +91,8 @@ export function storyHtml({ items, slug, copy }) {
           (it) => `
       <div class="story-item reveal">
         <span class="story-dot"></span>
-        ${it.datum ? `<div class="story-date">${escapeHtml(it.datum)}</div>` : ""}
+        ${it.datum ? `<div class="story-date">${escapeHtml(formatStoryDate(it.datum, lang))}</div>` : ""}
         ${it.cim ? `<div class="story-head">${escapeHtml(it.cim)}</div>` : ""}
-        ${it.foto ? `<img class="story-photo" src="/foto/${encodeURIComponent(slug)}/${encodeURIComponent(it.id)}?v=${encodeURIComponent(it.foto)}" loading="lazy" alt="">` : ""}
         ${it.szoveg ? `<p class="story-text">${escapeHtml(it.szoveg)}</p>` : ""}
       </div>`
         )
@@ -111,7 +120,6 @@ export const sectionsCss = `
   .story-dot { position: absolute; left: -30px; top: 5px; width: 11px; height: 11px; border-radius: 50%; background: var(--bg); border: 1.5px solid var(--accent); }
   .story-date { font-family: "Poppins", sans-serif; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent-text); }
   .story-head { font-size: 1.5rem; font-weight: 500; line-height: 1.25; color: var(--fg); margin: 2px 0 8px; }
-  .story-photo { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 4px; margin: 8px 0 12px; }
   .story-text { font-size: 1.12rem; line-height: 1.55; color: var(--fg); opacity: 0.92; margin: 0; white-space: pre-line; }
 `;
 
@@ -123,7 +131,6 @@ export const scrollAnimCss = `
   .cover-wrap .cover-photo { margin-bottom: 0; border-radius: 0; }
   .anim .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) var(--d, 0ms), transform 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) var(--d, 0ms); }
   .anim .reveal.in { opacity: 1; transform: none; }
-  .anim .story-photo.reveal { transform: translateY(22px) scale(0.985); }
   .anim .cover-wrap .cover-photo { scale: 1.14; transition: scale 2s cubic-bezier(0.22, 0.61, 0.36, 1); will-change: scale, translate; }
   .anim .cover-wrap.in .cover-photo { scale: 1.08; }
 `;

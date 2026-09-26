@@ -164,3 +164,7 @@ CREATE INDEX IF NOT EXISTS idx_email_kuldesek_viszontelado ON email_kuldesek (vi
 --                               A fotók az R2-ben: parok/<slug>/tortenet/<id>.webp (kiszolgálás: /foto/<slug>/<id>)
 --   parok: visszaszamlalo TEXT  JSON {"ido":"15:00"} = be van kapcsolva (az "ido" opcionális); NULL = ki
 -- Az átrendezhető szekciók kulcsai (szekcio_sorrend): message, countdown, story, location, program, buttons.
+
+-- Módosítás (2026-09-27): a "A mi történetünk" állomásai FOTÓ NÉLKÜL készülnek. A parok.tortenet elemei:
+-- {"id":"a1b2c3d4","datum":"YYYY-MM-DD","cim":"...","szoveg":"..."} (a dátum naptári választóból jön, a dátummal
+-- rendelkező elemek mentéskor időrendbe rendeződnek). A fenti "foto" mező és az R2 "tortenet" képek megszűntek.
