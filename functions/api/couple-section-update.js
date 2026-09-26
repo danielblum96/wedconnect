@@ -2,6 +2,7 @@ import { getSessionReseller, dashboardHref } from "../_utils/auth.js";
 import { getStyle } from "../_utils/styles.js";
 import { normalizeUrl } from "../_utils/html.js";
 import { DIVIDER_KEYS } from "../_utils/dividers.js";
+import { normalizeOrder } from "../_utils/sectionOrder.js";
 
 // Az oldalon belüli szerkesztő (functions/_utils/pageEditor.js) EGYETLEN szekciót
 // ment: az üzenetet, a programot, a gombokat vagy a stílust - a többi mezőhöz
@@ -114,9 +115,7 @@ export async function onRequestPost(context) {
       .bind(gombok.length ? JSON.stringify(gombok) : null, parId)
       .run();
   } else if (section === "order") {
-    const known = ["message", "countdown", "story", "location", "program", "buttons"];
-    const wanted = formData.getAll("sorrend").map((v) => v.toString()).filter((v, i, arr) => known.includes(v) && arr.indexOf(v) === i);
-    const sorrend = [...wanted, ...known.filter((k) => !wanted.includes(k))];
+    const sorrend = normalizeOrder(formData.getAll("sorrend").map((v) => v.toString()));
     await env.DB.prepare("UPDATE parok SET szekcio_sorrend = ? WHERE id = ?").bind(JSON.stringify(sorrend), parId).run();
   } else if (section === "story") {
     const ids = formData.getAll("story_id");

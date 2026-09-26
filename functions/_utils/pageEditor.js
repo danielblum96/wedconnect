@@ -133,6 +133,7 @@ export const editorCss = `
   .wc-el.on { background:#faf9f5; }
   .wc-el.on .wc-el-state { background:#e6efe0; color:#3d6b2e; }
   .wc-side-backdrop { display:none; }
+  .wc-ghost { position:fixed; z-index:10001; pointer-events:none; transform:translate(14px,14px); background:#fff; color:#2b2620; border:1.5px solid #b48b56; border-radius:10px; padding:8px 14px; font:600 13px/1.3 "Poppins",Arial,sans-serif; box-shadow:0 12px 30px rgba(0,0,0,0.3); }
   @media (min-width:900px) { body.wc-editing { padding-left:300px; } .wc-bar-elements { display:none !important; } }
   @media (max-width:899px) {
     .wc-side { top:46px; width:min(86vw, 340px); transform:translateX(-104%); transition:transform 0.22s ease; box-shadow:8px 0 30px rgba(0,0,0,0.25); }
@@ -439,18 +440,84 @@ function script({ t }) {
     return fetch("/api/couple-section-update", { method: "POST", body: body, headers: { Accept: "application/json" }, credentials: "same-origin" })
       .then(function (r) { if (!r.ok) throw new Error("save"); });
   }
-  var pendingAdd = null;
-  function addElement(k) {
+  var suppressClick = false;
+  // Elem húzása a bal oldali oszlopból közvetlenül az oldalra (csak egérrel; érintésen a kattintás/fiók marad).
+  var ext = null, ghost = null;
+  function extTarget(y) {
+    var zs = sortableZones();
+    for (var i = 0; i < zs.length; i++) {
+      var r = zs[i].getBoundingClientRect();
+      if (y < r.top + r.height / 2) return { before: zs[i], all: zs };
+    }
+    return { before: null, all: zs };
+  }
+  function extUpdate(e) {
+    ghost.style.left = e.clientX + "px"; ghost.style.top = e.clientY + "px";
+    var card = document.querySelector(".card").getBoundingClientRect(), sideR = side.getBoundingClientRect();
+    var inside = e.clientX > Math.max(sideR.right, card.left - 40) && e.clientX < card.right + 40 && e.clientY > 52;
+    ext.inside = inside;
+    if (!inside) { dropLine.hidden = true; return; }
+    var tg = extTarget(e.clientY), y;
+    if (tg.before) y = tg.before.getBoundingClientRect().top - 15;
+    else if (tg.all.length) y = tg.all[tg.all.length - 1].getBoundingClientRect().bottom + 15;
+    else y = e.clientY;
+    dropLine.style.left = (card.left + 16) + "px"; dropLine.style.width = Math.max(0, card.width - 32) + "px"; dropLine.style.top = (y - 2) + "px";
+    dropLine.hidden = false;
+    ext.before = tg.before ? tg.before.id.replace("zone-", "") : null;
+  }
+  document.addEventListener("pointerdown", function (e) {
+    if (e.pointerType !== "mouse" || e.button !== 0) return;
+    var btn = e.target.closest && e.target.closest(".wc-el");
+    if (!btn || btn.classList.contains("on")) return;
+    ext = { key: btn.getAttribute("data-add-el"), x: e.clientX, y: e.clientY, active: false, inside: false, before: null, label: btn.querySelector("b").textContent };
+  });
+  document.addEventListener("pointermove", function (e) {
+    if (!ext) return;
+    if (!ext.active) {
+      if (Math.abs(e.clientX - ext.x) + Math.abs(e.clientY - ext.y) < 8) return;
+      ext.active = true;
+      ghost = document.createElement("div"); ghost.className = "wc-ghost"; ghost.textContent = "＋ " + ext.label;
+      document.body.appendChild(ghost); document.body.classList.add("wc-drag-mode");
+    }
+    extUpdate(e);
+  });
+  function extEnd(commit) {
+    if (!ext) return;
+    var x = ext; ext = null;
+    if (!x.active) return;
+    if (ghost) { ghost.remove(); ghost = null; }
+    document.body.classList.remove("wc-drag-mode"); dropLine.hidden = true;
+    suppressClick = true; setTimeout(function () { suppressClick = false; }, 60);
+    if (commit && x.inside) { closeSide(); addElement(x.key, x.before); }
+  }
+  document.addEventListener("pointerup", function () { extEnd(true); });
+  document.addEventListener("pointercancel", function () { extEnd(false); });
+  var pendingAdd = null, pendingBefore = null;
+  // Az újonnan hozzáadott elem helye: a megadott elem elé (húzásnál), különben a kép legelőre, a díszítő elem a nevek
+  // mögé, minden más az oldal aljára; utána odagörgetünk. A sorrend azonnal mentődik.
+  function placeAdded(k, beforeKey) {
+    var zone = document.getElementById("zone-" + k);
+    if (!zone) return;
+    var prev = zoneKeys(), rest = prev.filter(function (x) { return x !== k; }), idx;
+    if (beforeKey && rest.indexOf(beforeKey) > -1) idx = rest.indexOf(beforeKey);
+    else if (k === "photo") idx = 0;
+    else if (k === "divider") idx = rest.indexOf("names") + 1;
+    else idx = rest.length;
+    rest.splice(idx, 0, k);
+    if (rest.join() !== prev.join()) { applyOrder(rest); saveOrder(rest, prev); }
+    zone.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  function addElement(k, beforeKey) {
     var zone = document.getElementById("zone-" + k);
     if (zone) { zone.scrollIntoView({ behavior: "smooth", block: "center" }); openPanel("panel-" + k); return; }
     if (k === "divider") {
       postSection({ section: "divider", elvalaszto: "ag" })
         .then(function () { return refresh(); })
-        .then(function () { var z = document.getElementById("zone-divider"); if (z) z.scrollIntoView({ behavior: "smooth", block: "center" }); toast(COPY.saved); })
+        .then(function () { placeAdded("divider", beforeKey); toast(COPY.saved); })
         .catch(function () { toast(COPY.saveFailed, true); });
       return;
     }
-    pendingAdd = k;
+    pendingAdd = k; pendingBefore = beforeKey || null;
     openPanel("panel-" + k);
     if (k === "countdown") { var cb = document.querySelector('#panel-countdown [name="vissza_be"]'); if (cb) cb.checked = true; }
     if (k === "story" && !document.querySelector(".wc-story-row")) storyAdd("");
@@ -587,7 +654,7 @@ function script({ t }) {
   document.addEventListener("pointerup", function () { cropDrag = null; });
   // Szekciók húzása közvetlenül az oldalon (fogantyú: .wc-drag): a zóna követi az ujjat/egeret,
   // a beszúrási vonal jelzi a célhelyet, elengedéskor átrendeződik és azonnal mentődik.
-  var SORTABLE = ["message", "countdown", "story", "location", "program", "buttons"];
+  var SORTABLE = ["photo", "names", "divider", "message", "countdown", "story", "location", "program", "buttons"];
   var drag = null;
   var dropLine = document.getElementById("wc-drop-line");
   function sortableZones() {
@@ -595,11 +662,11 @@ function script({ t }) {
   }
   function zoneKeys() { return sortableZones().map(function (z) { return z.id.replace("zone-", ""); }); }
   function applyOrder(keys) {
-    var ref = document.getElementById("zone-divider") || document.getElementById("zone-names") || document.querySelector(".card .divider");
-    if (!ref) return;
+    var card = document.querySelector(".card");
+    if (!card) return;
     keys.forEach(function (k) {
       var el = document.getElementById("zone-" + k);
-      if (el) { ref.after(el); ref = el; }
+      if (el) card.appendChild(el);
     });
   }
   function saveOrder(keys, prevKeys) {
@@ -669,6 +736,7 @@ function script({ t }) {
   document.addEventListener("pointercancel", function () { endDrag(false); });
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && drag) { endDrag(false); return; }
+    if (e.key === "Escape" && ext && ext.active) { extEnd(false); return; }
     var h = e.target.closest && e.target.closest(".wc-drag");
     if (!h || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
     e.preventDefault();
@@ -749,7 +817,7 @@ function script({ t }) {
     if (t.closest("[data-toggle-side]")) { side.classList.toggle("open"); sideBackdrop.classList.toggle("open", side.classList.contains("open")); return; }
     if (t === sideBackdrop) { closeSide(); return; }
     var addEl = t.closest("[data-add-el]");
-    if (addEl) { closeSide(); addElement(addEl.getAttribute("data-add-el")); return; }
+    if (addEl) { if (suppressClick) return; closeSide(); addElement(addEl.getAttribute("data-add-el")); return; }
     if (t.closest("[data-play-envelope]")) { playEnvelope(); return; }
     var sadd = t.closest("[data-story-add]");
     if (sadd) { var nr = storyAdd(""); if (nr) nr.querySelector('[name="story_datum"]').focus(); return; }
@@ -848,14 +916,8 @@ function script({ t }) {
       .then(function () {
         if (isStyle) { currentId = document.getElementById("wc-stilus").value; currentEnv = document.getElementById("wc-nyito").checked; designPanel.close(); toast(COPY.saved); return; }
         return refresh().then(function () {
-          // Az oldalhoz most hozzáadott elem az oldal aljára kerül (utána húzással átrendezhető), és odagörgetünk.
-          var fresh = pendingAdd && pendingAdd === sectionName ? document.getElementById("zone-" + pendingAdd) : null;
-          if (fresh) {
-            var prevKeys = zoneKeys(), nk = prevKeys.filter(function (x) { return x !== pendingAdd; }).concat(pendingAdd);
-            if (nk.join() !== prevKeys.join()) { applyOrder(nk); saveOrder(nk, prevKeys); }
-            fresh.scrollIntoView({ behavior: "smooth", block: "center" });
-          }
-          pendingAdd = null;
+          if (pendingAdd && pendingAdd === sectionName) placeAdded(pendingAdd, pendingBefore);
+          pendingAdd = null; pendingBefore = null;
           toast(COPY.saved);
         });
       })

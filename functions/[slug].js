@@ -3,6 +3,7 @@ import { escapeHtml, safeHref } from "./_utils/html.js";
 import { getCopy, getResellerCopy } from "./_utils/i18n.js";
 import { getSessionReseller } from "./_utils/auth.js";
 import { dividerHtml, resolveDivider } from "./_utils/dividers.js";
+import { normalizeOrder } from "./_utils/sectionOrder.js";
 import { parseJson, zonedToUtcMs, countdownHtml, countdownScript, storyHtml, sectionsCss, scrollAnimCss, scrollAnimHeadScript, scrollAnimScript } from "./_utils/pageSections.js";
 import { editZone, editorCss, editorLayer } from "./_utils/pageEditor.js";
 import { envelopeCss, envelopeMarkup, envelopeHeadScript, envelopeRuntime, monogramHtml } from "./_utils/envelopeIntro.js";
@@ -202,29 +203,26 @@ export async function onRequestGet(context) {
   const storyItems = parseJson(par.tortenet, []).filter((x) => x && /^[a-f0-9]{8}$/.test(x.id || ""));
   const storyZone = editZone("story", storyHtml({ items: storyItems, lang: ["de", "en", "hu"].includes(par.nyelv) ? par.nyelv : "hu", copy }), zoneOpts({ sortable: true, removable: true, empty: !storyItems.length, addLabel: et && et.editorAddStory, penLabel: et && et.editorPen }));
   const dividerKey = resolveDivider(par.elvalaszto);
-  const dividerZone = editZone("divider", dividerHtml(dividerKey), zoneOpts({ removable: true, empty: dividerKey === "nincs", addLabel: et && et.editorAddDivider, penLabel: et && et.editorPen }));
+  const dividerZone = editZone("divider", dividerHtml(dividerKey), zoneOpts({ sortable: true, removable: true, empty: dividerKey === "nincs", addLabel: et && et.editorAddDivider, penLabel: et && et.editorPen }));
   const namesZone = editZone(
     "names",
-    `<h1 class="names reveal" style="--d:120ms">${escapeHtml(par.par_neve)}</h1>
+    `<div class="eyebrow reveal">${escapeHtml(copy.eyebrow)}</div>
+    <h1 class="names reveal" style="--d:120ms">${escapeHtml(par.par_neve)}</h1>
     <div class="date reveal" style="--d:240ms">${displayDate}</div>`,
-    zoneOpts({ empty: false, penLabel: et && et.editorPen })
+    zoneOpts({ sortable: true, empty: false, penLabel: et && et.editorPen })
   );
-  const photoZone = editZone("photo", photoHtml, zoneOpts({ removable: true, empty: !par.fenykep_frissitve, addLabel: et && et.editorAddPhoto, penLabel: et && et.editorPen }));
+  const photoZone = editZone("photo", photoHtml, zoneOpts({ sortable: true, removable: true, empty: !par.fenykep_frissitve, addLabel: et && et.editorAddPhoto, penLabel: et && et.editorPen }));
   const messageZone = editZone("message", `<p class="message reveal">${message}</p>`, zoneOpts({ sortable: true, empty: false, penLabel: et && et.editorPen }));
 
-  const DEFAULT_ORDER = ["message", "countdown", "story", "location", "program", "buttons"];
-  let sorrend = DEFAULT_ORDER;
+  let saved = null;
   try {
-    const saved = par.szekcio_sorrend ? JSON.parse(par.szekcio_sorrend) : null;
-    if (Array.isArray(saved)) {
-      const valid = saved.filter((k, i) => DEFAULT_ORDER.includes(k) && saved.indexOf(k) === i);
-      sorrend = [...valid, ...DEFAULT_ORDER.filter((k) => !valid.includes(k))];
-    }
+    saved = par.szekcio_sorrend ? JSON.parse(par.szekcio_sorrend) : null;
   } catch (e) {
-    sorrend = DEFAULT_ORDER;
+    saved = null;
   }
+  const sorrend = normalizeOrder(saved);
   const sectionsHtml = sorrend
-    .map((k) => ({ message: messageZone, countdown: countdownZone, story: storyZone, location: locationZone, program: timelineHtml, buttons: buttonsHtml })[k])
+    .map((k) => ({ photo: photoZone, names: namesZone, divider: dividerZone, message: messageZone, countdown: countdownZone, story: storyZone, location: locationZone, program: timelineHtml, buttons: buttonsHtml })[k])
     .join("\n    ");
 
   const lang = ["de", "en", "hu"].includes(par.nyelv) ? par.nyelv : "hu";
@@ -480,10 +478,6 @@ ${scrollAnimCss}
   ${edit ? `<template id="wc-env-tpl">${envelopeHtml}</template>` : ""}
   ${isDraft && !edit ? `<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#2b2620;color:#fff;text-align:center;font:600 12px/1.4 Arial,sans-serif;padding:7px 10px;">${escapeHtml(copy.draftRibbon)}</div>` : ""}
   <div class="card">
-    ${photoZone}
-    <div class="eyebrow reveal">${escapeHtml(copy.eyebrow)}</div>
-    ${namesZone}
-    ${dividerZone}
     ${sectionsHtml}
   </div>
   ${targetMs != null || edit ? countdownScript : ""}
