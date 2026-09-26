@@ -142,3 +142,7 @@ CREATE INDEX IF NOT EXISTS idx_email_kuldesek_viszontelado ON email_kuldesek (vi
 --   [{"cimke":"Szertartás","nev":"...","cim":"...","terkep":"https://..."}]
 -- Ha a "terkep" üres, a publikus oldal a névből+címből Google Térkép-keresési linket készít.
 --   parok: helyszin TEXT
+
+-- Borítókép kivágása/fókusza (2026-09-27): JSON {"arany":"3/2","x":50,"y":40} (arany: 3/2, 4/3, 1/1, 16/9;
+-- NULL = eredeti arány). A publikus oldal ebből számol CSS aspect-ratio + object-position értéket.
+--   parok: foto_beallitas TEXT

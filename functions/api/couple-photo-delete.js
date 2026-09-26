@@ -15,7 +15,7 @@ export async function onRequestPost(context) {
   if (!par) return Response.json({ error: "not_found" }, { status: 404 });
 
   await env.PHOTOS.delete(`parok/${par.slug}.webp`);
-  await env.DB.prepare("UPDATE parok SET fenykep_frissitve = NULL WHERE id = ?").bind(parId).run();
+  await env.DB.prepare("UPDATE parok SET fenykep_frissitve = NULL, foto_beallitas = NULL WHERE id = ?").bind(parId).run();
 
   return Response.json({ ok: true });
 }

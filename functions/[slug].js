@@ -55,7 +55,7 @@ export async function onRequestGet(context) {
   if (staticResp) return staticResp;
 
   const par = await env.DB.prepare(
-    "SELECT id, slug, par_neve, nev1, nev2, helyszin, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
+    "SELECT id, slug, par_neve, nev1, nev2, helyszin, foto_beallitas, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
   )
     .bind(slug)
     .first();
@@ -120,8 +120,21 @@ export async function onRequestGet(context) {
 
   const message = escapeHtml(par.egyedi_uzenet || copy.defaultMessage);
 
+  let fotoBeallitas = null;
+  try {
+    const fb = par.foto_beallitas ? JSON.parse(par.foto_beallitas) : null;
+    if (fb && ["3/2", "4/3", "1/1", "16/9"].includes(fb.arany)) {
+      fotoBeallitas = { arany: fb.arany, x: Math.max(0, Math.min(100, Number(fb.x) || 0)), y: Math.max(0, Math.min(100, Number(fb.y) || 0)) };
+    }
+  } catch (e) {
+    fotoBeallitas = null;
+  }
+  const photoStyle = fotoBeallitas
+    ? ` style="aspect-ratio:${fotoBeallitas.arany};object-fit:cover;object-position:${fotoBeallitas.x}% ${fotoBeallitas.y}%"`
+    : "";
+
   const photoHtml = par.fenykep_frissitve
-    ? `<img class="cover-photo" src="/foto/${encodeURIComponent(slug)}?v=${encodeURIComponent(par.fenykep_frissitve)}" alt="">`
+    ? `<img class="cover-photo"${photoStyle} src="/foto/${encodeURIComponent(slug)}?v=${encodeURIComponent(par.fenykep_frissitve)}" alt="">`
     : "";
 
   const zoneOpts = (extra) => ({ edit, ...extra });
@@ -436,6 +449,7 @@ ${edit ? editorCss : ""}
           gombok,
           esemenyek,
           helyek,
+          fotoBeallitas,
           nev1: par.nev1 || (par.par_neve || "").split(" & ")[0] || "",
           nev2: par.nev2 || (par.par_neve || "").split(" & ")[1] || "",
           freeEligible,

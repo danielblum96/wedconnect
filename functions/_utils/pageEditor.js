@@ -67,6 +67,21 @@ export const editorCss = `
   .wc-style { display:flex; align-items:center; gap:8px; border:2px solid transparent; outline:1px solid #ddd6c9; border-radius:10px; padding:10px; cursor:pointer; font:600 0.8rem/1.2 "Poppins",Arial,sans-serif; text-align:left; }
   .wc-style .wc-dot { width:14px; height:14px; border-radius:50%; flex:none; box-shadow:0 0 0 1px rgba(255,255,255,0.6); }
   .wc-style.selected { border-color:#b48b56; outline-color:#b48b56; }
+  .wc-form .wc-foot { position:sticky; bottom:-18px; background:#fff; padding:10px 0 2px; z-index:2; }
+  .wc-error { background:#fdeee7; color:#b1451f; border:1px solid #f3c8b3; border-radius:8px; padding:9px 12px; font-size:0.85rem; margin:4px 0 8px; }
+  .wc-error[hidden] { display:none; }
+  .wc-chip.selected { background:#2b2620; border-color:#2b2620; color:#fff; }
+  .wc-crop { position:relative; max-width:320px; margin:0 auto 8px; touch-action:none; cursor:crosshair; border-radius:6px; overflow:hidden; line-height:0; }
+  .wc-crop-img { display:block; width:100%; height:auto; user-select:none; -webkit-user-drag:none; }
+  .wc-crop-dot { position:absolute; width:20px; height:20px; border:2px solid #fff; border-radius:50%; box-shadow:0 0 0 1.5px #2b2620; transform:translate(-50%,-50%); pointer-events:none; }
+  .wc-tip { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:9997; max-width:min(92vw, 460px); display:flex; gap:10px; align-items:center; background:#2b2620; color:#fff; padding:10px 12px 10px 16px; border-radius:14px; font:500 13px/1.4 "Poppins",Arial,sans-serif; box-shadow:0 10px 30px rgba(0,0,0,0.35); text-align:left; }
+  .wc-tip[hidden] { display:none; }
+  .wc-tip button { flex:none; border:none; background:rgba(255,255,255,0.16); color:#fff; border-radius:999px; width:26px; height:26px; cursor:pointer; font-size:12px; }
+  @keyframes wc-up { from { transform:translateY(36px); opacity:0; } to { transform:none; opacity:1; } }
+  @media (max-width:520px) {
+    .wc-dlg:not(#panel-design) { position:fixed; inset:auto 0 0 0; margin:0; width:100%; max-width:100%; max-height:90vh; max-height:90dvh; border-radius:18px 18px 0 0; padding-bottom:calc(14px + env(safe-area-inset-bottom)); animation:wc-up 0.22s ease-out; }
+    .wc-tip { bottom:14px; }
+  }
   .wc-toast.error { background:#b1451f; }
   .wc-loc-block { border:1px solid #ece4d6; border-radius:10px; padding:12px 12px 2px; margin-bottom:10px; }
   .wc-loc-block[hidden] { display:none; }
@@ -99,10 +114,10 @@ function footer(t) {
 }
 
 function panelForm(parId, section, body, t) {
-  return `<form class="wc-form" method="POST" action="/api/couple-section-update"><input type="hidden" name="par_id" value="${parId}"><input type="hidden" name="section" value="${section}">${body}${footer(t)}</form>`;
+  return `<form class="wc-form" method="POST" action="/api/couple-section-update"><input type="hidden" name="par_id" value="${parId}"><input type="hidden" name="section" value="${section}">${body}<div class="wc-error" hidden></div>${footer(t)}</form>`;
 }
 
-function panels({ par, slug, t, lang, gombok, esemenyek, helyek, nev1, nev2, hasPhoto, photoVersion, currentStyleId }) {
+function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, nev1, nev2, hasPhoto, photoVersion, currentStyleId }) {
   const eventVisible = Math.min(EDIT_MAX_EVENTS, Math.max(esemenyek.length + 1, 2));
   const eventRows = Array.from({ length: EDIT_MAX_EVENTS }, (_, i) => {
     const ev = esemenyek[i] || { ido: "", nev: "" };
@@ -146,12 +161,30 @@ function panels({ par, slug, t, lang, gombok, esemenyek, helyek, nev1, nev2, has
       t.editorTitlePhoto,
       `<p class="wc-hint">${escapeHtml(t.photoExplain)}</p>
       <div id="wc-photo" data-par-id="${par.id}" data-slug="${escapeHtml(slug)}">
-        ${hasPhoto ? `<img class="wc-photo-preview" src="/foto/${encodeURIComponent(slug)}?v=${encodeURIComponent(photoVersion)}" alt="">` : ""}
         <div class="wc-photo-drop">${escapeHtml(hasPhoto ? t.editorPhotoChange : t.photoDropHint)}<input type="file" accept="image/*" id="wc-photo-input"></div>
-        <div class="wc-foot" style="justify-content:space-between">
-          <span>${hasPhoto ? `<button type="button" class="wc-btn-danger" id="wc-photo-remove">${escapeHtml(t.photoRemove)}</button>` : ""} <span class="wc-status" id="wc-photo-status"></span></span>
-          <button type="button" class="wc-btn-ghost" data-close>${escapeHtml(t.modalClose)}</button>
-        </div>
+        <div class="wc-status" id="wc-photo-status"></div>
+        ${
+          hasPhoto
+            ? `<form class="wc-form" method="POST" action="/api/couple-section-update">
+          <input type="hidden" name="par_id" value="${par.id}"><input type="hidden" name="section" value="photo">
+          <input type="hidden" name="foto_arany" id="wc-arany" value="${fotoBeallitas ? fotoBeallitas.arany : "orig"}">
+          <input type="hidden" name="foto_x" id="wc-foto-x" value="${fotoBeallitas ? fotoBeallitas.x : 50}">
+          <input type="hidden" name="foto_y" id="wc-foto-y" value="${fotoBeallitas ? fotoBeallitas.y : 50}">
+          <label>${escapeHtml(t.editorCropRatio)}</label>
+          <div class="wc-chips">
+            <button type="button" class="wc-chip${fotoBeallitas ? "" : " selected"}" data-ratio="orig">${escapeHtml(t.editorCropOriginal)}</button>
+            ${["3/2", "4/3", "1/1", "16/9"].map((r) => `<button type="button" class="wc-chip${fotoBeallitas && fotoBeallitas.arany === r ? " selected" : ""}" data-ratio="${r}">${r.replace("/", ":")}</button>`).join("")}
+          </div>
+          <div class="wc-crop"><img class="wc-crop-img" src="/foto/${encodeURIComponent(slug)}?v=${encodeURIComponent(photoVersion)}" alt=""${fotoBeallitas ? ` style="aspect-ratio:${fotoBeallitas.arany};object-fit:cover;object-position:${fotoBeallitas.x}% ${fotoBeallitas.y}%"` : ""}><span class="wc-crop-dot"${fotoBeallitas ? ` style="left:${fotoBeallitas.x}%;top:${fotoBeallitas.y}%"` : " hidden"}></span></div>
+          <p class="wc-hint">${escapeHtml(t.editorCropHint)}</p>
+          <div class="wc-error" hidden></div>
+          <div class="wc-foot" style="justify-content:space-between">
+            <button type="button" class="wc-btn-danger" id="wc-photo-remove">${escapeHtml(t.photoRemove)}</button>
+            <span style="display:flex;gap:10px"><button type="button" class="wc-btn-ghost" data-close>${escapeHtml(t.editorCancel)}</button><button type="submit" class="wc-btn-primary">${escapeHtml(t.save)}</button></span>
+          </div>
+        </form>`
+            : `<div class="wc-foot"><button type="button" class="wc-btn-ghost" data-close>${escapeHtml(t.modalClose)}</button></div>`
+        }
       </div>`
     ),
     dlg(
@@ -251,6 +284,10 @@ function script({ t }) {
     removeConfirm: t.photoRemoveConfirm,
     saved: t.saved,
     saveFailed: t.editorSaveFailed,
+    unsaved: t.editorUnsaved,
+    errButton: t.editorErrButton,
+    errUrl: t.editorErrUrl,
+    errEvent: t.editorErrEvent,
   });
   return `<script type="module">
   import { resizeImageToWebp } from "/assets/photo-upload.js?v=1";
@@ -263,11 +300,78 @@ function script({ t }) {
 
   // Minden eseménykezelő delegált (a document-en), mert mentés után a kártya és a
   // panelek a szerverről frissen betöltött példányra cserélődnek (refresh()).
+  function snapshot(d) {
+    var f = d.querySelector("form");
+    return f ? new URLSearchParams(new FormData(f)).toString() : "";
+  }
+  function isDirty(d) { return d.id !== "panel-design" && d.__snap !== undefined && snapshot(d) !== d.__snap; }
+  function tryClose(d) {
+    if (isDirty(d) && !window.confirm(COPY.unsaved)) return false;
+    d.close();
+    return true;
+  }
   function openPanel(id) {
     var d = document.getElementById(id);
     if (!d || d.open) return;
+    d.__snap = snapshot(d);
     if (id === "panel-design") d.show(); else d.showModal();
   }
+  function validUrl(v) {
+    v = v.trim();
+    if (!/^(https?:|mailto:)/i.test(v)) v = "https://" + v;
+    try {
+      var u = new URL(v);
+      if (u.protocol === "mailto:") return u.pathname.indexOf("@") > -1;
+      return (u.protocol === "https:" || u.protocol === "http:") && u.hostname.indexOf(".") > -1;
+    } catch (err) { return false; }
+  }
+  function validateForm(form) {
+    var section = form.querySelector('[name="section"]').value, i;
+    if (section === "buttons") {
+      var rows = form.querySelectorAll(".wc-button-row");
+      for (i = 0; i < rows.length; i++) {
+        var l = rows[i].querySelector('[name="gomb_label"]').value.trim(), u = rows[i].querySelector('[name="gomb_url"]').value.trim();
+        if (!!l !== !!u) return COPY.errButton;
+        if (u && !validUrl(u)) return COPY.errUrl;
+      }
+    } else if (section === "program") {
+      var ev = form.querySelectorAll(".wc-event-row");
+      for (i = 0; i < ev.length; i++) {
+        if (ev[i].querySelector('[name="esemeny_ido"]').value && !ev[i].querySelector('[name="esemeny_nev"]').value.trim()) return COPY.errEvent;
+      }
+    } else if (section === "location") {
+      var maps = form.querySelectorAll('[name="hely_terkep"]');
+      for (i = 0; i < maps.length; i++) { if (maps[i].value.trim() && !validUrl(maps[i].value)) return COPY.errUrl; }
+    }
+    return "";
+  }
+  function cropFromEvent(w, e) {
+    var r = w.getBoundingClientRect();
+    var x = Math.max(0, Math.min(100, Math.round((e.clientX - r.left) / r.width * 100)));
+    var y = Math.max(0, Math.min(100, Math.round((e.clientY - r.top) / r.height * 100)));
+    document.getElementById("wc-foto-x").value = x;
+    document.getElementById("wc-foto-y").value = y;
+    w.querySelector(".wc-crop-img").style.objectPosition = x + "% " + y + "%";
+    var dot = w.querySelector(".wc-crop-dot"); dot.style.left = x + "%"; dot.style.top = y + "%";
+  }
+  var cropDrag = null;
+  document.addEventListener("pointerdown", function (e) {
+    var w = e.target.closest && e.target.closest(".wc-crop");
+    if (!w || document.getElementById("wc-arany").value === "orig") return;
+    cropDrag = w; cropFromEvent(w, e);
+  });
+  document.addEventListener("pointermove", function (e) { if (cropDrag) cropFromEvent(cropDrag, e); });
+  document.addEventListener("pointerup", function () { cropDrag = null; });
+  document.addEventListener("cancel", function (e) {
+    var d = e.target;
+    if (d.matches && d.matches("dialog.wc-dlg") && isDirty(d) && !window.confirm(COPY.unsaved)) e.preventDefault();
+  }, true);
+  var tip = document.getElementById("wc-tip");
+  function hideTip() {
+    if (tip) tip.hidden = true;
+    try { localStorage.setItem("wc_editor_tip", "1"); } catch (err) {}
+  }
+  try { if (tip && !localStorage.getItem("wc_editor_tip")) setTimeout(function () { tip.hidden = false; }, 700); } catch (err) { if (tip) tip.hidden = false; }
   function toast(msg, isError) {
     var el = document.createElement("div");
     el.className = "wc-toast" + (isError ? " error" : ""); el.textContent = msg;
@@ -300,7 +404,7 @@ function script({ t }) {
   }
 
   // Mentés után a szerverről frissen betöltött kártya + panelek beemelése (oldal-újratöltés nélkül).
-  function refresh() {
+  function refresh(reopenId) {
     return fetch(location.pathname + "?szerkesztes=1", { credentials: "same-origin" })
       .then(function (r) { if (!r.ok) throw new Error("refresh"); return r.text(); })
       .then(function (html) {
@@ -315,19 +419,33 @@ function script({ t }) {
         });
         document.title = doc.title;
         applyStyle(currentId);
+        if (reopenId) openPanel(reopenId);
       });
   }
 
   document.addEventListener("click", function (e) {
     var t = e.target;
+    if (t.closest("[data-tip-close]")) { hideTip(); return; }
     var opener = t.closest("[data-open]");
-    if (opener) { e.preventDefault(); openPanel(opener.getAttribute("data-open")); return; }
-    if (t.matches("dialog.wc-dlg") && t.id !== "panel-design") { t.close(); return; }
+    if (opener) { e.preventDefault(); hideTip(); openPanel(opener.getAttribute("data-open")); return; }
+    if (t.matches("dialog.wc-dlg") && t.id !== "panel-design") { tryClose(t); return; }
     var closer = t.closest("[data-close]");
     if (closer) {
       var dlg = closer.closest("dialog");
-      if (dlg) dlg.close();
-      if (dlg && dlg.id === "panel-design") revertDesign();
+      if (dlg && dlg.id === "panel-design") { dlg.close(); revertDesign(); }
+      else if (dlg) tryClose(dlg);
+      return;
+    }
+    var ratio = t.closest("[data-ratio]");
+    if (ratio) {
+      var rv = ratio.getAttribute("data-ratio"), frm = ratio.closest("form"), im = frm.querySelector(".wc-crop-img"), dot = frm.querySelector(".wc-crop-dot");
+      frm.querySelectorAll("[data-ratio]").forEach(function (x) { x.classList.toggle("selected", x === ratio); });
+      document.getElementById("wc-arany").value = rv;
+      im.style.aspectRatio = rv === "orig" ? "" : rv;
+      im.style.objectFit = rv === "orig" ? "" : "cover";
+      im.style.objectPosition = rv === "orig" ? "" : document.getElementById("wc-foto-x").value + "% " + document.getElementById("wc-foto-y").value + "%";
+      dot.hidden = rv === "orig";
+      dot.style.left = document.getElementById("wc-foto-x").value + "%"; dot.style.top = document.getElementById("wc-foto-y").value + "%";
       return;
     }
     var st = t.closest(".wc-style");
@@ -378,6 +496,10 @@ function script({ t }) {
     var form = e.target;
     if (!form.matches || !form.matches("form.wc-form")) return;
     e.preventDefault();
+    var errBox = form.querySelector(".wc-error");
+    var problem = validateForm(form);
+    if (errBox) { errBox.hidden = !problem; errBox.textContent = problem; }
+    if (problem) return;
     var btn = form.querySelector('[type="submit"]');
     if (btn) btn.disabled = true;
     var isStyle = form.querySelector('[name="section"]').value === "style";
@@ -403,7 +525,7 @@ function script({ t }) {
       body.append("par_id", document.getElementById("wc-photo").getAttribute("data-par-id"));
       body.append("fenykep", blob, "cover.webp");
       return fetch("/api/couple-photo-upload", { method: "POST", body: body });
-    }).then(function (r) { if (!r.ok) throw new Error("upload"); return refresh(); })
+    }).then(function (r) { if (!r.ok) throw new Error("upload"); return refresh("panel-photo"); })
       .then(function () { toast(COPY.saved); })
       .catch(function () { status.className = "wc-status error"; status.textContent = COPY.uploadError; });
   });
@@ -420,5 +542,5 @@ function script({ t }) {
 
 // A teljes szerkesztő réteg a </body> elé: eszköztár + panelek + szkript.
 export function editorLayer(opts) {
-  return `${toolbar(opts)}\n${panels(opts)}\n${script(opts)}`;
+  return `${toolbar(opts)}\n${panels(opts)}\n<div class="wc-tip" id="wc-tip" hidden><span>${escapeHtml(opts.t.editorHint)}</span><button type="button" data-tip-close aria-label="×">✕</button></div>\n${script(opts)}`;
 }

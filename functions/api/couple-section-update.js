@@ -10,6 +10,19 @@ const MAX_MESSAGE = 1000;
 const MAX_BUTTONS = 5;
 const MAX_EVENTS = 8;
 const MAX_LOCATIONS = 2;
+const CROP_RATIOS = ["3/2", "4/3", "1/1", "16/9"];
+
+// A link akkor érvényes, ha http(s)/mailto, és http(s) esetén a gépnév tartalmaz pontot
+// (a normalizeUrl a séma nélküli "pelda.hu"-hoz https://-t fűz).
+function validUrl(url) {
+  try {
+    const u = new URL(url);
+    if (u.protocol === "mailto:") return u.pathname.includes("@");
+    return (u.protocol === "https:" || u.protocol === "http:") && u.hostname.includes(".");
+  } catch (e) {
+    return false;
+  }
+}
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -51,11 +64,13 @@ export async function onRequestPost(context) {
       const nev = (nevek[i] || "").toString().trim().slice(0, 100);
       const cim = (cimek[i] || "").toString().trim().slice(0, 200);
       if (!nev && !cim) continue;
+      const terkep = normalizeUrl(terkepek[i]).slice(0, 500);
+      if (wantsJson && terkep && !validUrl(terkep)) return fail("invalid_url", 400);
       helyek.push({
         cimke: (labels[i] || "").toString().trim().slice(0, 40),
         nev,
         cim,
-        terkep: normalizeUrl(terkepek[i]).slice(0, 500),
+        terkep,
       });
     }
     await env.DB.prepare("UPDATE parok SET helyszin = ? WHERE id = ?")
@@ -71,10 +86,16 @@ export async function onRequestPost(context) {
     for (let i = 0; i < names.length && esemenyek.length < MAX_EVENTS; i++) {
       const nev = (names[i] || "").toString().trim().slice(0, 100);
       const ido = (times[i] || "").toString().trim().slice(0, 10);
+      if (!nev && ido && wantsJson) return fail("event_name_missing", 400);
       if (nev) esemenyek.push({ ido, nev });
     }
+    // Időrendbe rendezés: az időponttal rendelkező események a saját "helyeiken" belül
+    // rendeződnek időpont szerint, az időpont nélküliek a helyükön maradnak.
+    const timed = esemenyek.filter((e) => e.ido).sort((a, b) => a.ido.localeCompare(b.ido));
+    let k = 0;
+    const sorted = esemenyek.map((e) => (e.ido ? timed[k++] : e));
     await env.DB.prepare("UPDATE parok SET esemenyek = ? WHERE id = ?")
-      .bind(esemenyek.length ? JSON.stringify(esemenyek) : null, parId)
+      .bind(sorted.length ? JSON.stringify(sorted) : null, parId)
       .run();
   } else if (section === "buttons") {
     const labels = formData.getAll("gomb_label");
@@ -83,11 +104,20 @@ export async function onRequestPost(context) {
     for (let i = 0; i < labels.length && gombok.length < MAX_BUTTONS; i++) {
       const label = (labels[i] || "").toString().trim().slice(0, 60);
       const url = normalizeUrl(urls[i]).slice(0, 500);
+      if (wantsJson && (!!label !== !!url)) return fail("button_incomplete", 400);
+      if (wantsJson && url && !validUrl(url)) return fail("invalid_url", 400);
       if (label && url) gombok.push({ label, url });
     }
     await env.DB.prepare("UPDATE parok SET egyedi_gombok = ? WHERE id = ?")
       .bind(gombok.length ? JSON.stringify(gombok) : null, parId)
       .run();
+  } else if (section === "photo") {
+    const arany = (formData.get("foto_arany") || "").toString();
+    const clamp = (v) => Math.max(0, Math.min(100, Math.round(Number(v)) || 0));
+    const beallitas = CROP_RATIOS.includes(arany)
+      ? JSON.stringify({ arany, x: clamp(formData.get("foto_x") ?? 50), y: clamp(formData.get("foto_y") ?? 50) })
+      : null;
+    await env.DB.prepare("UPDATE parok SET foto_beallitas = ? WHERE id = ?").bind(beallitas, parId).run();
   } else if (section === "style") {
     const style = getStyle((formData.get("stilus") || "").toString().trim());
     await env.DB.prepare("UPDATE parok SET valasztott_stilus = ? WHERE id = ?").bind(style.id, parId).run();
