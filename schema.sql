@@ -154,3 +154,7 @@ CREATE INDEX IF NOT EXISTS idx_email_kuldesek_viszontelado ON email_kuldesek (vi
 -- Nyitó animáció a publikus oldalon (2026-09-27): NULL = nincs, 'boritek' = lezárt boríték, koppintásra
 -- kinyílik (functions/_utils/envelopeIntro.js). Alapértelmezetten ki van kapcsolva.
 --   parok: nyito_animacio TEXT
+
+-- Díszítő elválasztó a nevek és az üzenet között (2026-09-27): 'ag' (ágacska, alapértelmezett), 'gyuru',
+-- 'sziv', 'virag', 'csillag' vagy 'nincs'. NULL = alapértelmezett (functions/_utils/dividers.js).
+--   parok: elvalaszto TEXT

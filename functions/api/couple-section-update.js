@@ -1,6 +1,7 @@
 import { getSessionReseller, dashboardHref } from "../_utils/auth.js";
 import { getStyle } from "../_utils/styles.js";
 import { normalizeUrl } from "../_utils/html.js";
+import { DIVIDER_KEYS } from "../_utils/dividers.js";
 
 // Az oldalon belüli szerkesztő (functions/_utils/pageEditor.js) EGYETLEN szekciót
 // ment: az üzenetet, a programot, a gombokat vagy a stílust - a többi mezőhöz
@@ -116,6 +117,9 @@ export async function onRequestPost(context) {
     const wanted = formData.getAll("sorrend").map((v) => v.toString()).filter((v, i, arr) => known.includes(v) && arr.indexOf(v) === i);
     const sorrend = [...wanted, ...known.filter((k) => !wanted.includes(k))];
     await env.DB.prepare("UPDATE parok SET szekcio_sorrend = ? WHERE id = ?").bind(JSON.stringify(sorrend), parId).run();
+  } else if (section === "divider") {
+    const v = (formData.get("elvalaszto") || "").toString();
+    await env.DB.prepare("UPDATE parok SET elvalaszto = ? WHERE id = ?").bind(DIVIDER_KEYS.includes(v) ? v : null, parId).run();
   } else if (section === "photo") {
     const arany = (formData.get("foto_arany") || "").toString();
     const clamp = (v) => Math.max(0, Math.min(100, Math.round(Number(v)) || 0));

@@ -1,5 +1,6 @@
 import { STYLES, FONT_RECIPES, namesFontSize, getStyleName } from "./styles.js";
 import { escapeHtml } from "./html.js";
+import { DIVIDER_KEYS, dividerHtml } from "./dividers.js";
 
 // Az esküvői oldalon belüli szerkesztő mód (?szerkesztes=1). CSAK a belépett
 // tulajdonos partnernek jelenik meg (a functions/[slug].js ellenőrzi), a
@@ -94,6 +95,16 @@ export const editorCss = `
   .wc-env-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:10px 0 2px; }
   .wc-check { display:flex; align-items:center; gap:8px; font-weight:600; font-size:0.9rem; cursor:pointer; margin:0 !important; }
   .wc-check input { width:18px; height:18px; margin:0; accent-color:#b48b56; }
+  .wc-div-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-bottom:8px; }
+  @media (min-width:520px) { .wc-div-grid { grid-template-columns:repeat(3, 1fr); } }
+  .wc-div-tile { position:relative; display:block; cursor:pointer; margin:0 !important; }
+  .wc-div-tile input { position:absolute; opacity:0; inset:0; margin:0; cursor:pointer; }
+  .wc-div-prev { display:flex; align-items:center; justify-content:center; min-height:64px; padding:10px 8px; border-radius:10px; border:2px solid transparent; outline:1px solid #ddd6c9; background:var(--bg); color:var(--accent-text); }
+  .wc-div-prev .divider { margin:0; max-width:none; width:100%; gap:8px; }
+  .wc-div-none { font-size:1.1rem; opacity:0.6; }
+  .wc-div-tile input:checked ~ .wc-div-prev { border-color:#b48b56; outline-color:#b48b56; }
+  .wc-div-tile input:focus-visible ~ .wc-div-prev { outline:2px solid #2b2620; }
+  .wc-div-name { display:block; text-align:center; font-size:0.8rem; font-weight:600; margin-top:5px; }
   .wc-toast.error { background:#b1451f; }
   .wc-loc-block { border:1px solid #ece4d6; border-radius:10px; padding:12px 12px 2px; margin-bottom:10px; }
   .wc-loc-block[hidden] { display:none; }
@@ -129,7 +140,7 @@ function panelForm(parId, section, body, t) {
   return `<form class="wc-form" method="POST" action="/api/couple-section-update"><input type="hidden" name="par_id" value="${parId}"><input type="hidden" name="section" value="${section}">${body}<div class="wc-error" hidden></div>${footer(t)}</form>`;
 }
 
-function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, nyitoOn, nev1, nev2, hasPhoto, photoVersion, currentStyleId }) {
+function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, nyitoOn, dividerKey, nev1, nev2, hasPhoto, photoVersion, currentStyleId }) {
   const eventVisible = Math.min(EDIT_MAX_EVENTS, Math.max(esemenyek.length + 1, 2));
   const eventRows = Array.from({ length: EDIT_MAX_EVENTS }, (_, i) => {
     const ev = esemenyek[i] || { ido: "", nev: "" };
@@ -198,6 +209,20 @@ function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, 
             : `<div class="wc-foot"><button type="button" class="wc-btn-ghost" data-close>${escapeHtml(t.modalClose)}</button></div>`
         }
       </div>`
+    ),
+    dlg(
+      "divider",
+      t.editorTitleDivider,
+      panelForm(
+        par.id,
+        "divider",
+        `<p class="wc-hint">${escapeHtml(t.editorDividerHint)}</p>
+        <div class="wc-div-grid">${DIVIDER_KEYS.map(
+          (k) =>
+            `<label class="wc-div-tile"><input type="radio" name="elvalaszto" value="${k}"${k === dividerKey ? " checked" : ""}><span class="wc-div-prev">${k === "nincs" ? '<span class="wc-div-none">✕</span>' : dividerHtml(k)}</span><span class="wc-div-name">${escapeHtml(t.editorDivNames[k])}</span></label>`
+        ).join("")}</div>`,
+        t
+      )
     ),
     dlg(
       "names",
@@ -415,7 +440,7 @@ function script({ t }) {
   }
   function zoneKeys() { return sortableZones().map(function (z) { return z.id.replace("zone-", ""); }); }
   function applyOrder(keys) {
-    var ref = document.querySelector(".card .divider");
+    var ref = document.getElementById("zone-divider") || document.querySelector(".card .divider");
     if (!ref) return;
     keys.forEach(function (k) {
       var el = document.getElementById("zone-" + k);

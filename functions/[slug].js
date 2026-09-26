@@ -2,6 +2,7 @@ import { FONT_RECIPES, namesFontSize, resolveStyleByStoredValue } from "./_utils
 import { escapeHtml, safeHref } from "./_utils/html.js";
 import { getCopy, getResellerCopy } from "./_utils/i18n.js";
 import { getSessionReseller } from "./_utils/auth.js";
+import { dividerHtml, resolveDivider } from "./_utils/dividers.js";
 import { editZone, editorCss, editorLayer } from "./_utils/pageEditor.js";
 import { envelopeCss, envelopeMarkup, envelopeHeadScript, envelopeRuntime, monogramHtml } from "./_utils/envelopeIntro.js";
 
@@ -56,7 +57,7 @@ export async function onRequestGet(context) {
   if (staticResp) return staticResp;
 
   const par = await env.DB.prepare(
-    "SELECT id, slug, par_neve, nev1, nev2, helyszin, foto_beallitas, szekcio_sorrend, nyito_animacio, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
+    "SELECT id, slug, par_neve, nev1, nev2, helyszin, foto_beallitas, szekcio_sorrend, nyito_animacio, elvalaszto, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
   )
     .bind(slug)
     .first();
@@ -194,6 +195,8 @@ export async function onRequestGet(context) {
   const buttonsHtml = editZone("buttons", buttonsHtml0, zoneOpts({ sortable: true, empty: !gombok.length, addLabel: et && et.editorAddButtons, penLabel: et && et.editorPen }));
   const timelineHtml = editZone("program", timelineHtml0, zoneOpts({ sortable: true, empty: !esemenyek.length, addLabel: et && et.editorAddProgram, penLabel: et && et.editorPen }));
   const locationZone = editZone("location", locationHtml0, zoneOpts({ sortable: true, empty: !helyek.length, addLabel: et && et.editorAddLocation, penLabel: et && et.editorPen }));
+  const dividerKey = resolveDivider(par.elvalaszto);
+  const dividerZone = editZone("divider", dividerHtml(dividerKey), zoneOpts({ empty: dividerKey === "nincs", addLabel: et && et.editorAddDivider, penLabel: et && et.editorPen }));
   const namesZone = editZone(
     "names",
     `<h1 class="names">${escapeHtml(par.par_neve)}</h1>
@@ -338,7 +341,10 @@ ${published && par.fenykep_frissitve ? `<meta property="og:image" content="${esc
     max-width: 260px;
   }
   .divider .line { flex: 1; height: 1px; background: var(--accent); opacity: 0.5; }
-  .divider .mark { color: var(--accent-text); font-size: 1.1rem; transform: rotate(45deg); }
+  .divider .mark { display: flex; color: var(--accent-text); line-height: 0; }
+  .divider .mark svg { display: block; height: 26px; width: auto; overflow: visible; }
+  .divider-ag .mark svg { height: 22px; }
+  .divider-ag { max-width: 300px; }
   .message {
     font-size: 1.4rem;
     font-style: italic;
@@ -467,7 +473,7 @@ ${envelopeOn || edit ? envelopeCss : ""}
     ${photoZone}
     <div class="eyebrow">${escapeHtml(copy.eyebrow)}</div>
     ${namesZone}
-    <div class="divider"><span class="line"></span><span class="mark">❖</span><span class="line"></span></div>
+    ${dividerZone}
     ${sectionsHtml}
   </div>
   ${envelopeOn ? `<script>wcEnvelopeInit(document.getElementById("wc-env"), { key: ${JSON.stringify("wc_env_" + slug)} });</script>` : ""}
@@ -482,6 +488,7 @@ ${envelopeOn || edit ? envelopeCss : ""}
           esemenyek,
           helyek,
           fotoBeallitas,
+          dividerKey,
           nyitoOn: envelopeEnabled,
           nev1: par.nev1 || (par.par_neve || "").split(" & ")[0] || "",
           nev2: par.nev2 || (par.par_neve || "").split(" & ")[1] || "",
