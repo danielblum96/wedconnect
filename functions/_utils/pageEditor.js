@@ -135,6 +135,12 @@ export const editorCss = `
   .wc-side-backdrop { display:none; }
   .wc-ghost { position:fixed; z-index:10001; pointer-events:none; transform:translate(14px,14px); background:#fff; color:#2b2620; border:1.5px solid #b48b56; border-radius:10px; padding:8px 14px; font:600 13px/1.3 "Poppins",Arial,sans-serif; box-shadow:0 12px 30px rgba(0,0,0,0.3); }
   @media (min-width:900px) { body.wc-editing { padding-left:300px; } .wc-bar-elements { display:none !important; } }
+  @media (min-width:900px) {
+    /* Asztali nézetben a Design panel a bal oszlopba nyílik (az Elemek helyére), így az oldal jobb oldalt végig látszik. */
+    #panel-design { inset:52px auto 0 0; width:300px; max-width:300px; height:calc(100vh - 52px); max-height:none; margin:0; border-radius:0; border-right:1px solid #e6dfd0; box-shadow:8px 0 30px -14px rgba(0,0,0,0.25); z-index:9995; padding:18px 16px 18px; }
+    #panel-design .wc-styles { grid-template-columns:repeat(2, 1fr); }
+    #panel-design .wc-style { padding:9px 8px; font-size:0.74rem; gap:6px; }
+  }
   @media (max-width:899px) {
     .wc-side { top:46px; width:min(86vw, 340px); transform:translateX(-104%); transition:transform 0.22s ease; box-shadow:8px 0 30px rgba(0,0,0,0.25); }
     .wc-side.open { transform:none; }
