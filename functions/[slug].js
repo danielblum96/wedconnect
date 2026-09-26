@@ -4,7 +4,7 @@ import { getCopy, getResellerCopy } from "./_utils/i18n.js";
 import { getSessionReseller } from "./_utils/auth.js";
 import { dividerHtml, resolveDivider } from "./_utils/dividers.js";
 import { normalizeOrder } from "./_utils/sectionOrder.js";
-import { parseJson, zonedToUtcMs, countdownHtml, countdownScript, storyHtml, sectionsCss, scrollAnimCss, scrollAnimHeadScript, scrollAnimScript } from "./_utils/pageSections.js";
+import { parseJson, formatStoryDate, zonedToUtcMs, countdownHtml, countdownScript, storyHtml, sectionsCss, scrollAnimCss, scrollAnimHeadScript, scrollAnimScript } from "./_utils/pageSections.js";
 import { editZone, editorCss, editorLayer } from "./_utils/pageEditor.js";
 import { envelopeCss, envelopeMarkup, envelopeHeadScript, envelopeRuntime, monogramHtml } from "./_utils/envelopeIntro.js";
 
@@ -118,21 +118,23 @@ export async function onRequestGet(context) {
     helyek = [];
   }
 
-  const dateParts = (par.eskuvo_datuma || "").split("-");
-  const displayDate =
-    dateParts.length === 3 ? `${dateParts[0]}.${dateParts[1]}.${dateParts[2]}.` : escapeHtml(par.eskuvo_datuma || "");
+  // A dátum kiírva, az oldal nyelvén (pl. "2026. szeptember 29."): kevésbé "technikai" hatású, mint a 2026.09.29.
+  const displayDate = formatStoryDate(par.eskuvo_datuma || "", ["de", "en", "hu"].includes(par.nyelv) ? par.nyelv : "hu");
 
   const message = escapeHtml(par.egyedi_uzenet || copy.defaultMessage);
 
-  let fotoBeallitas = null;
+  // Borítókép: alapból 3:2-es hero (a belső kerethez igazítva); tárolt arány vagy "orig" (eredeti arány) felülírja.
+  let fotoEff = { arany: "3/2", x: 50, y: 40 };
   try {
     const fb = par.foto_beallitas ? JSON.parse(par.foto_beallitas) : null;
-    if (fb && ["3/2", "4/3", "1/1", "16/9"].includes(fb.arany)) {
-      fotoBeallitas = { arany: fb.arany, x: Math.max(0, Math.min(100, Number(fb.x) || 0)), y: Math.max(0, Math.min(100, Number(fb.y) || 0)) };
+    if (fb && fb.arany === "orig") fotoEff = { arany: "orig", x: 50, y: 50 };
+    else if (fb && ["3/2", "4/3", "1/1", "16/9"].includes(fb.arany)) {
+      fotoEff = { arany: fb.arany, x: Math.max(0, Math.min(100, Number(fb.x) || 0)), y: Math.max(0, Math.min(100, Number(fb.y) || 0)) };
     }
   } catch (e) {
-    fotoBeallitas = null;
+    // marad az alapértelmezett
   }
+  const fotoBeallitas = fotoEff.arany === "orig" ? null : fotoEff;
   const photoStyle = fotoBeallitas
     ? ` style="aspect-ratio:${fotoBeallitas.arany};object-fit:cover;object-position:${fotoBeallitas.x}% ${fotoBeallitas.y}%"`
     : "";
@@ -209,7 +211,7 @@ export async function onRequestGet(context) {
     "names",
     `${eyebrowText ? `<div class="eyebrow reveal">${escapeHtml(eyebrowText)}</div>` : ""}
     <h1 class="names reveal" style="--d:120ms">${escapeHtml(par.par_neve)}</h1>
-    <div class="date reveal" style="--d:240ms">${displayDate}</div>`,
+    <div class="date reveal" style="--d:240ms">${escapeHtml(displayDate)}</div>`,
     zoneOpts({ sortable: true, empty: false, penLabel: et && et.editorPen })
   );
   const photoZone = editZone("photo", photoHtml, zoneOpts({ sortable: true, removable: true, empty: !par.fenykep_frissitve, addLabel: et && et.editorAddPhoto, penLabel: et && et.editorPen }));
@@ -322,25 +324,26 @@ ${published && par.fenykep_frissitve ? `<meta property="og:image" content="${esc
     letter-spacing: 0.35em;
     text-transform: uppercase;
     color: var(--accent-text);
-    margin-bottom: 22px;
+    margin-bottom: 16px;
   }
   .names {
     ${fontRecipe}
     font-size: ${fontSize};
-    line-height: 1.15;
+    line-height: 1.08;
     color: var(--fg);
-    margin: 0 0 10px;
+    margin: 0 0 6px;
     overflow-wrap: break-word;
     word-break: break-word;
     hyphens: auto;
   }
   .date {
-    font-family: "Poppins", sans-serif;
-    font-size: 1rem;
+    font-family: "Cormorant Garamond", serif;
+    font-size: 1.5rem;
+    font-style: italic;
     font-weight: 500;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.05em;
     color: var(--accent-text);
-    margin-bottom: 30px;
+    margin-bottom: 28px;
   }
   .divider {
     display: flex;

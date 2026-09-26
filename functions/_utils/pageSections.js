@@ -127,7 +127,8 @@ export const sectionsCss = `
 // zoomja és nagyon enyhe parallaxa. Csak a publikus oldalon fut, a csökkentett mozgást kérő
 // eszközökön és a szerkesztőben nem; JS/IntersectionObserver hiányában minden azonnal látszik.
 export const scrollAnimCss = `
-  .cover-wrap { overflow: hidden; border-radius: 4px; margin-bottom: 26px; }
+  .cover-wrap { overflow: hidden; border-radius: 2px; margin: 0 -30px 16px; }
+  .card > .cover-wrap:first-child { margin-top: -46px; }
   .cover-wrap .cover-photo { margin-bottom: 0; border-radius: 0; }
   .anim .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) var(--d, 0ms), transform 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) var(--d, 0ms); }
   .anim .reveal.in { opacity: 1; transform: none; }

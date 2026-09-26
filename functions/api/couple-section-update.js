@@ -161,9 +161,12 @@ export async function onRequestPost(context) {
   } else if (section === "photo") {
     const arany = (formData.get("foto_arany") || "").toString();
     const clamp = (v) => Math.max(0, Math.min(100, Math.round(Number(v)) || 0));
+    // NULL = az alapértelmezett 3:2-es hero-kép; "orig" = az eredeti arány, kifejezetten kérve.
     const beallitas = CROP_RATIOS.includes(arany)
       ? JSON.stringify({ arany, x: clamp(formData.get("foto_x") ?? 50), y: clamp(formData.get("foto_y") ?? 50) })
-      : null;
+      : arany === "orig"
+        ? JSON.stringify({ arany: "orig", x: 50, y: 50 })
+        : null;
     await env.DB.prepare("UPDATE parok SET foto_beallitas = ? WHERE id = ?").bind(beallitas, parId).run();
   } else if (section === "style") {
     const style = getStyle((formData.get("stilus") || "").toString().trim());

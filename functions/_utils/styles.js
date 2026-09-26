@@ -55,5 +55,5 @@ export const FONT_RECIPES = {
 };
 
 export function namesFontSize(font) {
-  return font === "script" || font === "hand" ? "clamp(2.6rem, 9vw, 4.4rem)" : "clamp(2.2rem, 7vw, 3.6rem)";
+  return font === "script" || font === "hand" ? "clamp(2.9rem, 10vw, 5rem)" : "clamp(2.5rem, 8vw, 4.1rem)";
 }

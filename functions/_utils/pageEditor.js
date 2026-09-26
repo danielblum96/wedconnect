@@ -112,7 +112,9 @@ export const editorCss = `
   .wc-div-tile input:checked ~ .wc-div-prev { border-color:#b48b56; outline-color:#b48b56; }
   .wc-div-tile input:focus-visible ~ .wc-div-prev { outline:2px solid #2b2620; }
   .wc-div-name { display:block; text-align:center; font-size:0.8rem; font-weight:600; margin-top:5px; }
-  .wc-zone .cover-wrap { margin-bottom: 0; }
+  .wc-zone .cover-wrap { margin: 0; }
+  #zone-photo { padding: 0; margin: 0 -30px 16px; }
+  .card > #zone-photo:first-child { margin-top: -46px; }
   .wc-story-row { border:1px solid #ece4d6; border-radius:10px; padding:12px 12px 4px; margin-bottom:12px; }
   .wc-story-top { display:flex; gap:8px; align-items:flex-start; }
   .wc-story-top input { flex:1; min-width:0; }
