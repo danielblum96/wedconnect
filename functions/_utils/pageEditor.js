@@ -616,14 +616,9 @@ function script({ t }) {
     var parts = ((document.querySelector(".names") || {}).textContent || "").split("&");
     function ini(x) { var c = Array.from((x || "").trim())[0]; return c ? c.toLocaleUpperCase() : "\u2665"; }
     root.querySelector(".vl-mono").innerHTML = ini(parts[0]) + "<i>&amp;</i>" + ini(parts[1]);
-    var vNames = root.querySelector(".vl-names"), vDate = root.querySelector(".vl-date");
-    vNames.textContent = ((document.querySelector(".names") || {}).textContent || "").trim();
-    vDate.textContent = ((document.querySelector(".date") || {}).textContent || "").trim();
-    var vMsg = root.querySelector(".vl-message"), msgIn = document.getElementById("wc-nyito-szoveg");
-    if (vMsg && msgIn) { vMsg.textContent = msgIn.value.trim(); vMsg.hidden = !msgIn.value.trim(); }
+    root.querySelector(".vl-names").textContent = ((document.querySelector(".names") || {}).textContent || "").trim();
     var st = STYLES.filter(function (x) { return x.id === document.getElementById("wc-stilus").value; })[0];
     if (st) {
-      vNames.style.cssText = ((st.font === "sans" ? FONTS["serif-i"] : FONTS[st.font]) || FONTS["serif-i"]).recipe;
       var pal = envelopePalette(st.accent, st.bg);
       root.style.setProperty("--env-paper", pal.paper); root.style.setProperty("--env-paper2", pal.paper2);
     }

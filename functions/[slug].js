@@ -270,10 +270,6 @@ export async function onRequestGet(context) {
           copy,
           style,
           names: par.par_neve,
-          dateText: displayDate,
-          fontCss: style.font === "sans" ? FONT_RECIPES["serif-i"] : fontRecipe,
-          dividerKey: resolveDivider(par.elvalaszto),
-          message: envelopeMessage,
         })
       : "";
   const ribbonHtml =
