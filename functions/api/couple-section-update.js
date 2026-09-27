@@ -172,7 +172,8 @@ export async function onRequestPost(context) {
     const style = getStyle((formData.get("stilus") || "").toString().trim());
     // A Design panel a nyitó animáció kapcsolóját is ide küldi (nyito_mezo = jelen van a mező).
     if (formData.get("nyito_mezo")) {
-      const nyito = formData.get("nyito") === "1" ? "boritek" : null;
+      const nv = (formData.get("nyito") || "").toString();
+      const nyito = nv === "fuggony" ? "fuggony" : nv === "boritek" || nv === "1" ? "boritek" : null;
       if (formData.has("nyito_szoveg")) {
         const uzenet = (formData.get("nyito_szoveg") || "").toString().trim().slice(0, 60);
         await env.DB.prepare("UPDATE parok SET valasztott_stilus = ?, nyito_animacio = ?, boritek_szoveg = ? WHERE id = ?").bind(style.id, nyito, uzenet, parId).run();
