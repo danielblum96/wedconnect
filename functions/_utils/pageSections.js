@@ -51,8 +51,9 @@ export const countdownScript = `<script>
   (function () {
     function pad(n) { return n < 10 ? "0" + n : "" + n; }
     function tick() {
-      var el = document.querySelector(".countdown");
-      if (!el) return;
+      [].forEach.call(document.querySelectorAll(".countdown"), tickOne);
+    }
+    function tickOne(el) {
       var diff = +el.getAttribute("data-target") - Date.now();
       var row = el.querySelector(".cd-row"), msg = el.querySelector(".cd-msg"), title = el.querySelector(".cd-title");
       if (diff <= 0) {
@@ -134,6 +135,7 @@ export const scrollAnimCss = `
   .anim .reveal.in { opacity: 1; transform: none; }
   .anim .cover-wrap .cover-photo { scale: 1.14; transition: scale 2s cubic-bezier(0.22, 0.61, 0.36, 1); will-change: scale, translate; }
   .anim .cover-wrap.in .cover-photo { scale: 1.08; }
+  .wc-noanim .reveal, .wc-noanim .cover-wrap .cover-photo { transition: none !important; }
 `;
 
 export const scrollAnimHeadScript = `<script>
@@ -152,14 +154,18 @@ export const scrollAnimScript = `<script>
     window.__wcReveal = true;
     var h = document.documentElement;
     if (!h.classList.contains("anim")) return;
+    var started = false;
+    var SEL = ".card:not(.env-clone) .reveal, .card:not(.env-clone) .cover-wrap";
     function start() {
-      var els = document.querySelectorAll(".reveal, .cover-wrap");
+      if (started) return;
+      started = true;
+      var els = document.querySelectorAll(SEL);
       if (!("IntersectionObserver" in window)) { els.forEach(function (e) { e.classList.add("in"); }); return; }
       var io = new IntersectionObserver(function (entries) {
         entries.forEach(function (x) { if (x.isIntersecting) { x.target.classList.add("in"); io.unobserve(x.target); } });
       }, { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
       els.forEach(function (e) { io.observe(e); });
-      var ph = document.querySelector(".cover-photo");
+      var ph = document.querySelector(".card:not(.env-clone) .cover-photo");
       if (ph && ph.parentNode) {
         var ticking = false;
         var update = function () {
@@ -172,8 +178,17 @@ export const scrollAnimScript = `<script>
         update();
       }
     }
-    // A nyitó boríték alatt ne fusson le a bevezető animáció: várjuk meg, míg eltűnik.
-    if (document.getElementById("wc-env") && !h.classList.contains("wc-env-skip")) document.addEventListener("wc-env-done", start, { once: true });
-    else start();
+    // Nyitó boríték: az oldal az élő másolat megérkezése (wc-env-land) pillanatában már KÉSZEN áll alatta (animáció nélkül,
+    // hogy ne villanjon), a maradék elem a szokásos módon úszik be a boríték eltűnése után.
+    function land() {
+      h.classList.add("wc-noanim");
+      [].forEach.call(document.querySelectorAll(SEL), function (e) { if (e.getBoundingClientRect().top < window.innerHeight) e.classList.add("in"); });
+      start();
+      requestAnimationFrame(function () { requestAnimationFrame(function () { h.classList.remove("wc-noanim"); }); });
+    }
+    if (document.getElementById("wc-env") && !h.classList.contains("wc-env-skip")) {
+      document.addEventListener("wc-env-land", land, { once: true });
+      document.addEventListener("wc-env-done", start, { once: true });
+    } else start();
   })();
 </script>`;

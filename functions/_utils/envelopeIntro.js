@@ -161,6 +161,7 @@ export function envelopeMarkup({ monogram, copy, style, names = "", dateText = "
     <div class="env-box">
       <div class="env-back env-paper"></div>
       <div class="env-card${photo ? " has-photo" : ""}">
+        <div class="env-card-page" aria-hidden="true"></div>
         ${photoHtml}
         <div class="env-card-in">
           <div class="env-card-names" style="${escapeHtml(fontCss)}">${escapeHtml(names)}</div>
@@ -197,7 +198,7 @@ export const envelopeCss = `
   #wc-env { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; padding-top: 12vh; background: var(--bg); text-align: center; overflow: hidden; -webkit-tap-highlight-color: transparent; }
   #wc-env::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 45%, rgba(255,255,255,0.2), rgba(60,40,20,0.2) 100%); }
   #wc-env * { box-sizing: border-box; }
-  #wc-env .env-stage { --ew: min(calc(100vw - 40px), 640px); --eh: min(calc(var(--ew) * 0.7), 46vh); position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; transition: transform 0.95s cubic-bezier(0.4, 0, 0.2, 1) 2.3s, opacity 0.8s ease 2.5s; }
+  #wc-env .env-stage { --ew: min(calc(100vw - 40px), 640px); --eh: min(calc(var(--ew) * 0.7), 46vh); position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
   @media (max-width: 699px) { #wc-env .env-stage { --eh: min(calc(var(--ew) * 0.95), 56vh); } }
   #wc-env .env-box { position: relative; width: var(--ew); height: var(--eh); filter: drop-shadow(0 24px 26px rgba(40,25,10,0.34)); }
   #wc-env .env-paper { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .35 0 0 0 .4 -.12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"), repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 3px), linear-gradient(160deg, var(--env-paper, var(--bg)), var(--env-paper2, var(--bg))); }
@@ -210,7 +211,7 @@ export const envelopeCss = `
   #wc-env .env-sprig { position: absolute; z-index: 3; left: 50%; bottom: 4.5%; width: min(24%, 108px); transform: translateX(-50%); color: var(--env-orn, var(--accent)); opacity: 0.9; pointer-events: none; filter: drop-shadow(0 1px 0 rgba(255,255,255,0.55)); }
   #wc-env .env-sprig svg { display: block; width: 100%; height: auto; }
   #wc-env .env-names { position: absolute; z-index: 3; left: 50%; bottom: 15%; transform: translateX(-50%); width: 56%; text-align: center; font-family: "Great Vibes", "Cormorant Garamond", cursive; font-size: clamp(1.35rem, 4.2vw, 1.9rem); line-height: 1.1; color: var(--fg); text-shadow: 0 1px 0 rgba(255,255,255,0.55); pointer-events: none; overflow-wrap: anywhere; }
-  #wc-env .env-card { position: absolute; z-index: 2; left: 5%; right: 5%; top: 6%; bottom: 6%; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .35 0 0 0 .4 -.12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"), var(--env-paper, var(--bg)); box-shadow: 0 6px 18px rgba(40,25,10,0.22); border: 1px solid var(--env-orn, var(--accent)); display: flex; flex-direction: column; overflow: hidden; }
+  #wc-env .env-card { position: absolute; z-index: 2; left: 5%; right: 5%; top: 6%; height: calc(var(--eh) * 0.88); background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .35 0 0 0 .4 -.12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"), var(--env-paper, var(--bg)); box-shadow: 0 6px 18px rgba(40,25,10,0.22); border: 1px solid var(--env-orn, var(--accent)); display: flex; flex-direction: column; overflow: hidden; }
   #wc-env .env-card::before { content: ""; position: absolute; inset: 5px; border: 1px solid var(--env-orn, var(--accent)); opacity: 0.45; pointer-events: none; z-index: 2; }
   #wc-env .env-card-photo { flex: none; display: block; width: calc(100% - 14px); height: 50%; margin: 7px 7px 0; object-fit: cover; }
   #wc-env .env-card-in { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 12px 10px; min-height: 0; }
@@ -242,21 +243,29 @@ export const envelopeCss = `
   #wc-env .env-petal.alt { background: var(--env-orn, var(--accent)); }
   /* Nyitás: pecsét megtörik -> fedél felnyílik -> a kártya kicsúszik -> a boríték feloldódik, előbukkan az oldal */
   /* A háttér a nyitás végéig TELJESEN ér (a gradiens hátterek nem animálhatók), csak a legvégén oldódik fel az egész boríték együtt. */
-  #wc-env.env-opening { animation: env-root-out 0.9s ease 2.4s forwards; }
   #wc-env.env-opening .env-seal { animation: env-seal-break 0.55s ease-out forwards; }
   #wc-env.env-opening .env-invite { opacity: 0; transition: opacity 0.3s; }
   #wc-env.env-opening .env-seal::before, #wc-env.env-opening .env-seal::after { animation: none; }
   #wc-env.env-opening .env-skip { opacity: 0; transition: opacity 0.25s; }
   #wc-env.env-opening .env-flap { animation: env-flap 1.05s cubic-bezier(0.5, 0, 0.25, 1) 0.4s forwards; }
   #wc-env.env-opening .env-card { animation: env-card 1.15s cubic-bezier(0.25, 0.8, 0.25, 1) 1.3s forwards; }
-  #wc-env.env-opening .env-stage { transform: scale(1.12); opacity: 0; }
+  /* A boríték kártyája az oldal ÉLŐ másolata: kicsúszás után a valódi oldal helyére repül, majd az egész jelenet feloldódik. */
+  #wc-env .env-card-page { position: absolute; left: 0; top: 0; width: var(--ew); transform: scale(0.9); transform-origin: 0 0; pointer-events: none; }
+  #wc-env .env-card.has-clone { border: 0; }
+  #wc-env .env-card.has-clone::before, #wc-env .env-card.has-clone .env-card-photo, #wc-env .env-card.has-clone .env-card-in { display: none; }
+  #wc-env .env-fly { position: fixed; left: 0; top: 0; z-index: 9; transform-origin: 0 0; overflow: hidden; pointer-events: none; }
+  #wc-env .env-fly-paper { position: absolute; inset: 0; z-index: 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .35 0 0 0 .4 -.12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"), var(--env-paper, var(--bg)); }
+  #wc-env .env-fly > .card { position: relative; z-index: 1; }
+  #wc-env.env-opening .env-stage { transform: translateY(7vh); transition: transform 1.1s cubic-bezier(0.4, 0, 0.2, 1) 0.2s; }
+  #wc-env.env-flying .env-stage { opacity: 0; transition: opacity 0.8s ease 0.1s; }
+  #wc-env.env-leaving { animation: env-root-out 0.6s ease forwards; }
   #wc-env.env-opening .env-petal { animation: env-petal 3.6s ease-in calc(1.5s + var(--d)) forwards; }
   #wc-env.env-opening, #wc-env.env-fast { pointer-events: none; }
   #wc-env.env-fast { opacity: 0; transition: opacity 0.3s ease; }
   @keyframes env-flap { 0% { transform: perspective(1600px) rotateX(0deg); z-index: 4; } 49% { z-index: 4; } 50% { z-index: 1; } 100% { transform: perspective(1600px) rotateX(180deg); z-index: 1; } }
   @keyframes env-ripple { 0% { transform: scale(0.9); opacity: 0.5; } 100% { transform: scale(1.9); opacity: 0; } }
   @keyframes env-root-out { to { opacity: 0; } }
-  @keyframes env-card { to { transform: translateY(calc(var(--eh) * -0.64)); } }
+  @keyframes env-card { to { transform: translateY(calc(var(--eh) * -0.74)); height: calc(var(--eh) * 1.18); } }
   @keyframes env-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
   @keyframes env-pulse { 0%, 100% { opacity: 0.62; } 50% { opacity: 1; } }
   @keyframes env-seal-break { 0% { transform: scale(1) rotate(0); opacity: 1; } 28% { transform: scale(1.16) rotate(-4deg); opacity: 1; } 100% { transform: scale(0.55) rotate(9deg); opacity: 0; } }
@@ -284,17 +293,73 @@ export const envelopeRuntime = `<script>
   window.wcEnvelopeInit = function (root, opts) {
     opts = opts || {};
     var opened = false;
+    var src = opts.card !== undefined ? opts.card : document.querySelector(".card");
+    var target = opts.target || document.querySelector(".card");
+    var envCard = root.querySelector(".env-card");
+    var holder = root.querySelector(".env-card-page");
+    var clone = null;
+    // A kicsúszó kártya az oldal tényleges tetejének élő másolata (ugyanaz a fotó, betű, keret, dátum).
+    if (src && holder && envCard) {
+      clone = src.cloneNode(true);
+      clone.classList.add("env-clone");
+      clone.setAttribute("aria-hidden", "true");
+      [].forEach.call(clone.querySelectorAll("[id]"), function (e) { e.removeAttribute("id"); });
+      [].forEach.call(clone.querySelectorAll("script"), function (e) { e.parentNode.removeChild(e); });
+      [].forEach.call(clone.querySelectorAll(".reveal, .cover-wrap"), function (e) { e.classList.add("in"); });
+      holder.appendChild(clone);
+      envCard.classList.add("has-clone");
+    }
     function finish() {
       if (root.parentNode) root.parentNode.removeChild(root);
       document.documentElement.classList.remove("wc-env-lock");
       document.dispatchEvent(new Event("wc-env-done"));
     }
+    function leave(delay) {
+      setTimeout(function () { root.classList.add("env-leaving"); setTimeout(finish, 650); }, delay);
+    }
+    // A másolat a kicsúszott helyéről a valódi oldal kártyájának helyére repül (az oldal ugyanott van alatta).
+    function fly() {
+      if (!clone || !target) return false;
+      var page = clone.getBoundingClientRect(), t = target.getBoundingClientRect(), ec = envCard.getBoundingClientRect();
+      if (!page.width || !t.width) return false;
+      var s0 = page.width / t.width;
+      var fl = document.createElement("div");
+      fl.className = "env-fly";
+      fl.style.width = t.width + "px";
+      fl.style.height = (ec.height / s0) + "px";
+      var start = "translate(" + page.left + "px," + page.top + "px) scale(" + s0 + ")";
+      fl.style.transform = start;
+      var paper = document.createElement("div");
+      paper.className = "env-fly-paper";
+      fl.appendChild(paper);
+      fl.appendChild(clone);
+      root.appendChild(fl);
+      envCard.style.visibility = "hidden";
+      root.classList.add("env-flying");
+      var endH = Math.max(ec.height / s0, window.innerHeight - t.top);
+      var opt = { duration: 950, easing: "cubic-bezier(0.45, 0, 0.2, 1)", fill: "forwards" };
+      fl.animate([{ transform: start, height: (ec.height / s0) + "px" }, { transform: "translate(" + t.left + "px," + t.top + "px) scale(1)", height: endH + "px" }], opt);
+      paper.animate([{ opacity: 1 }, { opacity: 0 }], opt);
+      return true;
+    }
     function open(fast) {
       if (opened) return;
       opened = true;
       if (!opts.preview && opts.key) { try { sessionStorage.setItem(opts.key, "1"); } catch (e) {} }
-      root.classList.add(fast ? "env-fast" : "env-opening");
-      setTimeout(finish, fast ? 350 : 3400);
+      if (fast) {
+        root.classList.add("env-fast");
+        setTimeout(finish, 350);
+        return;
+      }
+      root.classList.add("env-opening");
+      setTimeout(function () {
+        if (fly()) {
+          setTimeout(function () { document.dispatchEvent(new Event("wc-env-land")); }, 950);
+          leave(980);
+        } else {
+          leave(0);
+        }
+      }, 2500);
     }
     var btn = root.querySelector(".env-open");
     btn.addEventListener("click", function () { open(false); });

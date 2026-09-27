@@ -605,8 +605,18 @@ function script({ t }) {
       root.style.setProperty("--env-paper", pal.paper); root.style.setProperty("--env-paper2", pal.paper2);
       root.style.setProperty("--env-orn", pal.orn); root.style.setProperty("--env-seal", pal.seal); root.style.setProperty("--env-seal-fg", pal.sealFg);
     }
-    document.body.appendChild(root);
-    window.wcEnvelopeInit(root, { preview: true });
+    // Az előnézet a mentett oldal tiszta (szerkesztő-elemek nélküli) másolatát használja a kicsúszó kártyához.
+    var prevLink = document.querySelector(".wc-bar a");
+    function startPreview(cardEl) {
+      document.body.appendChild(root);
+      window.wcEnvelopeInit(root, { preview: true, card: cardEl, target: document.querySelector(".card") });
+    }
+    if (prevLink) {
+      fetch(prevLink.getAttribute("href"), { credentials: "same-origin" })
+        .then(function (r) { return r.text(); })
+        .then(function (html) { startPreview(new DOMParser().parseFromString(html, "text/html").querySelector(".card")); })
+        .catch(function () { startPreview(null); });
+    } else startPreview(null);
   }
   function closeNonModal(d) {
     if (!d || !d.open) return;
