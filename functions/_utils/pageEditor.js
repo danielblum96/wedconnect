@@ -187,7 +187,7 @@ function panelForm(parId, section, body, t) {
   return `<form class="wc-form" method="POST" action="/api/couple-section-update"><input type="hidden" name="par_id" value="${parId}"><input type="hidden" name="section" value="${section}">${body}<div class="wc-error" hidden></div>${footer(t)}</form>`;
 }
 
-function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, nyitoOn, dividerKey, eyebrowText, storyItems, countdownOn, countdownTime, nev1, nev2, hasPhoto, photoVersion, currentStyleId }) {
+function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, nyitoOn, envelopeMessage, dividerKey, eyebrowText, storyItems, countdownOn, countdownTime, nev1, nev2, hasPhoto, photoVersion, currentStyleId }) {
   const eventVisible = Math.min(EDIT_MAX_EVENTS, Math.max(esemenyek.length + 1, 2));
   const eventRows = Array.from({ length: EDIT_MAX_EVENTS }, (_, i) => {
     const ev = esemenyek[i] || { ido: "", nev: "" };
@@ -394,7 +394,10 @@ function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, 
           <label class="wc-check"><input type="checkbox" name="nyito" id="wc-nyito" value="1"${nyitoOn ? " checked" : ""}> ${escapeHtml(t.editorEnvelope)}</label>
           <button type="button" class="wc-chip" data-play-envelope>${escapeHtml(t.editorEnvelopePreview)}</button>
         </div>
-        <p class="wc-hint">${escapeHtml(t.editorEnvelopeHint)}</p>`,
+        <p class="wc-hint">${escapeHtml(t.editorEnvelopeHint)}</p>
+        <label for="wc-nyito-szoveg">${escapeHtml(t.editorEnvelopeText)}</label>
+        <input type="text" id="wc-nyito-szoveg" name="nyito_szoveg" value="${escapeHtml(envelopeMessage)}" maxlength="60" autocomplete="off">
+        <p class="wc-hint">${escapeHtml(t.editorEnvelopeTextHint)}</p>`,
         t
       )
     ),
@@ -581,10 +584,25 @@ function script({ t }) {
     if (cardNames) cardNames.textContent = ((document.querySelector(".names") || {}).textContent || "").trim();
     var faceNames = root.querySelector(".env-names");
     if (faceNames) faceNames.textContent = ((document.querySelector(".names") || {}).textContent || "").trim();
+    var envCard = root.querySelector(".env-card"), envPhoto = root.querySelector(".env-card-photo"), coverImg = document.querySelector(".cover-photo");
+    if (coverImg) {
+      if (!envPhoto) { envPhoto = document.createElement("img"); envPhoto.className = "env-card-photo"; envPhoto.alt = ""; envCard.insertBefore(envPhoto, envCard.firstChild); }
+      envPhoto.src = coverImg.src; envPhoto.style.objectPosition = coverImg.style.objectPosition || "50% 40%";
+      envCard.classList.add("has-photo");
+    } else {
+      if (envPhoto) envPhoto.remove();
+      envCard.classList.remove("has-photo");
+    }
+    var msgEl = root.querySelector(".env-message"), msgIn = document.getElementById("wc-nyito-szoveg");
+    if (msgEl && msgIn) { msgEl.textContent = msgIn.value.trim(); msgEl.hidden = !msgIn.value.trim(); }
     if (cardDate) cardDate.textContent = ((document.querySelector(".date") || {}).textContent || "").trim();
     var st = STYLES.filter(function (x) { return x.id === document.getElementById("wc-stilus").value; })[0];
     if (st) {
+      var envFont = (st.font === "sans" ? FONTS["serif-i"] : FONTS[st.font]) || FONTS["serif-i"];
+      if (cardNames) cardNames.style.cssText = envFont.recipe;
+      if (faceNames) faceNames.style.cssText = envFont.recipe;
       var pal = envelopePalette(st.accent, st.bg);
+      root.style.setProperty("--env-paper", pal.paper); root.style.setProperty("--env-paper2", pal.paper2);
       root.style.setProperty("--env-orn", pal.orn); root.style.setProperty("--env-seal", pal.seal); root.style.setProperty("--env-seal-fg", pal.sealFg);
     }
     document.body.appendChild(root);
@@ -597,6 +615,7 @@ function script({ t }) {
   }
   var currentId = document.getElementById("wc-stilus").value;
   var currentEnv = document.getElementById("wc-nyito").checked;
+  var currentEnvMsg = document.getElementById("wc-nyito-szoveg").value;
 
   // Minden eseménykezelő delegált (a document-en), mert mentés után a kártya és a
   // panelek a szerverről frissen betöltött példányra cserélődnek (refresh()).
@@ -794,6 +813,7 @@ function script({ t }) {
     applyStyle(currentId);
     document.getElementById("wc-stilus").value = currentId;
     document.getElementById("wc-nyito").checked = currentEnv;
+    document.getElementById("wc-nyito-szoveg").value = currentEnvMsg;
     document.querySelectorAll(".wc-style").forEach(function (x) { x.classList.toggle("selected", x.getAttribute("data-style") === currentId); });
   }
   function firstEmpty(rows, field) {
@@ -930,7 +950,7 @@ function script({ t }) {
     fetch(form.action, { method: "POST", body: new FormData(form), headers: { Accept: "application/json" }, credentials: "same-origin" })
       .then(function (r) { if (!r.ok) throw new Error("save"); return r.json(); })
       .then(function () {
-        if (isStyle) { currentId = document.getElementById("wc-stilus").value; currentEnv = document.getElementById("wc-nyito").checked; designPanel.close(); toast(COPY.saved); return; }
+        if (isStyle) { currentId = document.getElementById("wc-stilus").value; currentEnv = document.getElementById("wc-nyito").checked; currentEnvMsg = document.getElementById("wc-nyito-szoveg").value; designPanel.close(); toast(COPY.saved); return; }
         return refresh().then(function () {
           if (pendingAdd && pendingAdd === sectionName) placeAdded(pendingAdd, pendingBefore);
           pendingAdd = null; pendingBefore = null;

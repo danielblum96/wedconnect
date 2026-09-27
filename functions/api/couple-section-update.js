@@ -173,7 +173,12 @@ export async function onRequestPost(context) {
     // A Design panel a nyitó animáció kapcsolóját is ide küldi (nyito_mezo = jelen van a mező).
     if (formData.get("nyito_mezo")) {
       const nyito = formData.get("nyito") === "1" ? "boritek" : null;
-      await env.DB.prepare("UPDATE parok SET valasztott_stilus = ?, nyito_animacio = ? WHERE id = ?").bind(style.id, nyito, parId).run();
+      if (formData.has("nyito_szoveg")) {
+        const uzenet = (formData.get("nyito_szoveg") || "").toString().trim().slice(0, 60);
+        await env.DB.prepare("UPDATE parok SET valasztott_stilus = ?, nyito_animacio = ?, boritek_szoveg = ? WHERE id = ?").bind(style.id, nyito, uzenet, parId).run();
+      } else {
+        await env.DB.prepare("UPDATE parok SET valasztott_stilus = ?, nyito_animacio = ? WHERE id = ?").bind(style.id, nyito, parId).run();
+      }
     } else {
       await env.DB.prepare("UPDATE parok SET valasztott_stilus = ? WHERE id = ?").bind(style.id, parId).run();
     }

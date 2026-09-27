@@ -59,7 +59,7 @@ export async function onRequestGet(context) {
   if (staticResp) return staticResp;
 
   const par = await env.DB.prepare(
-    "SELECT id, slug, par_neve, nev1, nev2, helyszin, foto_beallitas, szekcio_sorrend, nyito_animacio, elvalaszto, tortenet, visszaszamlalo, felirat, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
+    "SELECT id, slug, par_neve, nev1, nev2, helyszin, foto_beallitas, szekcio_sorrend, nyito_animacio, elvalaszto, tortenet, visszaszamlalo, felirat, boritek_szoveg, eskuvo_datuma, valasztott_stilus, egyedi_uzenet, egyedi_gombok, esemenyek, fenykep_frissitve, nyelv, letrehozva, rendeles_id, viszontelado_id, elonezet_token FROM parok WHERE slug = ?"
   )
     .bind(slug)
     .first();
@@ -231,6 +231,7 @@ export async function onRequestGet(context) {
   const lang = ["de", "en", "hu"].includes(par.nyelv) ? par.nyelv : "hu";
   const origin = new URL(request.url).origin;
   const envelopeEnabled = par.nyito_animacio === "boritek";
+  const envelopeMessage = par.boritek_szoveg == null ? copy.envelopeMessage : par.boritek_szoveg;
   const envelopeOn = envelopeEnabled && !edit;
   const envelopeHtml =
     envelopeEnabled || edit
@@ -243,7 +244,13 @@ export async function onRequestGet(context) {
           style,
           names: par.par_neve,
           dateText: displayDate,
-          fontCss: fontRecipe,
+          // A nevek az oldal saját betűtípusával jelennek meg (a sima sans stílusnál elegáns serif-dőlt a tartalék).
+          fontCss: style.font === "sans" ? FONT_RECIPES["serif-i"] : fontRecipe,
+          photo: par.fenykep_frissitve
+            ? { src: `/foto/${encodeURIComponent(slug)}?v=${encodeURIComponent(par.fenykep_frissitve)}`, x: fotoEff.x, y: fotoEff.y }
+            : null,
+          dividerKey: resolveDivider(par.elvalaszto),
+          message: envelopeMessage,
         })
       : "";
   const ogDescription = `${displayDate} · ${(par.egyedi_uzenet || copy.defaultMessage).replace(/\s+/g, " ").slice(0, 160)}`;
@@ -507,6 +514,7 @@ ${scrollAnimCss}
           countdownTime: (vs && vs.ido) || "",
           dividerKey,
           nyitoOn: envelopeEnabled,
+          envelopeMessage,
           nev1: par.nev1 || (par.par_neve || "").split(" & ")[0] || "",
           nev2: par.nev2 || (par.par_neve || "").split(" & ")[1] || "",
           freeEligible,

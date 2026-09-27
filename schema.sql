@@ -172,3 +172,7 @@ CREATE INDEX IF NOT EXISTS idx_email_kuldesek_viszontelado ON email_kuldesek (vi
 -- Felirat a nevek fölött (2026-09-27; alapból "Esküvő"): NULL = az oldal nyelvének alapértelmezett szövege,
 -- szöveg = egyedi felirat, üres string = nincs felirat (törölve).
 --   parok: felirat TEXT
+
+-- A nyitó boríték főüzenete (2026-09-27): NULL = az oldal nyelvének alapértelmezett szövege ("Szeretettel meghívunk"),
+-- szöveg = egyedi üzenet (max. 60 karakter), üres string = nincs üzenet.
+--   parok: boritek_szoveg TEXT

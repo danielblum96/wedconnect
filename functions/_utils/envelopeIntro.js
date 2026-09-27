@@ -1,4 +1,5 @@
 import { escapeHtml } from "./html.js";
+import { dividerGlyph } from "./dividers.js";
 
 // Nyitó animáció ("boríték"): a publikus oldal megnyitásakor egy lezárt, viaszpecsétes
 // meghívó látszik (a stílus színeivel), koppintásra a két szárny kinyílik, és előbukkan az
@@ -19,10 +20,11 @@ export function monogramHtml(nev1, nev2) {
 // minimalista) a pecsét bordó vagy arany, a díszítés arany lesz, hogy sose legyen fekete pecsét.
 // FONTOS: önálló függvény, beágyazott függvények nélkül (a szerkesztő kliens-kódja a .toString()-jét is felhasználja).
 export function envelopePalette(accent, bg) {
-  // Szándékosan NINCS benne beágyazott függvény: a csomagoló (esbuild) oda __name() hívást szúrna,
+  // Szándékosan NINCS benne beágyazott függvény/nyíl-függvény: a csomagoló (esbuild) oda __name() hívást szúrna,
   // ami a kliensen (a .toString()-ből újraépített kódban) nem létezik.
   var firstHex = (String(bg || "").match(/#[0-9a-fA-F]{6}/) || ["#ffffff"])[0];
   var inputs = [accent, firstHex];
+  var rgbs = [];
   var lums = [];
   var chromas = [];
   for (var i = 0; i < 2; i++) {
@@ -30,22 +32,38 @@ export function envelopePalette(accent, bg) {
     if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
     var n = parseInt(h, 16);
     var c = isNaN(n) || h.length !== 6 ? [176, 141, 87] : [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    rgbs.push(c);
     lums.push((0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255);
     chromas.push(Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]));
   }
+  var a = rgbs[0];
+  var b = rgbs[1];
   var neutral = chromas[0] < 30;
   var darkBg = lums[1] < 0.35;
-  var orn = neutral ? "#b39568" : accent;
+  // Papír: az oldal háttérszínéből kevert, tiszta árnyalat (világos háttérnél világosabb, sötétnél kissé világosabb), a
+  // kiemelő szín enyhe beütésével, hogy a boríték az adott párhoz tartozzon (ne legyen általános bézs).
+  var t1 = darkBg ? 0.1 : 0.6;
+  var t2 = darkBg ? 0.05 : 0.38;
+  var p1 = "#";
+  var p2 = "#";
+  for (var k = 0; k < 3; k++) {
+    var m1 = Math.round(b[k] * (1 - t1) + 255 * t1);
+    var m2 = Math.round(b[k] * (1 - t2) + 255 * t2);
+    if (!darkBg) m2 = Math.round(m2 * 0.9 + a[k] * 0.1);
+    p1 += ("0" + m1.toString(16)).slice(-2);
+    p2 += ("0" + m2.toString(16)).slice(-2);
+  }
+  var orn = darkBg ? "#d4b672" : "#b8955a"; // arany fóliavonal
   var seal = neutral ? (darkBg ? "#c9a56a" : "#8f2e42") : accent;
   var sh = String(seal).replace("#", "");
   var sn = parseInt(sh, 16);
   var sl = isNaN(sn) || sh.length !== 6 ? 0.4 : (0.2126 * ((sn >> 16) & 255) + 0.7152 * ((sn >> 8) & 255) + 0.0722 * (sn & 255)) / 255;
-  return { orn: orn, seal: seal, sealFg: sl > 0.5 ? "#3b2a12" : "#fbf1dc" };
+  return { orn: orn, seal: seal, sealFg: sl > 0.5 ? "#3b2a12" : "#fbf1dc", paper: p1, paper2: p2 };
 }
 
 export function paletteStyleAttr(style) {
   const p = envelopePalette(style.accent, style.bg);
-  return `--env-orn:${p.orn};--env-seal:${p.seal};--env-seal-fg:${p.sealFg}`;
+  return `--env-orn:${p.orn};--env-seal:${p.seal};--env-seal-fg:${p.sealFg};--env-paper:${p.paper};--env-paper2:${p.paper2}`;
 }
 
 // ---- A boríték ---------------------------------------------------------------------------------
@@ -115,8 +133,8 @@ function sprigSvg() {
 }
 const SPRIG = sprigSvg();
 
-const PETALS = Array.from({ length: 18 }, (_, i) => {
-  const x = (i * 37 + 11) % 100;
+const PETALS = Array.from({ length: 10 }, (_, i) => {
+  const x = (i * 43 + 9) % 100;
   const dx = ((i * 53) % 90) - 45;
   const d = ((i * 29) % 12) / 10;
   const r = 200 + ((i * 71) % 400);
@@ -133,24 +151,28 @@ const ENV_LINES = `<svg class="env-lines" viewBox="0 0 100 100" preserveAspectRa
   </g>
 </svg>`;
 
-export function envelopeMarkup({ monogram, copy, style, names = "", dateText = "", fontCss = "" }) {
+export function envelopeMarkup({ monogram, copy, style, names = "", dateText = "", fontCss = "", photo = null, dividerKey = "ag", message = "" }) {
   const pal = style ? ` style="${paletteStyleAttr(style)}"` : "";
+  const glyph = dividerKey && dividerKey !== "nincs" ? dividerGlyph(dividerKey) : "";
+  const photoHtml = photo ? `<img class="env-card-photo" src="${escapeHtml(photo.src)}" alt="" style="object-position:${photo.x}% ${photo.y}%">` : "";
   return `<div id="wc-env"${pal} role="dialog" aria-modal="true" aria-label="${escapeHtml(copy.envelopeLabel)}">
   <div class="env-petals" aria-hidden="true">${PETALS}</div>
   <div class="env-stage">
     <div class="env-box">
       <div class="env-back env-paper"></div>
-      <div class="env-card">
+      <div class="env-card${photo ? " has-photo" : ""}">
+        ${photoHtml}
         <div class="env-card-in">
-          <div class="env-card-names">${escapeHtml(names)}</div>
+          <div class="env-card-names" style="${escapeHtml(fontCss)}">${escapeHtml(names)}</div>
           <div class="env-card-date">${escapeHtml(dateText)}</div>
+          <div class="env-card-glyph" aria-hidden="true">${glyph}</div>
         </div>
       </div>
       <div class="env-front env-front-l env-paper"></div>
       <div class="env-front env-front-r env-paper"></div>
       <div class="env-front env-front-b env-paper"></div>
       ${ENV_LINES}
-      <div class="env-names" aria-hidden="true">${escapeHtml(names)}</div>
+      <div class="env-names" style="${escapeHtml(fontCss)}" aria-hidden="true">${escapeHtml(names)}</div>
       <div class="env-sprig" aria-hidden="true">${SPRIG}</div>
       <div class="env-flap">
         <div class="env-flap-f env-paper"></div>
@@ -159,7 +181,10 @@ export function envelopeMarkup({ monogram, copy, style, names = "", dateText = "
       </div>
       <div class="env-seal" aria-hidden="true">${WAX_SVG}<span class="env-mono">${monogram}</span></div>
     </div>
-    <div class="env-hint" aria-hidden="true">${escapeHtml(copy.envelopeHint)}</div>
+    <div class="env-invite">
+      <div class="env-message"${message ? "" : " hidden"}>${escapeHtml(message)}</div>
+      <div class="env-hint" aria-hidden="true">${escapeHtml(copy.envelopeHint)}</div>
+    </div>
   </div>
   <button type="button" class="env-open" aria-label="${escapeHtml(copy.envelopeLabel)}"></button>
   <button type="button" class="env-skip">${escapeHtml(copy.envelopeSkip)}</button>
@@ -175,7 +200,7 @@ export const envelopeCss = `
   #wc-env .env-stage { --ew: min(calc(100vw - 40px), 640px); --eh: min(calc(var(--ew) * 0.7), 46vh); position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; transition: transform 0.95s cubic-bezier(0.4, 0, 0.2, 1) 2.3s, opacity 0.8s ease 2.5s; }
   @media (max-width: 699px) { #wc-env .env-stage { --eh: min(calc(var(--ew) * 0.95), 56vh); } }
   #wc-env .env-box { position: relative; width: var(--ew); height: var(--eh); filter: drop-shadow(0 24px 26px rgba(40,25,10,0.34)); }
-  #wc-env .env-paper { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .33 0 0 0 0 .22 0 0 0 .5 -.14'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .34 0 0 0 0 .22 0 0 0 .4 -.12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E"), repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(120,90,50,0.022) 0 1px, transparent 1px 3px), linear-gradient(160deg, rgba(150,110,60,0.10), rgba(120,90,50,0.20)), var(--bg); }
+  #wc-env .env-paper { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .35 0 0 0 .4 -.12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"), repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 3px), linear-gradient(160deg, var(--env-paper, var(--bg)), var(--env-paper2, var(--bg))); }
   #wc-env .env-back { position: absolute; inset: 0; z-index: 0; border-radius: 3px; }
   #wc-env .env-front { position: absolute; inset: 0; z-index: 3; }
   #wc-env .env-front-l { clip-path: polygon(0 0, 50% 52%, 0 100%); border-radius: 3px 0 0 3px; }
@@ -184,21 +209,31 @@ export const envelopeCss = `
   #wc-env .env-lines { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; pointer-events: none; color: var(--env-orn, var(--accent)); opacity: 0.7; filter: drop-shadow(0 1px 0 rgba(255,255,255,0.6)); }
   #wc-env .env-sprig { position: absolute; z-index: 3; left: 50%; bottom: 4.5%; width: min(24%, 108px); transform: translateX(-50%); color: var(--env-orn, var(--accent)); opacity: 0.9; pointer-events: none; filter: drop-shadow(0 1px 0 rgba(255,255,255,0.55)); }
   #wc-env .env-sprig svg { display: block; width: 100%; height: auto; }
-  #wc-env .env-names { position: absolute; z-index: 3; left: 50%; bottom: 15%; transform: translateX(-50%); width: 56%; text-align: center; font-family: "Great Vibes", "Cormorant Garamond", cursive; font-size: clamp(1.4rem, 4.4vw, 2rem); line-height: 1.1; color: color-mix(in srgb, var(--fg) 82%, var(--env-seal, var(--accent))); text-shadow: 0 1px 0 rgba(255,255,255,0.55); pointer-events: none; overflow-wrap: anywhere; }
-  #wc-env .env-card { position: absolute; z-index: 2; left: 5%; right: 5%; top: 6%; bottom: 6%; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .33 0 0 0 0 .22 0 0 0 .5 -.14'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"), var(--bg); box-shadow: 0 6px 18px rgba(40,25,10,0.22); border: 1px solid var(--env-orn, var(--accent)); display: flex; align-items: flex-start; justify-content: center; }
-  #wc-env .env-card::before { content: ""; position: absolute; inset: 6px; border: 1px solid var(--env-orn, var(--accent)); opacity: 0.4; pointer-events: none; }
-  #wc-env .env-card-in { padding-top: clamp(14px, 4vh, 34px); padding-inline: 10px; }
-  #wc-env .env-card-names { font-family: "Great Vibes", "Cormorant Garamond", cursive; font-size: clamp(1.7rem, 5.6vw, 2.6rem); line-height: 1.1; color: var(--fg); overflow-wrap: anywhere; }
-  #wc-env .env-card-date { margin-top: 6px; font: italic 500 1.1rem "Cormorant Garamond", serif; letter-spacing: 0.05em; color: var(--accent-text); }
+  #wc-env .env-names { position: absolute; z-index: 3; left: 50%; bottom: 15%; transform: translateX(-50%); width: 56%; text-align: center; font-family: "Great Vibes", "Cormorant Garamond", cursive; font-size: clamp(1.35rem, 4.2vw, 1.9rem); line-height: 1.1; color: var(--fg); text-shadow: 0 1px 0 rgba(255,255,255,0.55); pointer-events: none; overflow-wrap: anywhere; }
+  #wc-env .env-card { position: absolute; z-index: 2; left: 5%; right: 5%; top: 6%; bottom: 6%; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .4 0 0 0 0 .35 0 0 0 .4 -.12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"), var(--env-paper, var(--bg)); box-shadow: 0 6px 18px rgba(40,25,10,0.22); border: 1px solid var(--env-orn, var(--accent)); display: flex; flex-direction: column; overflow: hidden; }
+  #wc-env .env-card::before { content: ""; position: absolute; inset: 5px; border: 1px solid var(--env-orn, var(--accent)); opacity: 0.45; pointer-events: none; z-index: 2; }
+  #wc-env .env-card-photo { flex: none; display: block; width: calc(100% - 14px); height: 50%; margin: 7px 7px 0; object-fit: cover; }
+  #wc-env .env-card-in { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 12px 10px; min-height: 0; }
+  #wc-env .env-card-names { font-family: "Great Vibes", "Cormorant Garamond", cursive; font-size: clamp(1.5rem, 4.8vw, 2.4rem); line-height: 1.08; color: var(--fg); overflow-wrap: anywhere; }
+  #wc-env .env-card-date { margin-top: 4px; font: italic 500 1.05rem "Cormorant Garamond", serif; letter-spacing: 0.05em; color: var(--accent-text); }
+  #wc-env .env-card-glyph { width: min(36%, 100px); margin-top: 6px; color: var(--env-orn, var(--accent)); opacity: 0.9; }
+  #wc-env .env-card-glyph svg { display: block; width: 100%; height: auto; }
+  #wc-env .env-card:not(.has-photo) .env-card-in { padding-top: clamp(14px, 5vh, 34px); justify-content: flex-start; }
+  #wc-env .env-card:not(.has-photo) .env-card-names { font-size: clamp(1.8rem, 5.6vw, 2.8rem); }
   #wc-env .env-flap { position: absolute; left: 0; top: 0; width: 100%; height: 58%; z-index: 4; transform-origin: 50% 0; transform: perspective(1600px) rotateX(0deg); transform-style: preserve-3d; }
   #wc-env .env-flap-f, #wc-env .env-flap-b { position: absolute; inset: 0; clip-path: polygon(0 0, 100% 0, 50% 100%); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
   #wc-env .env-flap-line { position: absolute; inset: 0; width: 100%; height: 100%; color: var(--env-orn, var(--accent)); opacity: 0.6; backface-visibility: hidden; -webkit-backface-visibility: hidden; pointer-events: none; }
   #wc-env .env-flap-b { transform: rotateX(180deg); background: var(--bg); background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--env-orn, var(--accent)) 45%, transparent) 0.9px, transparent 1.6px) 0 0 / 13px 13px, linear-gradient(180deg, color-mix(in srgb, var(--env-seal, var(--accent)) 26%, var(--bg)), color-mix(in srgb, var(--env-seal, var(--accent)) 12%, var(--bg))); }
-  #wc-env .env-seal { position: absolute; left: 50%; top: 58%; z-index: 6; width: 102px; height: 102px; margin: -51px 0 0 -51px; display: flex; align-items: center; justify-content: center; pointer-events: none; animation: env-float 3s ease-in-out infinite; }
+  #wc-env .env-seal { position: absolute; left: 50%; top: 58%; z-index: 6; width: 110px; height: 110px; margin: -55px 0 0 -55px; display: flex; align-items: center; justify-content: center; pointer-events: none; animation: env-float 3s ease-in-out infinite; }
+  #wc-env .env-seal::before, #wc-env .env-seal::after { content: ""; position: absolute; inset: 8px; border-radius: 50%; border: 1px solid var(--env-orn, var(--accent)); opacity: 0; pointer-events: none; animation: env-ripple 3.2s ease-out infinite; }
+  #wc-env .env-seal::after { animation-delay: 1.6s; }
   #wc-env .env-wax { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 8px 8px rgba(30,15,5,0.42)); }
-  #wc-env .env-mono { position: relative; font-family: "Great Vibes", "Cormorant Garamond", cursive; font-style: normal; font-weight: 400; font-size: 2.05rem; line-height: 1; color: var(--env-seal-fg, var(--btn-fg)); text-shadow: 0 1px 0 rgba(255,255,255,0.25), 0 -1px 0 rgba(0,0,0,0.38); white-space: nowrap; padding-bottom: 3px; }
+  #wc-env .env-mono { position: relative; font-family: "Great Vibes", "Cormorant Garamond", cursive; font-style: normal; font-weight: 400; font-size: 2.2rem; line-height: 1; color: var(--env-seal-fg, var(--btn-fg)); text-shadow: 0 1px 0 rgba(255,255,255,0.25), 0 -1px 0 rgba(0,0,0,0.38); white-space: nowrap; padding-bottom: 3px; }
   #wc-env .env-mono i { font-style: normal; font-size: 0.72em; margin: 0 -1px; opacity: 0.9; }
-  #wc-env .env-hint { margin-top: 32px; padding: 11px 30px 12px; border: 1px solid color-mix(in srgb, var(--env-orn, var(--accent)) 70%, transparent); border-radius: 999px; background: rgba(255,255,255,0.32); background: color-mix(in srgb, var(--bg) 66%, rgba(255,255,255,0.45)); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); box-shadow: 0 6px 18px rgba(60,40,20,0.12), inset 0 1px 0 rgba(255,255,255,0.7); font: italic 500 1.28rem/1.2 "Cormorant Garamond", serif; letter-spacing: 0.03em; color: var(--fg); animation: env-pulse 2.6s ease-in-out infinite; }
+  #wc-env .env-invite { margin-top: 22px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  #wc-env .env-message { font-family: "Great Vibes", "Cormorant Garamond", cursive; font-size: clamp(1.9rem, 6.2vw, 2.6rem); line-height: 1.1; color: var(--fg); text-shadow: 0 1px 0 rgba(255,255,255,0.45); padding: 0 12px; }
+  #wc-env .env-message[hidden] { display: none; }
+  #wc-env .env-hint { font: italic 500 1.05rem/1.2 "Cormorant Garamond", serif; letter-spacing: 0.05em; color: var(--fg); opacity: 0.8; animation: env-pulse 2.8s ease-in-out infinite; }
   #wc-env .env-open { position: absolute; inset: 0; z-index: 7; width: 100%; background: none; border: 0; padding: 0; cursor: pointer; outline: none; }
   #wc-env .env-open:focus-visible ~ .env-skip { opacity: 1; }
   #wc-env .env-skip { position: absolute; left: 50%; bottom: max(22px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 8; background: none; border: 0; padding: 10px 14px; cursor: pointer; font: 500 0.7rem "Poppins", sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg); opacity: 0.7; }
@@ -209,17 +244,19 @@ export const envelopeCss = `
   /* A háttér a nyitás végéig TELJESEN ér (a gradiens hátterek nem animálhatók), csak a legvégén oldódik fel az egész boríték együtt. */
   #wc-env.env-opening { animation: env-root-out 0.9s ease 2.4s forwards; }
   #wc-env.env-opening .env-seal { animation: env-seal-break 0.55s ease-out forwards; }
-  #wc-env.env-opening .env-hint { opacity: 0; transition: opacity 0.25s; animation: none; }
+  #wc-env.env-opening .env-invite { opacity: 0; transition: opacity 0.3s; }
+  #wc-env.env-opening .env-seal::before, #wc-env.env-opening .env-seal::after { animation: none; }
   #wc-env.env-opening .env-skip { opacity: 0; transition: opacity 0.25s; }
   #wc-env.env-opening .env-flap { animation: env-flap 1.05s cubic-bezier(0.5, 0, 0.25, 1) 0.4s forwards; }
   #wc-env.env-opening .env-card { animation: env-card 1.15s cubic-bezier(0.25, 0.8, 0.25, 1) 1.3s forwards; }
   #wc-env.env-opening .env-stage { transform: scale(1.12); opacity: 0; }
-  #wc-env.env-opening .env-petal { animation: env-petal 3.4s ease-in calc(1.1s + var(--d)) forwards; }
+  #wc-env.env-opening .env-petal { animation: env-petal 3.6s ease-in calc(1.5s + var(--d)) forwards; }
   #wc-env.env-opening, #wc-env.env-fast { pointer-events: none; }
   #wc-env.env-fast { opacity: 0; transition: opacity 0.3s ease; }
   @keyframes env-flap { 0% { transform: perspective(1600px) rotateX(0deg); z-index: 4; } 49% { z-index: 4; } 50% { z-index: 1; } 100% { transform: perspective(1600px) rotateX(180deg); z-index: 1; } }
+  @keyframes env-ripple { 0% { transform: scale(0.9); opacity: 0.5; } 100% { transform: scale(1.9); opacity: 0; } }
   @keyframes env-root-out { to { opacity: 0; } }
-  @keyframes env-card { to { transform: translateY(calc(var(--eh) * -0.52)); } }
+  @keyframes env-card { to { transform: translateY(calc(var(--eh) * -0.64)); } }
   @keyframes env-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
   @keyframes env-pulse { 0%, 100% { opacity: 0.62; } 50% { opacity: 1; } }
   @keyframes env-seal-break { 0% { transform: scale(1) rotate(0); opacity: 1; } 28% { transform: scale(1.16) rotate(-4deg); opacity: 1; } 100% { transform: scale(0.55) rotate(9deg); opacity: 0; } }
