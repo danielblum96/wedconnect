@@ -200,7 +200,7 @@ export const envelopeCss = `
   #wc-env * { box-sizing: border-box; }
   #wc-env .env-stage { --ew: min(calc(100vw - 40px), 640px); --eh: min(calc(var(--ew) * 0.7), 46vh); position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
   @media (max-width: 699px) { #wc-env .env-stage { --eh: min(calc(var(--ew) * 0.95), 56vh); } }
-  #wc-env .env-box { position: relative; width: var(--ew); height: var(--eh); filter: drop-shadow(0 24px 26px rgba(40,25,10,0.34)); }
+  #wc-env .env-box { position: relative; width: var(--ew); height: var(--eh); perspective: 1600px; box-shadow: 0 22px 30px -6px rgba(40,25,10,0.34); }
   #wc-env .env-paper { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='p' x='0' y='0' width='100%' height='100%'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.03 .045' numOctaves='4' seed='3' result='n'/%3E%3CfeDiffuseLighting in='n' lighting-color='%23fff' surfaceScale='1.5'%3E%3CfeDistantLight azimuth='225' elevation='58'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 .32  0 0 0 0 .27  0 0 0 0 .22  -.26 0 0 0 .24'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23p)'/%3E%3C/svg%3E"), radial-gradient(ellipse at 26% 16%, rgba(255,255,255,0.32), transparent 62%), linear-gradient(205deg, transparent 52%, rgba(70,50,30,0.075)), linear-gradient(160deg, var(--env-paper, var(--bg)), var(--env-paper2, var(--bg))); }
   #wc-env .env-back { position: absolute; inset: 0; z-index: 0; border-radius: 3px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.75), inset 1px 0 0 rgba(255,255,255,0.5), inset 0 -1.5px 2px rgba(70,50,30,0.10), inset -1px 0 1px rgba(70,50,30,0.06); }
   #wc-env .env-front { position: absolute; inset: 0; z-index: 3; }
@@ -221,7 +221,7 @@ export const envelopeCss = `
   #wc-env .env-card-glyph svg { display: block; width: 100%; height: auto; }
   #wc-env .env-card:not(.has-photo) .env-card-in { padding-top: clamp(14px, 5vh, 34px); justify-content: flex-start; }
   #wc-env .env-card:not(.has-photo) .env-card-names { font-size: clamp(1.8rem, 5.6vw, 2.8rem); }
-  #wc-env .env-flap { position: absolute; left: 0; top: 0; width: 100%; height: 58%; z-index: 4; transform-origin: 50% 0; transform: perspective(1600px) rotateX(0deg); transform-style: preserve-3d; }
+  #wc-env .env-flap { position: absolute; left: 0; top: 0; width: 100%; height: 58%; z-index: 4; transform-origin: 50% 0; transform: rotateX(0deg); transform-style: preserve-3d; }
   #wc-env .env-flap-f, #wc-env .env-flap-b { position: absolute; inset: 0; clip-path: polygon(0 0, 100% 0, 50% 100%); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
   #wc-env .env-flap-line { position: absolute; inset: 0; width: 100%; height: 100%; color: var(--env-orn, var(--accent)); opacity: 0.6; backface-visibility: hidden; -webkit-backface-visibility: hidden; pointer-events: none; }
   #wc-env .env-flap-b { transform: rotateX(180deg); background: var(--bg); background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--env-orn, var(--accent)) 45%, transparent) 0.9px, transparent 1.6px) 0 0 / 13px 13px, linear-gradient(180deg, color-mix(in srgb, var(--env-seal, var(--accent)) 26%, var(--bg)), color-mix(in srgb, var(--env-seal, var(--accent)) 12%, var(--bg))); }
@@ -262,7 +262,7 @@ export const envelopeCss = `
   #wc-env.env-opening .env-petal { animation: env-petal 3.6s ease-in calc(1.5s + var(--d)) forwards; }
   #wc-env.env-opening, #wc-env.env-fast { pointer-events: none; }
   #wc-env.env-fast { opacity: 0; transition: opacity 0.3s ease; }
-  @keyframes env-flap { 0% { transform: perspective(1600px) rotateX(0deg); z-index: 4; } 49% { z-index: 4; } 50% { z-index: 1; } 100% { transform: perspective(1600px) rotateX(180deg); z-index: 1; } }
+  @keyframes env-flap { 0% { transform: rotateX(0deg); z-index: 4; } 49% { z-index: 4; } 50% { z-index: 1; } 100% { transform: rotateX(180deg); z-index: 1; } }
   @keyframes env-ripple { 0% { transform: scale(0.9); opacity: 0.5; } 100% { transform: scale(1.9); opacity: 0; } }
   @keyframes env-root-out { to { opacity: 0; } }
   @keyframes env-card { to { transform: translateY(calc(var(--eh) * -0.74)); height: calc(var(--eh) * 1.18); } }

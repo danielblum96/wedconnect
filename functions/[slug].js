@@ -8,6 +8,7 @@ import { parseJson, formatStoryDate, zonedToUtcMs, countdownHtml, countdownScrip
 import { editZone, editorCss, editorLayer } from "./_utils/pageEditor.js";
 import { envelopeCss, envelopeMarkup, envelopeHeadScript, envelopeRuntime, monogramHtml } from "./_utils/envelopeIntro.js";
 import { veilCss, veilMarkup, veilRuntime } from "./_utils/veilIntro.js";
+import { ribbonCss, ribbonMarkup, ribbonRuntime } from "./_utils/ribbonIntro.js";
 
 function notFound() {
   const html = `<!DOCTYPE html>
@@ -231,12 +232,14 @@ export async function onRequestGet(context) {
 
   const lang = ["de", "en", "hu"].includes(par.nyelv) ? par.nyelv : "hu";
   const origin = new URL(request.url).origin;
-  const openingKind = par.nyito_animacio === "fuggony" ? "fuggony" : par.nyito_animacio === "boritek" ? "boritek" : "";
+  const openingKind = ["boritek", "fuggony", "szalag"].includes(par.nyito_animacio) ? par.nyito_animacio : "";
   const envelopeEnabled = openingKind === "boritek";
   const veilEnabled = openingKind === "fuggony";
+  const ribbonEnabled = openingKind === "szalag";
   const envelopeMessage = par.boritek_szoveg == null ? copy.envelopeMessage : par.boritek_szoveg;
   const envelopeOn = envelopeEnabled && !edit;
   const veilOn = veilEnabled && !edit;
+  const ribbonOn = ribbonEnabled && !edit;
   const envelopeHtml =
     envelopeEnabled || edit
       ? envelopeMarkup({
@@ -273,6 +276,22 @@ export async function onRequestGet(context) {
           message: envelopeMessage,
         })
       : "";
+  const ribbonHtml =
+    ribbonEnabled || edit
+      ? ribbonMarkup({
+          monogram: monogramHtml(
+            par.nev1 || (par.par_neve || "").split("&")[0],
+            par.nev2 || (par.par_neve || "").split("&")[1]
+          ),
+          copy,
+          style,
+          names: par.par_neve,
+          dateText: displayDate,
+          fontCss: style.font === "sans" ? FONT_RECIPES["serif-i"] : fontRecipe,
+          dividerKey: resolveDivider(par.elvalaszto),
+          message: envelopeMessage,
+        })
+      : "";
   const ogDescription = `${displayDate} · ${(par.egyedi_uzenet || copy.defaultMessage).replace(/\s+/g, " ").slice(0, 160)}`;
   const previewHref = published ? `/${slug}` : `/${slug}?elonezet=${encodeURIComponent(par.elonezet_token || "")}`;
 
@@ -283,9 +302,10 @@ export async function onRequestGet(context) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>${escapeHtml(copy.pageTitle(par.par_neve))}</title>
-${envelopeOn || veilOn ? envelopeHeadScript(slug) : ""}
+${envelopeOn || veilOn || ribbonOn ? envelopeHeadScript(slug) : ""}
 ${envelopeOn || edit ? envelopeRuntime : ""}
 ${veilOn || edit ? veilRuntime : ""}
+${ribbonOn || edit ? ribbonRuntime : ""}
 ${edit ? "" : scrollAnimHeadScript}
 <meta property="og:type" content="website">
 <meta property="og:title" content="${escapeHtml(copy.pageTitle(par.par_neve))}">
@@ -505,6 +525,7 @@ ${published && par.fenykep_frissitve ? `<meta property="og:image" content="${esc
 ${edit ? editorCss : ""}
 ${envelopeOn || edit ? envelopeCss : ""}
 ${veilOn || edit ? veilCss : ""}
+${ribbonOn || edit ? ribbonCss : ""}
 ${sectionsCss}
 ${scrollAnimCss}
 </style>
@@ -512,7 +533,8 @@ ${scrollAnimCss}
 <body${edit ? ' class="wc-editing"' : ""}>
   ${envelopeOn ? envelopeHtml : ""}
   ${veilOn ? veilHtml : ""}
-  ${edit ? `<template id="wc-env-tpl">${envelopeHtml}</template><template id="wc-veil-tpl">${veilHtml}</template>` : ""}
+  ${ribbonOn ? ribbonHtml : ""}
+  ${edit ? `<template id="wc-env-tpl">${envelopeHtml}</template><template id="wc-veil-tpl">${veilHtml}</template><template id="wc-ribbon-tpl">${ribbonHtml}</template>` : ""}
   ${isDraft && !edit ? `<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#2b2620;color:#fff;text-align:center;font:600 12px/1.4 Arial,sans-serif;padding:7px 10px;">${escapeHtml(copy.draftRibbon)}</div>` : ""}
   <div class="card">
     ${sectionsHtml}
@@ -521,6 +543,7 @@ ${scrollAnimCss}
   ${edit ? "" : scrollAnimScript}
   ${envelopeOn ? `<script>wcEnvelopeInit(document.getElementById("wc-env"), { key: ${JSON.stringify("wc_env_" + slug)} });</script>` : ""}
   ${veilOn ? `<script>wcVeilInit(document.getElementById("wc-veil"), { key: ${JSON.stringify("wc_env_" + slug)} });</script>` : ""}
+  ${ribbonOn ? `<script>wcRibbonInit(document.getElementById("wc-ribbon"), { key: ${JSON.stringify("wc_env_" + slug)} });</script>` : ""}
   ${
     edit
       ? editorLayer({

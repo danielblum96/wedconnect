@@ -186,7 +186,7 @@ export const scrollAnimScript = `<script>
       start();
       requestAnimationFrame(function () { requestAnimationFrame(function () { h.classList.remove("wc-noanim"); }); });
     }
-    if (document.getElementById("wc-env") && !h.classList.contains("wc-env-skip")) {
+    if ((document.getElementById("wc-env") || document.getElementById("wc-ribbon")) && !h.classList.contains("wc-env-skip")) {
       document.addEventListener("wc-env-land", land, { once: true });
       document.addEventListener("wc-env-done", start, { once: true });
     } else start();
