@@ -190,7 +190,7 @@ function panelForm(parId, section, body, t) {
   return `<form class="wc-form" method="POST" action="/api/couple-section-update"><input type="hidden" name="par_id" value="${parId}"><input type="hidden" name="section" value="${section}">${body}<div class="wc-error" hidden></div>${footer(t)}</form>`;
 }
 
-function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, nyitoVal, envelopeMessage, dividerKey, eyebrowText, storyItems, countdownOn, countdownTime, nev1, nev2, hasPhoto, photoVersion, currentStyleId }) {
+function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, nyitoOn, envelopeMessage, dividerKey, eyebrowText, storyItems, countdownOn, countdownTime, nev1, nev2, hasPhoto, photoVersion, currentStyleId }) {
   const eventVisible = Math.min(EDIT_MAX_EVENTS, Math.max(esemenyek.length + 1, 2));
   const eventRows = Array.from({ length: EDIT_MAX_EVENTS }, (_, i) => {
     const ev = esemenyek[i] || { ido: "", nev: "" };
@@ -393,14 +393,11 @@ function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, 
         <input type="hidden" name="stilus" id="wc-stilus" value="${escapeHtml(currentStyleId)}">
         <div class="wc-styles">${styleButtons}</div>
         <input type="hidden" name="nyito_mezo" value="1">
-        <label style="margin-top:10px">${escapeHtml(t.editorOpening)}</label>
-        <div class="wc-opening">
-          <label><input type="radio" name="nyito" value=""${!nyitoVal ? " checked" : ""}> ${escapeHtml(t.editorOpeningNone)}</label>
-          <label><input type="radio" name="nyito" value="boritek"${nyitoVal === "boritek" ? " checked" : ""}> ${escapeHtml(t.editorOpeningEnvelope)}</label>
-          <label><input type="radio" name="nyito" value="fuggony"${nyitoVal === "fuggony" ? " checked" : ""}> ${escapeHtml(t.editorOpeningVeil)}</label>
+        <div class="wc-env-row">
+          <label class="wc-check"><input type="checkbox" name="nyito" id="wc-nyito" value="boritek"${nyitoOn ? " checked" : ""}> ${escapeHtml(t.editorEnvelope)}</label>
+          <button type="button" class="wc-chip" data-play-envelope>${escapeHtml(t.editorEnvelopePreview)}</button>
         </div>
-        <button type="button" class="wc-chip" data-play-envelope>${escapeHtml(t.editorEnvelopePreview)}</button>
-        <p class="wc-hint">${escapeHtml(t.editorOpeningHint)}</p>
+        <p class="wc-hint">${escapeHtml(t.editorEnvelopeHint)}</p>
         <label for="wc-nyito-szoveg">${escapeHtml(t.editorEnvelopeText)}</label>
         <input type="text" id="wc-nyito-szoveg" name="nyito_szoveg" value="${escapeHtml(envelopeMessage)}" maxlength="60" autocomplete="off">
         <p class="wc-hint">${escapeHtml(t.editorEnvelopeTextHint)}</p>`,
@@ -577,33 +574,11 @@ function script({ t }) {
     storyToggleAdd();
     return row;
   }
-  // A Design panelen kiválasztott nyitó animáció előnézete (boríték vagy függöny/fátyol).
-  function playOpening() {
-    var kind = envSel();
-    if (kind === "fuggony") playVeil();
-    else if (kind === "boritek") playEnvelope();
-  }
-  function playVeil() {
-    var tpl = document.getElementById("wc-veil-tpl");
-    if (!tpl || !window.wcVeilInit) return;
-    [].forEach.call(document.querySelectorAll("#wc-env, #wc-veil"), function (o) { o.remove(); });
-    var root = tpl.content.cloneNode(true).querySelector("#wc-veil");
-    var parts = ((document.querySelector(".names") || {}).textContent || "").split("&");
-    function ini(x) { var c = Array.from((x || "").trim())[0]; return c ? c.toLocaleUpperCase() : "\u2665"; }
-    root.querySelector(".vl-mono").innerHTML = ini(parts[0]) + "<i>&amp;</i>" + ini(parts[1]);
-    root.querySelector(".vl-names").textContent = ((document.querySelector(".names") || {}).textContent || "").trim();
-    var st = STYLES.filter(function (x) { return x.id === document.getElementById("wc-stilus").value; })[0];
-    if (st) {
-      var pal = envelopePalette(st.accent, st.bg);
-      root.style.setProperty("--env-paper", pal.paper); root.style.setProperty("--env-paper2", pal.paper2);
-    }
-    document.body.appendChild(root);
-    window.wcVeilInit(root, { preview: true });
-  }
+  function playOpening() { playEnvelope(); }
   function playEnvelope() {
     var tpl = document.getElementById("wc-env-tpl");
     if (!tpl || !window.wcEnvelopeInit) return;
-    [].forEach.call(document.querySelectorAll("#wc-env, #wc-veil"), function (o) { o.remove(); });
+    [].forEach.call(document.querySelectorAll("#wc-env"), function (o) { o.remove(); });
     var root = tpl.content.cloneNode(true).querySelector("#wc-env");
     var parts = ((document.querySelector(".names") || {}).textContent || "").split("&");
     function ini(x) { var c = Array.from((x || "").trim())[0]; return c ? c.toLocaleUpperCase() : "\u2665"; }
@@ -652,9 +627,7 @@ function script({ t }) {
     if (d.id === "panel-design") revertDesign();
   }
   var currentId = document.getElementById("wc-stilus").value;
-  function envSel() { var r = document.querySelector('#panel-design [name="nyito"]:checked'); return r ? r.value : ""; }
-  function setEnvSel(v) { [].forEach.call(document.querySelectorAll('#panel-design [name="nyito"]'), function (x) { x.checked = x.value === v; }); }
-  var currentEnv = envSel();
+  var currentEnv = document.getElementById("wc-nyito").checked;
   var currentEnvMsg = document.getElementById("wc-nyito-szoveg").value;
 
   // Minden eseménykezelő delegált (a document-en), mert mentés után a kártya és a
@@ -852,7 +825,7 @@ function script({ t }) {
   function revertDesign() {
     applyStyle(currentId);
     document.getElementById("wc-stilus").value = currentId;
-    setEnvSel(currentEnv);
+    document.getElementById("wc-nyito").checked = currentEnv;
     document.getElementById("wc-nyito-szoveg").value = currentEnvMsg;
     document.querySelectorAll(".wc-style").forEach(function (x) { x.classList.toggle("selected", x.getAttribute("data-style") === currentId); });
   }
@@ -990,7 +963,7 @@ function script({ t }) {
     fetch(form.action, { method: "POST", body: new FormData(form), headers: { Accept: "application/json" }, credentials: "same-origin" })
       .then(function (r) { if (!r.ok) throw new Error("save"); return r.json(); })
       .then(function () {
-        if (isStyle) { currentId = document.getElementById("wc-stilus").value; currentEnv = envSel(); currentEnvMsg = document.getElementById("wc-nyito-szoveg").value; designPanel.close(); toast(COPY.saved); return; }
+        if (isStyle) { currentId = document.getElementById("wc-stilus").value; currentEnv = document.getElementById("wc-nyito").checked; currentEnvMsg = document.getElementById("wc-nyito-szoveg").value; designPanel.close(); toast(COPY.saved); return; }
         return refresh().then(function () {
           if (pendingAdd && pendingAdd === sectionName) placeAdded(pendingAdd, pendingBefore);
           pendingAdd = null; pendingBefore = null;

@@ -285,7 +285,7 @@ export function envelopeHeadScript(slug) {
     } catch (e) {}
   })();
 </script>
-<noscript><style>#wc-env, #wc-veil { display: none !important; }</style></noscript>`;
+<noscript><style>#wc-env { display: none !important; }</style></noscript>`;
 }
 
 // Futtató kód (klasszikus script): window.wcEnvelopeInit(root, { key, preview })

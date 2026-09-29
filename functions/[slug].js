@@ -7,7 +7,6 @@ import { normalizeOrder } from "./_utils/sectionOrder.js";
 import { parseJson, formatStoryDate, zonedToUtcMs, countdownHtml, countdownScript, storyHtml, sectionsCss, scrollAnimCss, scrollAnimHeadScript, scrollAnimScript } from "./_utils/pageSections.js";
 import { editZone, editorCss, editorLayer } from "./_utils/pageEditor.js";
 import { envelopeCss, envelopeMarkup, envelopeHeadScript, envelopeRuntime, monogramHtml } from "./_utils/envelopeIntro.js";
-import { veilCss, veilMarkup, veilRuntime } from "./_utils/veilIntro.js";
 
 function notFound() {
   const html = `<!DOCTYPE html>
@@ -231,12 +230,9 @@ export async function onRequestGet(context) {
 
   const lang = ["de", "en", "hu"].includes(par.nyelv) ? par.nyelv : "hu";
   const origin = new URL(request.url).origin;
-  const openingKind = ["boritek", "fuggony"].includes(par.nyito_animacio) ? par.nyito_animacio : "";
-  const envelopeEnabled = openingKind === "boritek";
-  const veilEnabled = openingKind === "fuggony";
+  const envelopeEnabled = par.nyito_animacio === "boritek";
   const envelopeMessage = par.boritek_szoveg == null ? copy.envelopeMessage : par.boritek_szoveg;
   const envelopeOn = envelopeEnabled && !edit;
-  const veilOn = veilEnabled && !edit;
   const envelopeHtml =
     envelopeEnabled || edit
       ? envelopeMarkup({
@@ -257,18 +253,6 @@ export async function onRequestGet(context) {
           message: envelopeMessage,
         })
       : "";
-  const veilHtml =
-    veilEnabled || edit
-      ? veilMarkup({
-          monogram: monogramHtml(
-            par.nev1 || (par.par_neve || "").split("&")[0],
-            par.nev2 || (par.par_neve || "").split("&")[1]
-          ),
-          copy,
-          style,
-          names: par.par_neve,
-        })
-      : "";
   const ogDescription = `${displayDate} · ${(par.egyedi_uzenet || copy.defaultMessage).replace(/\s+/g, " ").slice(0, 160)}`;
   const previewHref = published ? `/${slug}` : `/${slug}?elonezet=${encodeURIComponent(par.elonezet_token || "")}`;
 
@@ -279,9 +263,8 @@ export async function onRequestGet(context) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>${escapeHtml(copy.pageTitle(par.par_neve))}</title>
-${envelopeOn || veilOn ? envelopeHeadScript(slug) : ""}
+${envelopeOn ? envelopeHeadScript(slug) : ""}
 ${envelopeOn || edit ? envelopeRuntime : ""}
-${veilOn || edit ? veilRuntime : ""}
 ${edit ? "" : scrollAnimHeadScript}
 <meta property="og:type" content="website">
 <meta property="og:title" content="${escapeHtml(copy.pageTitle(par.par_neve))}">
@@ -500,15 +483,13 @@ ${published && par.fenykep_frissitve ? `<meta property="og:image" content="${esc
   }
 ${edit ? editorCss : ""}
 ${envelopeOn || edit ? envelopeCss : ""}
-${veilOn || edit ? veilCss : ""}
 ${sectionsCss}
 ${scrollAnimCss}
 </style>
 </head>
 <body${edit ? ' class="wc-editing"' : ""}>
   ${envelopeOn ? envelopeHtml : ""}
-  ${veilOn ? veilHtml : ""}
-  ${edit ? `<template id="wc-env-tpl">${envelopeHtml}</template><template id="wc-veil-tpl">${veilHtml}</template>` : ""}
+  ${edit ? `<template id="wc-env-tpl">${envelopeHtml}</template>` : ""}
   ${isDraft && !edit ? `<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#2b2620;color:#fff;text-align:center;font:600 12px/1.4 Arial,sans-serif;padding:7px 10px;">${escapeHtml(copy.draftRibbon)}</div>` : ""}
   <div class="card">
     ${sectionsHtml}
@@ -516,7 +497,6 @@ ${scrollAnimCss}
   ${targetMs != null || edit ? countdownScript : ""}
   ${edit ? "" : scrollAnimScript}
   ${envelopeOn ? `<script>wcEnvelopeInit(document.getElementById("wc-env"), { key: ${JSON.stringify("wc_env_" + slug)} });</script>` : ""}
-  ${veilOn ? `<script>wcVeilInit(document.getElementById("wc-veil"), { key: ${JSON.stringify("wc_env_" + slug)} });</script>` : ""}
   ${
     edit
       ? editorLayer({
@@ -533,7 +513,7 @@ ${scrollAnimCss}
           countdownOn: targetMs != null,
           countdownTime: (vs && vs.ido) || "",
           dividerKey,
-          nyitoVal: openingKind,
+          nyitoOn: envelopeEnabled,
           envelopeMessage,
           nev1: par.nev1 || (par.par_neve || "").split(" & ")[0] || "",
           nev2: par.nev2 || (par.par_neve || "").split(" & ")[1] || "",
