@@ -1,4 +1,4 @@
-import { getSessionReseller, dashboardHref } from "../_utils/auth.js";
+import { getSessionReseller, dashboardHref, sugoHref } from "../_utils/auth.js";
 import { escapeHtml } from "../_utils/html.js";
 import { countryOptions } from "../_utils/countries.js";
 import { getResellerCopy } from "../_utils/i18n.js";
@@ -102,6 +102,7 @@ ${
   <div class="brand">Wed<span>Connect</span>${brandSuffix}</div>
   <div style="display:flex; align-items:center; gap:16px;">
     <span class="who">${escapeHtml(reseller.ceg_nev)} (${escapeHtml(reseller.email)})</span>
+    <a class="back-link" href="${sugoHref(reseller.fiok_tipus)}">${t.helpLink}</a>
     <a class="back-link" href="${dashboardHref(reseller.fiok_tipus)}">${t.backToDashboard}</a>
     <form class="logout-form" method="POST" action="/api/reseller-logout"><button type="submit">${t.logout}</button></form>
   </div>

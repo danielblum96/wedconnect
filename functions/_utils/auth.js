@@ -80,6 +80,10 @@ export function accountHref(fiokTipus) {
   return fiokTipus === "maganszemely" ? "/sajat/fiok" : "/partner/account";
 }
 
+export function sugoHref(fiokTipus) {
+  return fiokTipus === "maganszemely" ? "/sajat/sugo" : "/partner/sugo";
+}
+
 export function loginHref(fiokTipus) {
   return fiokTipus === "maganszemely" ? "/sajat/bejelentkezes" : "/partner/login";
 }
