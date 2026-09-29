@@ -85,22 +85,14 @@ export const veilCss = `
   #wc-veil.vl-leaving { animation: vl-out 0.55s ease forwards; }
   #wc-veil.vl-fast { opacity: 0; transition: opacity 0.35s ease; }
   @keyframes vl-open-l {
-    0% { transform: translate(0, 0) skewX(0.3deg) rotate(0deg); }
-    14% { transform: translate(-2%, -0.6%) skewX(-4deg) rotate(-0.4deg); }
-    30% { transform: translate(-10%, 0.5%) skewX(-2.4deg) rotate(0.3deg); }
-    48% { transform: translate(-27%, -0.4%) skewX(-3.4deg) rotate(-0.3deg); }
-    68% { transform: translate(-58%, 0.3%) skewX(-1.6deg) rotate(0.2deg); }
-    88% { transform: translate(-98%, 0) skewX(0.6deg) rotate(0deg); }
-    100% { transform: translate(-104%, 0) skewX(0) rotate(0deg); }
+    0% { transform: translate(0, 0) skewX(0.8deg); }
+    55% { transform: translate(-48%, -0.5%) skewX(-2.2deg); }
+    100% { transform: translate(-104%, 0) skewX(0); }
   }
   @keyframes vl-open-r {
-    0% { transform: translate(0, 0) skewX(-0.25deg) rotate(0deg); }
-    16% { transform: translate(2.5%, 0.6%) skewX(3.6deg) rotate(0.4deg); }
-    32% { transform: translate(9%, -0.5%) skewX(2deg) rotate(-0.3deg); }
-    50% { transform: translate(24%, 0.4%) skewX(3deg) rotate(0.3deg); }
-    68% { transform: translate(52%, -0.3%) skewX(1.4deg) rotate(-0.2deg); }
-    88% { transform: translate(96%, 0) skewX(-0.5deg) rotate(0deg); }
-    100% { transform: translate(104%, 0) skewX(0) rotate(0deg); }
+    0% { transform: translate(0, 0) skewX(-0.6deg); }
+    55% { transform: translate(44%, 0.4%) skewX(2deg); }
+    100% { transform: translate(104%, 0) skewX(0); }
   }
   @keyframes vl-out { to { opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { #wc-veil * { animation-duration: 0.01ms !important; } }
