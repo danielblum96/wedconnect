@@ -79,20 +79,52 @@ export const veilCss = `
   #wc-veil.vl-opening .vl-sheen { opacity: 0; }
   #wc-veil.vl-opening .vl-skip { opacity: 0; transition: opacity 0.25s; }
   #wc-veil.vl-opening .vl-blur { transition: -webkit-backdrop-filter 1s ease 0.05s, backdrop-filter 1s ease 0.05s; -webkit-backdrop-filter: blur(0px) saturate(1) contrast(1); backdrop-filter: blur(0px) saturate(1) contrast(1); }
-  #wc-veil.vl-opening .vl-l { animation: vl-open-l 1.5s cubic-bezier(0.45, 0, 0.2, 1) forwards; }
-  #wc-veil.vl-opening .vl-r { animation: vl-open-r 1.5s cubic-bezier(0.45, 0, 0.2, 1) forwards; }
+  #wc-veil.vl-opening .vl-l { animation: vl-open-l 1.6s linear forwards; }
+  #wc-veil.vl-opening .vl-r { animation: vl-open-r 1.6s linear forwards; }
   #wc-veil.vl-opening, #wc-veil.vl-fast { pointer-events: none; }
   #wc-veil.vl-leaving { animation: vl-out 0.55s ease forwards; }
   #wc-veil.vl-fast { opacity: 0; transition: opacity 0.35s ease; }
   @keyframes vl-open-l {
-    0% { transform: translate(0, 0) skewX(0.8deg); }
-    55% { transform: translate(-48%, -0.5%) skewX(-2.2deg); }
-    100% { transform: translate(-104%, 0) skewX(0); }
+    0% { transform: translate(-0.00%, 1.65%) skewX(1.39deg) scaleY(1.013); }
+    6% { transform: translate(-0.93%, 0.88%) skewX(4.35deg) scaleY(1.010); }
+    11% { transform: translate(-3.57%, -0.21%) skewX(4.81deg) scaleY(1.003); }
+    17% { transform: translate(-7.70%, -1.05%) skewX(2.87deg) scaleY(0.995); }
+    22% { transform: translate(-13.12%, -1.26%) skewX(-0.17deg) scaleY(0.991); }
+    28% { transform: translate(-19.62%, -0.82%) skewX(-2.65deg) scaleY(0.992); }
+    33% { transform: translate(-26.96%, -0.07%) skewX(-3.44deg) scaleY(0.997); }
+    39% { transform: translate(-34.95%, 0.58%) skewX(-2.43deg) scaleY(1.002); }
+    44% { transform: translate(-43.37%, 0.83%) skewX(-0.46deg) scaleY(1.006); }
+    50% { transform: translate(-52.00%, 0.63%) skewX(1.30deg) scaleY(1.006); }
+    56% { transform: translate(-60.63%, 0.17%) skewX(2.04deg) scaleY(1.003); }
+    61% { transform: translate(-69.05%, -0.24%) skewX(1.62deg) scaleY(1.000); }
+    67% { transform: translate(-77.04%, -0.42%) skewX(0.55deg) scaleY(0.997); }
+    72% { transform: translate(-84.38%, -0.34%) skewX(-0.42deg) scaleY(0.997); }
+    78% { transform: translate(-90.88%, -0.13%) skewX(-0.82deg) scaleY(0.998); }
+    83% { transform: translate(-96.30%, 0.05%) skewX(-0.63deg) scaleY(1.000); }
+    89% { transform: translate(-100.43%, 0.10%) skewX(-0.22deg) scaleY(1.001); }
+    94% { transform: translate(-103.07%, 0.05%) skewX(0.03deg) scaleY(1.000); }
+    100% { transform: translate(-104.00%, 0.00%) skewX(0.00deg) scaleY(1.000); }
   }
   @keyframes vl-open-r {
-    0% { transform: translate(0, 0) skewX(-0.6deg); }
-    55% { transform: translate(44%, 0.4%) skewX(2deg); }
-    100% { transform: translate(104%, 0) skewX(0); }
+    0% { transform: translate(0.00%, -1.65%) skewX(-1.39deg) scaleY(1.013); }
+    6% { transform: translate(0.93%, -0.88%) skewX(-4.35deg) scaleY(1.010); }
+    11% { transform: translate(3.57%, 0.21%) skewX(-4.81deg) scaleY(1.003); }
+    17% { transform: translate(7.70%, 1.05%) skewX(-2.87deg) scaleY(0.995); }
+    22% { transform: translate(13.12%, 1.26%) skewX(0.17deg) scaleY(0.991); }
+    28% { transform: translate(19.62%, 0.82%) skewX(2.65deg) scaleY(0.992); }
+    33% { transform: translate(26.96%, 0.07%) skewX(3.44deg) scaleY(0.997); }
+    39% { transform: translate(34.95%, -0.58%) skewX(2.43deg) scaleY(1.002); }
+    44% { transform: translate(43.37%, -0.83%) skewX(0.46deg) scaleY(1.006); }
+    50% { transform: translate(52.00%, -0.63%) skewX(-1.30deg) scaleY(1.006); }
+    56% { transform: translate(60.63%, -0.17%) skewX(-2.04deg) scaleY(1.003); }
+    61% { transform: translate(69.05%, 0.24%) skewX(-1.62deg) scaleY(1.000); }
+    67% { transform: translate(77.04%, 0.42%) skewX(-0.55deg) scaleY(0.997); }
+    72% { transform: translate(84.38%, 0.34%) skewX(0.42deg) scaleY(0.997); }
+    78% { transform: translate(90.88%, 0.13%) skewX(0.82deg) scaleY(0.998); }
+    83% { transform: translate(96.30%, -0.05%) skewX(0.63deg) scaleY(1.000); }
+    89% { transform: translate(100.43%, -0.10%) skewX(0.22deg) scaleY(1.001); }
+    94% { transform: translate(103.07%, -0.05%) skewX(-0.03deg) scaleY(1.000); }
+    100% { transform: translate(104.00%, -0.00%) skewX(-0.00deg) scaleY(1.000); }
   }
   @keyframes vl-out { to { opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { #wc-veil * { animation-duration: 0.01ms !important; } }
@@ -113,8 +145,8 @@ export const veilRuntime = `<script>
       if (!opts.preview && opts.key) { try { sessionStorage.setItem(opts.key, "1"); } catch (e) {} }
       if (fast) { root.classList.add("vl-fast"); setTimeout(finish, 400); return; }
       root.classList.add("vl-opening");
-      setTimeout(function () { root.classList.add("vl-leaving"); }, 1500);
-      setTimeout(finish, 2050);
+      setTimeout(function () { root.classList.add("vl-leaving"); }, 1600);
+      setTimeout(finish, 2150);
     }
     var btn = root.querySelector(".vl-open");
     btn.addEventListener("click", function () { open(false); });
