@@ -398,7 +398,6 @@ function panels({ par, slug, t, lang, gombok, esemenyek, helyek, fotoBeallitas, 
           <label><input type="radio" name="nyito" value=""${!nyitoVal ? " checked" : ""}> ${escapeHtml(t.editorOpeningNone)}</label>
           <label><input type="radio" name="nyito" value="boritek"${nyitoVal === "boritek" ? " checked" : ""}> ${escapeHtml(t.editorOpeningEnvelope)}</label>
           <label><input type="radio" name="nyito" value="fuggony"${nyitoVal === "fuggony" ? " checked" : ""}> ${escapeHtml(t.editorOpeningVeil)}</label>
-          <label><input type="radio" name="nyito" value="szalag"${nyitoVal === "szalag" ? " checked" : ""}> ${escapeHtml(t.editorOpeningRibbon)}</label>
         </div>
         <button type="button" class="wc-chip" data-play-envelope>${escapeHtml(t.editorEnvelopePreview)}</button>
         <p class="wc-hint">${escapeHtml(t.editorOpeningHint)}</p>
@@ -583,35 +582,11 @@ function script({ t }) {
     var kind = envSel();
     if (kind === "fuggony") playVeil();
     else if (kind === "boritek") playEnvelope();
-    else if (kind === "szalag") playRibbon();
-  }
-  function playRibbon() {
-    var tpl = document.getElementById("wc-ribbon-tpl");
-    if (!tpl || !window.wcRibbonInit) return;
-    [].forEach.call(document.querySelectorAll("#wc-env, #wc-veil, #wc-ribbon"), function (o) { o.remove(); });
-    var root = tpl.content.cloneNode(true).querySelector("#wc-ribbon");
-    var parts = ((document.querySelector(".names") || {}).textContent || "").split("&");
-    function ini(x) { var c = Array.from((x || "").trim())[0]; return c ? c.toLocaleUpperCase() : "\u2665"; }
-    root.querySelector(".rb-mono").innerHTML = ini(parts[0]) + "<i>&amp;</i>" + ini(parts[1]);
-    var rNames = root.querySelector(".rb-names"), rDate = root.querySelector(".rb-date");
-    rNames.textContent = ((document.querySelector(".names") || {}).textContent || "").trim();
-    rDate.textContent = ((document.querySelector(".date") || {}).textContent || "").trim();
-    var rMsg = root.querySelector(".rb-message"), msgIn = document.getElementById("wc-nyito-szoveg");
-    if (rMsg && msgIn) { rMsg.textContent = msgIn.value.trim(); rMsg.hidden = !msgIn.value.trim(); }
-    var st = STYLES.filter(function (x) { return x.id === document.getElementById("wc-stilus").value; })[0];
-    if (st) {
-      rNames.style.cssText = ((st.font === "sans" ? FONTS["serif-i"] : FONTS[st.font]) || FONTS["serif-i"]).recipe;
-      var pal = envelopePalette(st.accent, st.bg);
-      root.style.setProperty("--env-paper", pal.paper); root.style.setProperty("--env-paper2", pal.paper2);
-      root.style.setProperty("--env-seal", pal.seal); root.style.setProperty("--env-seal-fg", pal.sealFg); root.style.setProperty("--env-orn", pal.orn);
-    }
-    document.body.appendChild(root);
-    window.wcRibbonInit(root, { preview: true });
   }
   function playVeil() {
     var tpl = document.getElementById("wc-veil-tpl");
     if (!tpl || !window.wcVeilInit) return;
-    [].forEach.call(document.querySelectorAll("#wc-env, #wc-veil, #wc-ribbon"), function (o) { o.remove(); });
+    [].forEach.call(document.querySelectorAll("#wc-env, #wc-veil"), function (o) { o.remove(); });
     var root = tpl.content.cloneNode(true).querySelector("#wc-veil");
     var parts = ((document.querySelector(".names") || {}).textContent || "").split("&");
     function ini(x) { var c = Array.from((x || "").trim())[0]; return c ? c.toLocaleUpperCase() : "\u2665"; }
@@ -628,7 +603,7 @@ function script({ t }) {
   function playEnvelope() {
     var tpl = document.getElementById("wc-env-tpl");
     if (!tpl || !window.wcEnvelopeInit) return;
-    [].forEach.call(document.querySelectorAll("#wc-env, #wc-veil, #wc-ribbon"), function (o) { o.remove(); });
+    [].forEach.call(document.querySelectorAll("#wc-env, #wc-veil"), function (o) { o.remove(); });
     var root = tpl.content.cloneNode(true).querySelector("#wc-env");
     var parts = ((document.querySelector(".names") || {}).textContent || "").split("&");
     function ini(x) { var c = Array.from((x || "").trim())[0]; return c ? c.toLocaleUpperCase() : "\u2665"; }
