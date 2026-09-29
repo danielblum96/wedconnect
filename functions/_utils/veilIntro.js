@@ -29,6 +29,7 @@ export function veilMarkup({ monogram, copy, style, names = "" }) {
   return `<div id="wc-veil"${pal} role="dialog" aria-modal="true" aria-label="${escapeHtml(copy.veilLabel)}">
   <div class="vl-cloth vl-l"><i class="vl-blur"></i><i class="vl-tex"></i><i class="vl-edge"></i></div>
   <div class="vl-cloth vl-r"><i class="vl-blur"></i><i class="vl-tex"></i><i class="vl-edge"></i></div>
+  <div class="vl-sheen" aria-hidden="true"></div>
   <div class="vl-seam" aria-hidden="true"></div>
   <div class="vl-center">
     <div class="vl-mono">${monogram}</div>
@@ -53,7 +54,7 @@ export const veilCss = `
   /* Egyenes szélű, áttetsző rétegek (SOSEM clip-path/mask - ld. a fenti megjegyzést); az anyag-érzetet a lágy
      textúra, a finom belső árnyék és a nyitáskori skew-es, nem-egyenletes mozgás adja. */
   #wc-veil .vl-cloth { position: absolute; top: -2%; bottom: -2%; width: 51.5%; z-index: 2; will-change: transform; }
-  #wc-veil .vl-blur { position: absolute; inset: 0; display: block; background: color-mix(in srgb, var(--env-paper, #faf7f2) 76%, transparent); -webkit-backdrop-filter: blur(5px) saturate(1.14) contrast(1.02); backdrop-filter: blur(5px) saturate(1.14) contrast(1.02); }
+  #wc-veil .vl-blur { position: absolute; inset: 0; display: block; background: color-mix(in srgb, color-mix(in srgb, var(--env-paper, #faf7f2) 55%, #fff 45%) 84%, transparent); -webkit-backdrop-filter: blur(6px) saturate(1.1) contrast(1.02) brightness(1.03); backdrop-filter: blur(6px) saturate(1.1) contrast(1.02) brightness(1.03); }
   #wc-veil .vl-tex { position: absolute; inset: 0; display: block; opacity: 0.55; mix-blend-mode: soft-light; }
   #wc-veil .vl-edge { position: absolute; top: 0; bottom: 0; width: 14%; pointer-events: none; }
   #wc-veil .vl-l { left: -1.5%; box-shadow: inset -20px 0 30px -22px rgba(60,40,20,0.3); animation: vl-sway-l 8s ease-in-out infinite; }
@@ -62,6 +63,7 @@ export const veilCss = `
   #wc-veil .vl-r { right: -1.5%; box-shadow: inset 20px 0 30px -22px rgba(60,40,20,0.3); animation: vl-sway-r 9.2s ease-in-out infinite; }
   #wc-veil .vl-r .vl-tex { background: ${CLOTH_R}; background-size: 520px 520px; }
   #wc-veil .vl-r .vl-edge { left: 0; background: linear-gradient(270deg, transparent, rgba(255,255,255,0.2)); }
+  #wc-veil .vl-sheen { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(120% 70% at 50% 8%, rgba(255,255,255,0.32), transparent 55%), linear-gradient(100deg, transparent 40%, rgba(255,255,255,0.16) 50%, transparent 60%); mix-blend-mode: soft-light; transition: opacity 0.4s ease; }
   #wc-veil .vl-seam { position: absolute; left: 50%; top: 4%; bottom: 4%; width: 1px; z-index: 2; margin-left: -0.5px; background: linear-gradient(180deg, transparent, rgba(207,166,81,0.5) 15%, rgba(207,166,81,0.65) 50%, rgba(207,166,81,0.5) 85%, transparent); transition: opacity 0.4s ease; }
   #wc-veil .vl-open { position: absolute; inset: 0; z-index: 4; width: 100%; background: none; border: 0; padding: 0; cursor: pointer; outline: none; }
   #wc-veil .vl-skip { position: absolute; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 5; background: none; border: 0; padding: 9px 14px; cursor: pointer; font: 400 0.68rem "Poppins", sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg); opacity: 0.42; }
@@ -74,24 +76,31 @@ export const veilCss = `
      Összesen kb. 1,85-1,95 mp. */
   #wc-veil.vl-opening .vl-center { opacity: 0; filter: blur(2px); }
   #wc-veil.vl-opening .vl-seam { opacity: 0; }
+  #wc-veil.vl-opening .vl-sheen { opacity: 0; }
   #wc-veil.vl-opening .vl-skip { opacity: 0; transition: opacity 0.25s; }
   #wc-veil.vl-opening .vl-blur { transition: -webkit-backdrop-filter 1s ease 0.05s, backdrop-filter 1s ease 0.05s; -webkit-backdrop-filter: blur(0px) saturate(1) contrast(1); backdrop-filter: blur(0px) saturate(1) contrast(1); }
-  #wc-veil.vl-opening .vl-l { animation: vl-open-l 1.3s cubic-bezier(0.5, 0, 0.18, 1) forwards; }
-  #wc-veil.vl-opening .vl-r { animation: vl-open-r 1.3s cubic-bezier(0.5, 0, 0.18, 1) forwards; }
+  #wc-veil.vl-opening .vl-l { animation: vl-open-l 1.5s cubic-bezier(0.45, 0, 0.2, 1) forwards; }
+  #wc-veil.vl-opening .vl-r { animation: vl-open-r 1.5s cubic-bezier(0.45, 0, 0.2, 1) forwards; }
   #wc-veil.vl-opening, #wc-veil.vl-fast { pointer-events: none; }
   #wc-veil.vl-leaving { animation: vl-out 0.55s ease forwards; }
   #wc-veil.vl-fast { opacity: 0; transition: opacity 0.35s ease; }
   @keyframes vl-open-l {
-    0% { transform: translateX(0) skewX(0.3deg); }
-    30% { transform: translateX(-9%) skewX(-3deg); }
-    68% { transform: translateX(-58%) skewX(-1.2deg); }
-    100% { transform: translateX(-104%) skewX(0); }
+    0% { transform: translate(0, 0) skewX(0.3deg) rotate(0deg); }
+    14% { transform: translate(-2%, -0.6%) skewX(-4deg) rotate(-0.4deg); }
+    30% { transform: translate(-10%, 0.5%) skewX(-2.4deg) rotate(0.3deg); }
+    48% { transform: translate(-27%, -0.4%) skewX(-3.4deg) rotate(-0.3deg); }
+    68% { transform: translate(-58%, 0.3%) skewX(-1.6deg) rotate(0.2deg); }
+    88% { transform: translate(-98%, 0) skewX(0.6deg) rotate(0deg); }
+    100% { transform: translate(-104%, 0) skewX(0) rotate(0deg); }
   }
   @keyframes vl-open-r {
-    0% { transform: translateX(0) skewX(-0.25deg); }
-    26% { transform: translateX(4%) skewX(2.2deg); }
-    64% { transform: translateX(50%) skewX(1deg); }
-    100% { transform: translateX(104%) skewX(0); }
+    0% { transform: translate(0, 0) skewX(-0.25deg) rotate(0deg); }
+    16% { transform: translate(2.5%, 0.6%) skewX(3.6deg) rotate(0.4deg); }
+    32% { transform: translate(9%, -0.5%) skewX(2deg) rotate(-0.3deg); }
+    50% { transform: translate(24%, 0.4%) skewX(3deg) rotate(0.3deg); }
+    68% { transform: translate(52%, -0.3%) skewX(1.4deg) rotate(-0.2deg); }
+    88% { transform: translate(96%, 0) skewX(-0.5deg) rotate(0deg); }
+    100% { transform: translate(104%, 0) skewX(0) rotate(0deg); }
   }
   @keyframes vl-out { to { opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { #wc-veil * { animation-duration: 0.01ms !important; } }
@@ -112,8 +121,8 @@ export const veilRuntime = `<script>
       if (!opts.preview && opts.key) { try { sessionStorage.setItem(opts.key, "1"); } catch (e) {} }
       if (fast) { root.classList.add("vl-fast"); setTimeout(finish, 400); return; }
       root.classList.add("vl-opening");
-      setTimeout(function () { root.classList.add("vl-leaving"); }, 1300);
-      setTimeout(finish, 1850);
+      setTimeout(function () { root.classList.add("vl-leaving"); }, 1500);
+      setTimeout(finish, 2050);
     }
     var btn = root.querySelector(".vl-open");
     btn.addEventListener("click", function () { open(false); });
