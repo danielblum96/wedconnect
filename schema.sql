@@ -176,3 +176,8 @@ CREATE INDEX IF NOT EXISTS idx_email_kuldesek_viszontelado ON email_kuldesek (vi
 -- A nyitó boríték főüzenete (2026-09-27): NULL = az oldal nyelvének alapértelmezett szövege ("Szeretettel meghívunk"),
 -- szöveg = egyedi üzenet (max. 60 karakter), üres string = nincs üzenet.
 --   parok: boritek_szoveg TEXT
+
+-- Esküvői szolgáltató típusa (2026-10-01): a partner regisztrációkor választja ki legördülőből
+-- (szervezo, helyszin, fotos, videos, etkeztetes, zene_dj, dekoracio, papirtermek, ruha,
+-- szepsegipar, tortasutemeny, technika, egyeb) - hasznos szegmentációs adat, nem kötelező üzleti logika.
+--   viszontelado: szolgaltato_tipus TEXT

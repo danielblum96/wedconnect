@@ -1,6 +1,7 @@
 import { getAdminSession } from "../_utils/adminAuth.js";
 import { adminNav, adminNavCss, adminNotice } from "../_utils/adminNav.js";
 import { escapeHtml } from "../_utils/html.js";
+import { vendorTypeLabel } from "../_utils/vendorTypes.js";
 
 // Egyszerű, szabály-alapú szegmentálás a jövőbeli PPC-célközönség-tervhez
 // (kizáró célközönség a nulla rendelést leadóknak, "elit"/lookalike-forrás
@@ -26,7 +27,7 @@ export async function onRequestGet(context) {
   if (!session) return Response.redirect(new URL("/admin/login", request.url).href, 303);
 
   const { results: viszonteladoRaw } = await env.DB.prepare(
-    `SELECT v.id, v.ceg_nev, v.email, v.telefon, v.orszag, v.nyelv, v.allapot, v.letrehozva,
+    `SELECT v.id, v.ceg_nev, v.email, v.telefon, v.orszag, v.nyelv, v.allapot, v.letrehozva, v.szolgaltato_tipus,
             (SELECT COUNT(*) FROM parok p WHERE p.viszontelado_id = v.id) AS parok_szama,
             (SELECT COUNT(*) FROM rendelesek r WHERE r.viszontelado_id = v.id AND r.allapot = 'Fizetve') AS fizetett_rendelesek,
             (SELECT COALESCE(SUM(r.ar_osszesen), 0) FROM rendelesek r WHERE r.viszontelado_id = v.id AND r.allapot = 'Fizetve') AS osszbevetel,
@@ -49,6 +50,7 @@ export async function onRequestGet(context) {
         <tr data-orszag="${escapeHtml(v.orszag || "")}">
           <td>${escapeHtml((v.letrehozva || "").slice(0, 10))}</td>
           <td>${escapeHtml(v.ceg_nev)}</td>
+          <td>${escapeHtml(vendorTypeLabel(v.szolgaltato_tipus, "hu") || "—")}</td>
           <td>${escapeHtml(v.email)}</td>
           <td>${v.telefon ? `<a href="tel:${escapeHtml(v.telefon.replace(/[^0-9+]/g, ""))}">${escapeHtml(v.telefon)}</a>` : "—"}</td>
           <td>${escapeHtml(v.orszag || "—")}</td>
@@ -156,7 +158,7 @@ ${adminNavCss}
       viszontelado.length
         ? `<table id="viszontelado-table">
             <thead><tr>
-              <th>Regisztráció</th><th>Cégnév</th><th>Email</th><th>Telefon</th><th>Ország</th><th>Nyelv</th><th>Párok</th>
+              <th>Regisztráció</th><th>Cégnév</th><th>Szolgáltató típusa</th><th>Email</th><th>Telefon</th><th>Ország</th><th>Nyelv</th><th>Párok</th>
               <th>Rendelések</th><th>Bevétel</th><th>Utolsó rendelés</th><th>Szegmens</th><th>Állapot</th><th></th>
             </tr></thead>
             <tbody>${rows}</tbody>

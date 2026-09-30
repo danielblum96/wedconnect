@@ -170,6 +170,24 @@
       <label for="ceg_nev">Company name</label>
       <input type="text" id="ceg_nev" name="ceg_nev" required>
 
+      <label for="szolgaltato_tipus">What kind of wedding vendor are you?</label>
+      <select id="szolgaltato_tipus" name="szolgaltato_tipus" required>
+        <option value="" selected disabled>Please choose...</option>
+        <option value="szervezo">Wedding planner</option>
+        <option value="helyszin">Venue</option>
+        <option value="fotos">Photographer</option>
+        <option value="videos">Videographer</option>
+        <option value="etkeztetes">Catering / restaurant</option>
+        <option value="zene_dj">Band / DJ</option>
+        <option value="dekoracio">Flowers & decor</option>
+        <option value="papirtermek">Invitations / stationery</option>
+        <option value="ruha">Bridal & suit wear</option>
+        <option value="szepsegipar">Hair & makeup</option>
+        <option value="tortasutemeny">Cake & sweets</option>
+        <option value="technika">Sound & lighting</option>
+        <option value="egyeb">Other wedding vendor</option>
+      </select>
+
       <label for="orszag">Country</label>
       <select id="orszag" name="orszag" required>
         <option value="OTHER" selected>Other country</option>
@@ -264,6 +282,7 @@
     if (err) {
       var messages = {
         missing_fields: "Please fill in all fields.",
+        missing_service_type: "Please select what kind of wedding vendor you are.",
         weak_password: "The password must be at least 8 characters long.",
         invalid_email: "Please enter a valid email address.",
         invalid_phone: "Please enter a valid phone number.",

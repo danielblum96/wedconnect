@@ -170,6 +170,24 @@
       <label for="ceg_nev">Unternehmensname</label>
       <input type="text" id="ceg_nev" name="ceg_nev" required>
 
+      <label for="szolgaltato_tipus">Welche Art von Hochzeitsdienstleister sind Sie?</label>
+      <select id="szolgaltato_tipus" name="szolgaltato_tipus" required>
+        <option value="" selected disabled>Bitte wählen...</option>
+        <option value="szervezo">Hochzeitsplaner:in</option>
+        <option value="helyszin">Location / Veranstaltungsort</option>
+        <option value="fotos">Fotograf:in</option>
+        <option value="videos">Videograf:in</option>
+        <option value="etkeztetes">Catering / Restaurant</option>
+        <option value="zene_dj">Band / DJ</option>
+        <option value="dekoracio">Blumen & Dekoration</option>
+        <option value="papirtermek">Einladungen / Papeterie</option>
+        <option value="ruha">Brautmode / Anzüge</option>
+        <option value="szepsegipar">Make-up / Frisur</option>
+        <option value="tortasutemeny">Hochzeitstorte / Süßes</option>
+        <option value="technika">Ton- & Lichttechnik</option>
+        <option value="egyeb">Sonstiger Hochzeitsdienstleister</option>
+      </select>
+
       <label for="orszag">Land</label>
       <select id="orszag" name="orszag" required>
         <option value="DE">Deutschland</option>
@@ -264,6 +282,7 @@
     if (err) {
       var messages = {
         missing_fields: "Bitte füllen Sie alle Felder aus.",
+        missing_service_type: "Bitte wählen Sie aus, welche Art von Hochzeitsdienstleister Sie sind.",
         weak_password: "Das Passwort muss mindestens 8 Zeichen haben.",
         invalid_email: "Bitte geben Sie eine gültige Email-Adresse ein.",
         invalid_phone: "Bitte geben Sie eine gültige Telefonnummer ein.",

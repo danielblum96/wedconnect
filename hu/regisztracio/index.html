@@ -172,6 +172,24 @@
       <label for="ceg_nev">Cégnév</label>
       <input type="text" id="ceg_nev" name="ceg_nev" required>
 
+      <label for="szolgaltato_tipus">Milyen esküvői szolgáltató vagy?</label>
+      <select id="szolgaltato_tipus" name="szolgaltato_tipus" required>
+        <option value="" selected disabled>Válassz...</option>
+        <option value="szervezo">Esküvőszervező</option>
+        <option value="helyszin">Helyszín / rendezvényhely</option>
+        <option value="fotos">Fotós</option>
+        <option value="videos">Videós</option>
+        <option value="etkeztetes">Catering / étterem</option>
+        <option value="zene_dj">Zenekar / DJ</option>
+        <option value="dekoracio">Virág és dekoráció</option>
+        <option value="papirtermek">Meghívó / papírtermékek</option>
+        <option value="ruha">Esküvői ruha / öltöny</option>
+        <option value="szepsegipar">Smink / fodrász</option>
+        <option value="tortasutemeny">Torta / édességek</option>
+        <option value="technika">Hang- és fénytechnika</option>
+        <option value="egyeb">Egyéb esküvői szolgáltató</option>
+      </select>
+
       <label for="orszag">Ország</label>
       <select id="orszag" name="orszag" required>
         <option value="HU" selected>Magyarország</option>
@@ -266,6 +284,7 @@
     if (err) {
       var messages = {
         missing_fields: "Kérjük, töltsön ki minden mezőt.",
+        missing_service_type: "Kérjük, válaszd ki, milyen esküvői szolgáltató vagy.",
         weak_password: "A jelszónak legalább 8 karakter hosszúnak kell lennie.",
         invalid_email: "Kérjük, adjon meg egy érvényes email-címet.",
         invalid_phone: "Kérjük, adjon meg egy érvényes telefonszámot.",

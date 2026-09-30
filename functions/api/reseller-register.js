@@ -3,6 +3,7 @@ import { countryToLang } from "../_utils/i18n.js";
 import { checkRateLimit, clientIp } from "../_utils/rateLimit.js";
 import { recordEvent } from "../_utils/measurement.js";
 import { readAttribution } from "../_utils/attribution.js";
+import { VENDOR_TYPE_KEYS } from "../_utils/vendorTypes.js";
 
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
 const RATE_LIMIT_MAX = 10;
@@ -18,6 +19,7 @@ export async function onRequestPost(context) {
   const adatkezeles = formData.get("adatkezeles");
   const { marketingConsent, attribution } = readAttribution(formData, request);
   const orszag = (formData.get("orszag") || "").toString().trim();
+  const szolgaltatoTipus = (formData.get("szolgaltato_tipus") || "").toString().trim();
   const adoszam = (formData.get("adoszam") || "").toString().trim();
   const szamlazasiUtca = (formData.get("szamlazasi_utca") || "").toString().trim();
   const szamlazasiIrsz = (formData.get("szamlazasi_irsz") || "").toString().trim();
@@ -43,6 +45,7 @@ export async function onRequestPost(context) {
   if (!allowed) return backWithError("rate_limited");
 
   if (!cegNev || !email || !telefon || !orszag) return backWithError("missing_fields");
+  if (!VENDOR_TYPE_KEYS.includes(szolgaltatoTipus)) return backWithError("missing_service_type");
   if (!/^[0-9+()\s-]{7,20}$/.test(telefon)) return backWithError("invalid_phone");
   if (jelszo.length < 8) return backWithError("weak_password");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return backWithError("invalid_email");
@@ -55,11 +58,11 @@ export async function onRequestPost(context) {
   const nyelv = countryToLang(orszag);
   const insert = await env.DB.prepare(
     `INSERT INTO viszontelado (
-      ceg_nev, email, telefon, jelszo_hash, orszag, nyelv,
+      ceg_nev, email, telefon, jelszo_hash, orszag, nyelv, szolgaltato_tipus,
       adoszam, szamlazasi_utca, szamlazasi_irsz, szamlazasi_varos, szamlazasi_orszag,
       szallitas_azonos, alap_szallitasi_utca, alap_szallitasi_irsz, alap_szallitasi_varos, alap_szallitasi_orszag,
       adatkezeles_elfogadva, marketing_hozzajarulas, attribucio
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), ?, ?)`
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), ?, ?)`
   )
     .bind(
       cegNev,
@@ -68,6 +71,7 @@ export async function onRequestPost(context) {
       jelszoHash,
       orszag,
       nyelv,
+      szolgaltatoTipus,
       adoszam || null,
       szamlazasiUtca || null,
       szamlazasiIrsz || null,
