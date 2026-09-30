@@ -80,6 +80,19 @@ CREATE TABLE IF NOT EXISTS password_resets (
   felhasznalva INTEGER NOT NULL DEFAULT 0
 );
 
+-- Pár-meghívás (2026-10-01): a partner beírja a pár emailjét, a pár egy magic
+-- linken keresztül maga tölti ki a nevét/dátumát/stílusát (fotó/üzenet/program
+-- továbbra is a partner dolga a szerkesztőben) - ez hoz létre egy `parok` vázlatot.
+CREATE TABLE IF NOT EXISTS meghivasok (
+  token TEXT PRIMARY KEY,
+  viszontelado_id INTEGER NOT NULL REFERENCES viszontelado(id),
+  email TEXT NOT NULL,
+  letrehozva TEXT NOT NULL DEFAULT (datetime('now')),
+  lejar TEXT NOT NULL,
+  felhasznalva INTEGER NOT NULL DEFAULT 0,
+  par_id INTEGER REFERENCES parok(id)
+);
+
 -- Saját eseménynapló (2026-09-19): minden üzleti esemény itt rögzül, a Meta-
 -- továbbítás állapotával. event_id UNIQUE: ugyanaz az esemény kétszer nem rögzül.
 -- meta_statusz: fuggoben | elkuldve | hiba | nincs_hozzajarulas | admin_nezet | nincs_meta_esemeny

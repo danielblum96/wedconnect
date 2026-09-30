@@ -33,6 +33,8 @@ export async function renderDashboard(context, reseller) {
   const stripeSessionId = url.searchParams.get("stripe_session_id");
   const stripeCancelled = url.searchParams.get("stripe_cancelled");
   const publishedFlash = url.searchParams.get("published");
+  const inviteSent = url.searchParams.get("meghivo_elkuldve");
+  const inviteError = url.searchParams.get("meghivo_hiba");
 
   const lang = reseller.nyelv || "de";
   const isIndividual = reseller.fiok_tipus === "maganszemely";
@@ -395,7 +397,10 @@ export async function renderDashboard(context, reseller) {
   }
   main { max-width:820px; margin:0 auto; padding:36px 24px 80px; }
   h2 { font-family:"Cormorant Garamond",serif; font-size:1.5rem; margin:0 0 18px; }
-  .new-couple-cta { margin-bottom:32px; }
+  .new-couple-cta { margin-bottom:32px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+  .btn-link-invite { border:none; background:none; color:var(--accent); font-family:inherit; font-size:0.9rem; font-weight:600; text-decoration:underline; cursor:pointer; padding:0; }
+  .btn-link-invite:hover { color:var(--fg); }
+  .invite-modal-hint { font-size:0.92rem; color:var(--muted); margin:0 0 18px; line-height:1.5; }
   .field-row { display:flex; gap:14px; flex-wrap:wrap; }
   .field-row > div { flex:1; min-width:160px; }
   label { display:block; font-size:0.9rem; font-weight:500; margin-bottom:5px; }
@@ -710,6 +715,16 @@ ${
   ${stripeBannerType === "std" ? `<div class="info-box">${t.stdOrdered}</div>` : ""}
   ${stripeBannerType === "oldal" ? `<div class="info-box">${t.pagePaidBanner}</div>` : ""}
   ${publishedFlash ? `<div class="info-box">${t.publishedFlash}</div>` : ""}
+  ${inviteSent ? `<div class="info-box">${t.inviteSentBanner}</div>` : ""}
+  ${
+    inviteError
+      ? `<div class="error-box">${escapeHtml(
+          { invalid_email: t.inviteErrorInvalidEmail, rate_limited: t.inviteErrorRateLimited, limit_reached: t.inviteErrorLimitReached }[
+            inviteError
+          ] || t.inviteErrorGeneric
+        )}</div>`
+      : ""
+  }
   ${stripeCancelled ? `<div class="error-box">${t.stripeCancelled}</div>` : ""}
   ${stdError ? `<div class="error-box">${escapeHtml(stdErrorMessages[stdError] || t.genericError)}</div>` : ""}
   ${
@@ -751,7 +766,28 @@ ${
       ? ""
       : `<div class="new-couple-cta">
     <button type="button" class="btn-next" id="new-couple-open">+ ${t.newCoupleHeading}</button>
+    ${!isIndividual ? `<button type="button" class="btn-link-invite" id="invite-couple-open">${t.inviteCoupleLink}</button>` : ""}
   </div>
+  ${
+    !isIndividual
+      ? `<dialog class="std-modal invite-couple-modal" id="invite-couple-modal">
+    <button type="button" class="std-modal-close" aria-label="${t.modalClose}">&times;</button>
+    <div class="std-modal-head">
+      <h3 class="std-modal-title">${t.inviteModalHeading}</h3>
+    </div>
+    <div class="std-panel-body">
+      <p class="invite-modal-hint">${t.inviteModalHint}</p>
+      <form method="POST" action="/api/invite-couple" id="invite-couple-form">
+        <label for="invite-email">${t.inviteEmailLabel}</label>
+        <input type="email" name="email" id="invite-email" required placeholder="${t.inviteEmailPlaceholder}">
+        <div class="wizard-nav">
+          <button type="submit" class="btn-next">${t.inviteSend}</button>
+        </div>
+      </form>
+    </div>
+  </dialog>`
+      : ""
+  }
   <dialog class="std-modal new-couple-modal" id="new-couple-modal">
     <button type="button" class="std-modal-close" aria-label="${t.modalClose}">&times;</button>
     <div class="std-modal-head">
@@ -1333,6 +1369,28 @@ ${
     newCoupleModal.addEventListener("click", function (e) {
       if (e.target === newCoupleModal) newCoupleModal.close();
     });
+  }
+  var inviteOpenBtn = document.getElementById("invite-couple-open");
+  var inviteModal = document.getElementById("invite-couple-modal");
+  if (inviteOpenBtn && inviteModal) {
+    inviteOpenBtn.addEventListener("click", function () {
+      if (typeof inviteModal.showModal === "function") {
+        inviteModal.showModal();
+      } else {
+        inviteModal.setAttribute("open", "");
+      }
+    });
+    var inviteCloseBtn = inviteModal.querySelector(".std-modal-close");
+    if (inviteCloseBtn) {
+      inviteCloseBtn.addEventListener("click", function () {
+        inviteModal.close();
+      });
+    }
+    inviteModal.addEventListener("click", function (e) {
+      if (e.target === inviteModal) inviteModal.close();
+    });
+  }
+  if (newCoupleModal) {
     // Ha a mentés a szerver oldalán hibával tért vissza (pl. hiányzó
     // kötelező mező), a varázsló popup automatikusan újranyílik, hogy a user
     // ne a listát lássa, hanem rögtön a hibás formot - ugyanaz a "vidd
