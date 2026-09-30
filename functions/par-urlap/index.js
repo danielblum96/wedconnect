@@ -202,7 +202,7 @@ function page({ state, lang, cegNev, token, error, values }) {
   .consent-label { display:flex; align-items:flex-start; gap:8px; font-size:0.85rem; font-weight:400; color:var(--muted); margin-bottom:22px; }
   .consent-label input { width:16px; height:16px; margin:2px 0 0; flex:none; accent-color:var(--accent); }
   .consent-label a { color:var(--accent); }
-  .wizard-nav { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .wizard-nav { display:flex; justify-content:space-between; align-items:center; gap:12px; position:sticky; bottom:0; background:var(--card-bg); margin:10px -36px -40px; padding:14px 36px calc(14px + env(safe-area-inset-bottom)); border-radius:0 0 12px 12px; box-shadow:0 -12px 16px -12px rgba(0,0,0,0.12); }
   .wizard-nav .btn-submit { flex:1; }
   .btn-back { flex:none; padding:13px 20px; border:1px solid #ddd6c9; border-radius:999px; background:none; color:var(--fg); font-family:inherit; font-weight:600; font-size:0.95rem; cursor:pointer; }
   .btn-back:hover { background:#f4efe2; }
