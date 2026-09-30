@@ -196,7 +196,7 @@ export const RESELLER_COPY = {
       heading: "So funktioniert's",
       intro: "Eine kurze Anleitung und häufige Fragen, damit Sie mit WedConnect gut selbst zurechtkommen.",
       steps: [
-        { title: "1. Erstellen Sie eine Hochzeitsseite", text: "Klicken Sie im Dashboard auf „Hochzeitsseite erstellen“, geben Sie die Namen des Paares und das Datum ein und wählen Sie einen Stil. Die Seite ist zunächst nur ein Entwurf." },
+        { title: "1. Erstellen Sie eine Hochzeitsseite", text: "Klicken Sie im Dashboard auf „Hochzeitsseite erstellen“, geben Sie die Namen des Paares und das Datum ein und wählen Sie einen Stil. Oder: Klicken Sie daneben auf „oder das Brautpaar per E-Mail einladen, selbst auszufüllen“, geben Sie die E-Mail-Adresse des Paares ein, und die beiden tragen diese Angaben selbst über einen Link ein, ganz ohne Login. Die Seite ist zunächst nur ein Entwurf." },
         { title: "2. Gestalten Sie sie nach Wunsch", text: "Im Editor können Sie über die Liste „Elemente“ links ein Titelbild, ein Programm, einen Ort, eine Zeitleiste „Unsere Geschichte“ oder einen Countdown hinzufügen. Jedes Element lässt sich per Ziehen neu anordnen." },
         { title: "3. Teilen Sie den Entwurf", text: "Solange Sie nicht veröffentlichen, ist die Seite nur über den eigenen, geheimen Vorschau-Link erreichbar. Schicken Sie ihn dem Brautpaar, damit es die Seite ansehen und Feedback geben kann." },
         { title: "4. Veröffentlichen Sie, wenn alles passt", text: "Mit dem Button „Veröffentlichen“ oben im Editor schalten Sie die Seite live. Ihre erste veröffentlichte Seite ist kostenlos, danach fällt pro Seite eine einmalige Gebühr an." },
@@ -205,6 +205,7 @@ export const RESELLER_COPY = {
       faqHeading: "Häufige Fragen",
       faq: [
         { q: "Was kostet eine Seite?", a: "Ihre erste veröffentlichte Seite ist kostenlos. Für jede weitere Veröffentlichung fällt eine einmalige Gebühr an. Entwürfe können Sie in unbegrenzter Zahl anlegen — sie kosten nichts, solange Sie sie nicht veröffentlichen." },
+        { q: "Ich möchte die Angaben des Brautpaars nicht selbst eintippen, geht das einfacher?", a: "Ja — klicken Sie neben „Hochzeitsseite erstellen“ auf „oder das Brautpaar per E-Mail einladen, selbst auszufüllen“ und geben Sie die E-Mail-Adresse des Paares ein. Die beiden tragen über einen Link, ganz ohne Login, ihre Namen, das Hochzeitsdatum und das Design ein (das Design können Sie später jederzeit ändern). Sobald sie absenden, erscheint die Seite automatisch als Entwurf bei Ihnen, und Sie vervollständigen sie (Titelbild, Nachricht, Programm)." },
         { q: "Was sehen Brautpaar oder Gäste, solange die Seite ein Entwurf ist?", a: "Unter der öffentlichen Adresse nichts — die ist erst nach der Veröffentlichung aktiv. Den Entwurf sieht man nur über den eigenen, geheimen Vorschau-Link, den Sie im Dashboard über „Vorschau-Link kopieren“ erhalten." },
         { q: "Kann ich die Seite auch nach der Veröffentlichung bearbeiten?", a: "Ja, jederzeit und beliebig oft — Link und QR-Code bleiben dabei unverändert." },
         { q: "Wie ersetze oder beschneide ich das Titelbild?", a: "Klicken Sie im Editor auf das Titelbild-Element. Nach dem Hochladen können Sie ein Seitenverhältnis wählen und per Klick/Ziehen auf dem Bild festlegen, welcher Ausschnitt sichtbar bleibt." },
@@ -528,7 +529,7 @@ export const RESELLER_COPY = {
       heading: "Így működik",
       intro: "Rövid útmutató és gyakori kérdések, hogy önállóan is könnyen boldogulj a WedConnecttel.",
       steps: [
-        { title: "1. Hozz létre egy esküvői oldalt", text: "A dashboardon kattints a „+ Esküvői oldal készítése” gombra, add meg a pár nevét és a dátumot, majd válassz egy stílust. Az oldal ekkor még csak vázlat." },
+        { title: "1. Hozz létre egy esküvői oldalt", text: "A dashboardon kattints a „+ Esküvői oldal készítése” gombra, add meg a pár nevét és a dátumot, majd válassz egy stílust. Vagy: kattints a mellette lévő „vagy kérd meg emailben, hogy a pár töltse ki” linkre, add meg a pár email címét, és ők maguk adják meg ezeket az adatokat egy linken keresztül, bejelentkezés nélkül. Az oldal ekkor még csak vázlat." },
         { title: "2. Szerkeszd tetszés szerint", text: "A szerkesztőben a bal oldali „Elemek” listából adhatsz hozzá borítóképet, programot, helyszínt, „A mi történetünk” idővonalat vagy visszaszámlálót. Bármelyik elemet húzással átrendezheted." },
         { title: "3. Oszd meg vázlatként", text: "Amíg nem publikálod, az oldal csak a saját, titkos előnézeti linkjével érhető el. Küldd el a párnak, hogy megnézzék és visszajelezzenek, mielőtt élesítenéd." },
         { title: "4. Publikáld, amikor készen áll", text: "A szerkesztő tetején a „Publikálás” gombbal élesítheted az oldalt. Az első publikált oldalad ingyenes, utána oldalanként kell fizetni." },
@@ -537,6 +538,7 @@ export const RESELLER_COPY = {
       faqHeading: "Gyakori kérdések",
       faq: [
         { q: "Mennyibe kerül egy oldal?", a: "Az első publikált oldalad ingyenes. Minden további oldal publikálásakor kell fizetni, egyszeri díjjal. Vázlatot közben korlátlan számban készíthetsz, azok addig nem kerülnek semmibe, amíg nem publikálod őket." },
+        { q: "Nem szeretném begépelni a pár adatait, van erre egyszerűbb mód?", a: "Igen — a „+ Esküvői oldal készítése” gomb mellett kattints a „vagy kérd meg emailben, hogy a pár töltse ki” linkre, és add meg a pár email címét. Ők egy linken keresztül, bejelentkezés nélkül megadják a neveiket, az esküvő dátumát és a stílust (ezt a designt te bármikor módosíthatod utólag). Amint beküldik, az oldal automatikusan megjelenik nálad vázlatként, és te folytatod a szerkesztést (borítókép, üzenet, program)." },
         { q: "Mit lát a pár vagy a vendég, amíg csak vázlat az oldal?", a: "Semmit a nyilvános címen — az csak publikálás után él. A vázlatot kizárólag a saját, titkos előnézeti linkkel lehet megnézni, amit a dashboardon a „Link másolása” gombbal tudsz kimásolni." },
         { q: "Szerkeszthetem az oldalt publikálás után is?", a: "Igen, bármikor, korlátlanul — a link és a QR-kód nem változik közben." },
         { q: "Hogyan cserélem vagy vágom be a borítóképet?", a: "A szerkesztőben kattints a borítókép elemre. Feltöltés után választhatsz képarányt, és a képre kattintva/húzva állíthatod be, melyik rész maradjon látható." },
@@ -860,7 +862,7 @@ export const RESELLER_COPY = {
       heading: "How it works",
       intro: "A short guide and answers to common questions, so you can get the most out of WedConnect on your own.",
       steps: [
-        { title: "1. Create a wedding page", text: "On the dashboard, click “Create a wedding page”, enter the couple's names and the date, and pick a style. The page starts out as a draft." },
+        { title: "1. Create a wedding page", text: "On the dashboard, click “Create a wedding page”, enter the couple's names and the date, and pick a style. Or: click the link next to it, “or invite the couple by email to fill it in themselves”, enter the couple's email address, and they'll fill in these details themselves via a link, with no login needed. The page starts out as a draft." },
         { title: "2. Edit it however you like", text: "In the editor, use the “Elements” list on the left to add a cover photo, a schedule, a venue, an “Our story” timeline, or a countdown. Any element can be dragged into a new order." },
         { title: "3. Share it as a draft", text: "Until you publish, the page is only reachable via its own secret preview link. Send it to the couple so they can look it over and give feedback before it goes live." },
         { title: "4. Publish when it's ready", text: "Use the “Publish” button at the top of the editor to make the page live. Your first published page is free; every page after that costs a one-time fee." },
@@ -869,6 +871,7 @@ export const RESELLER_COPY = {
       faqHeading: "Frequently asked questions",
       faq: [
         { q: "How much does a page cost?", a: "Your first published page is free. Every further publish costs a one-time fee. You can create unlimited drafts in the meantime — they cost nothing until you publish them." },
+        { q: "I don't want to type in the couple's details myself, is there an easier way?", a: "Yes — next to “Create a wedding page”, click “or invite the couple by email to fill it in themselves” and enter the couple's email address. They'll fill in their names, the wedding date and the style themselves via a link, with no login needed (you can change the style at any time later). As soon as they submit it, the page automatically appears for you as a draft, and you finish it off (cover photo, message, schedule)." },
         { q: "What do the couple or guests see while the page is still a draft?", a: "Nothing at the public address — that only goes live once you publish. The draft can only be viewed via its own secret preview link, which you can copy from the dashboard with “Copy preview link”." },
         { q: "Can I still edit the page after publishing?", a: "Yes, any time, as often as you like — the link and QR code stay the same." },
         { q: "How do I replace or crop the cover photo?", a: "Click the cover photo element in the editor. After uploading, you can pick an aspect ratio and click/drag on the photo to choose which part stays visible." },
