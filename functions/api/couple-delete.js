@@ -25,6 +25,13 @@ export async function onRequestPost(context) {
       .bind(parId, reseller.id)
       .run();
 
+    // Ugyanez a leválasztás kell a meghívásból létrejött oldalaknál is - a
+    // meghivasok.par_id szintén idegen kulcs a parok táblára (ld. par-urlap/index.js),
+    // enélkül a lenti DELETE hibát dobna a hivatkozó sor miatt.
+    await env.DB.prepare("UPDATE meghivasok SET par_id = NULL WHERE par_id = ? AND viszontelado_id = ?")
+      .bind(parId, reseller.id)
+      .run();
+
     await env.DB.prepare("DELETE FROM parok WHERE id = ? AND viszontelado_id = ?").bind(parId, reseller.id).run();
   } catch (e) {
     console.error(`couple-delete: törlés sikertelen (par_id=${parId}): ${e.message}`);
