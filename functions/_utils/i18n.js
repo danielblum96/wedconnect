@@ -212,7 +212,7 @@ export const RESELLER_COPY = {
         { q: "Kann ich die Reihenfolge der Abschnitte ändern?", a: "Ja — jedes hinzugefügte Element hat im Editor einen Griff (⠿), mit dem Sie es an die gewünschte Stelle ziehen können; neue Elemente lassen sich auch direkt aus der linken Liste auf die Seite ziehen." },
         { q: "Wie lösche ich eine Seite?", a: "Über den Button „Löschen“ bei der jeweiligen Seite im Dashboard — das löscht die Seite und alle zugehörigen Daten endgültig und ist nicht rückgängig zu machen." },
         { q: "Ich habe mein Passwort vergessen, was nun?", a: "Klicken Sie auf der Login-Seite auf „Passwort vergessen“, um ein neues anzufordern." },
-        { q: "Wohin kann ich mich bei Fragen wenden?", a: "An: [Kontakt-E-Mail — noch einzutragen]." },
+        { q: "Wohin kann ich mich bei Fragen wenden?", a: "An: support@wedconnect.eu oder +36 30 309 8589." },
       ],
     },
     dashboard: {
@@ -510,7 +510,7 @@ export const RESELLER_COPY = {
         { q: "Átrendezhetem a szekciók sorrendjét?", a: "Igen — a szerkesztőben minden hozzáadott elemnek van egy fogantyúja (⠿), amivel a kívánt helyre húzhatod, vagy a bal oldali listából közvetlenül az oldalra is húzhatod az új elemet." },
         { q: "Hogyan törölhetek egy oldalt?", a: "A dashboardon az adott oldal „Törlés” gombjával — ez véglegesen törli az oldalt és a hozzá tartozó adatokat, nem vonható vissza." },
         { q: "Elfelejtettem a jelszavamat, mit tegyek?", a: "A bejelentkező oldalon található „Elfelejtett jelszó” linkre kattintva új jelszót kérhetsz." },
-        { q: "Hova írjak, ha elakadok?", a: "Ide: [kapcsolati email cím — kitöltendő]." },
+        { q: "Hova írjak, ha elakadok?", a: "Ide: support@wedconnect.eu, vagy hívj: +36 30 309 8589." },
       ],
     },
     dashboard: {
@@ -808,7 +808,7 @@ export const RESELLER_COPY = {
         { q: "Can I reorder the sections?", a: "Yes — every added element has a handle (⠿) in the editor that you can drag to the position you want; new elements can also be dragged straight from the left-hand list onto the page." },
         { q: "How do I delete a page?", a: "Use the “Delete” button next to that page on the dashboard — this permanently deletes the page and all its data and cannot be undone." },
         { q: "I forgot my password, what now?", a: "Click “Forgot password” on the login page to request a new one." },
-        { q: "Where can I turn if I get stuck?", a: "Write to: [contact email — to be filled in]." },
+        { q: "Where can I turn if I get stuck?", a: "Write to: support@wedconnect.eu, or call +36 30 309 8589." },
       ],
     },
     dashboard: {
