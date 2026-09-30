@@ -58,7 +58,7 @@ function page({ state, lang, cegNev, token, error, values }) {
 
         <label class="consent-label">
           <input type="checkbox" name="adatkezeles" value="1" required>
-          ${t.consentLabel} <a href="${t.consentLinkHref}" target="_blank" rel="noopener">${t.consentLinkText}</a>
+          <span>${t.consentLabel} <a href="${t.consentLinkHref}" target="_blank" rel="noopener">${t.consentLinkText}</a>.</span>
         </label>
 
         <button type="submit" class="btn-submit">${t.submit}</button>
@@ -88,13 +88,19 @@ function page({ state, lang, cegNev, token, error, values }) {
   label { display:block; font-size:0.9rem; font-weight:500; margin-bottom:6px; }
   input[type=text], input[type=date] { width:100%; padding:11px 14px; border:1px solid #ddd6c9; border-radius:8px; font-family:inherit; font-size:0.95rem; margin-bottom:16px; }
   input:focus { outline:2px solid var(--accent); outline-offset:1px; }
-  .field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start; }
+  .field-row > div { display:flex; flex-direction:column; }
+  .field-row label { min-height:2.4em; }
   .style-heading { font-family:"Cormorant Garamond",serif; font-size:1.15rem; font-weight:600; margin:6px 0 4px; }
   .style-hint { font-size:0.88rem; color:var(--muted); margin:0 0 14px; font-style:italic; }
   .style-picker { display:grid; grid-template-columns:repeat(auto-fill, minmax(110px, 1fr)); gap:12px; margin-bottom:20px; }
   .style-swatch { position:relative; cursor:pointer; border-radius:10px; overflow:hidden; border:2px solid transparent; box-shadow:0 4px 10px rgba(0,0,0,0.1); }
   .style-swatch input { position:absolute; opacity:0; width:0; height:0; margin:0; }
-  .swatch-mock { background:var(--bg); min-height:56px; border-bottom:4px solid var(--accent); }
+  .swatch-mock { display:block; background:var(--bg); min-height:56px; border-bottom:4px solid var(--accent); }
+  @media (max-width: 420px) {
+    .field-row { grid-template-columns:1fr; }
+    .field-row label { min-height:0; }
+  }
   .swatch-name { display:block; padding:6px 4px; font-size:0.74rem; font-weight:500; text-align:center; color:#4a4038; background:#fff; }
   .style-swatch:has(input:checked) { border-color:#b48b56; box-shadow:0 0 0 3px rgba(180,139,86,0.35); }
   .consent-label { display:flex; align-items:flex-start; gap:8px; font-size:0.85rem; font-weight:400; color:var(--muted); margin-bottom:22px; }

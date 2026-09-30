@@ -401,6 +401,7 @@ export async function renderDashboard(context, reseller) {
   .btn-link-invite { border:none; background:none; color:var(--accent); font-family:inherit; font-size:0.9rem; font-weight:600; text-decoration:underline; cursor:pointer; padding:0; }
   .btn-link-invite:hover { color:var(--fg); }
   .invite-modal-hint { font-size:0.92rem; color:var(--muted); margin:0 0 18px; line-height:1.5; }
+  .invite-couple-modal .std-panel-body > * { flex:1 1 100%; min-width:0; }
   .field-row { display:flex; gap:14px; flex-wrap:wrap; }
   .field-row > div { flex:1; min-width:160px; }
   label { display:block; font-size:0.9rem; font-weight:500; margin-bottom:5px; }
