@@ -43,11 +43,12 @@ export async function onRequestPost(context) {
   const inviteUrl = `${new URL("/par-urlap", request.url).href}?token=${token}`;
   const t = getResellerCopy(reseller.nyelv || "de").inviteForm;
   const heading = t.heading(escapeHtml(reseller.ceg_nev));
+  const privacyUrl = new URL(t.consentLinkHref, request.url).href;
   try {
     await sendEmail(env, {
       to: email,
       subject: t.title,
-      html: `<p>${heading}</p><p><a href="${inviteUrl}">${inviteUrl}</a></p>`,
+      html: `<p>${heading}</p><p>${t.emailIntro}</p><p><a href="${inviteUrl}">${inviteUrl}</a></p><p style="color:#7a7266;font-size:13px;">${t.emailPrivacyIntro} <a href="${privacyUrl}">${t.consentLinkText}</a>.</p>`,
     });
   } catch (e) {
     console.error(`invite-couple: email küldése sikertelen (${email}): ${e.message}`);
