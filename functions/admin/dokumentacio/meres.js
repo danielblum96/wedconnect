@@ -99,7 +99,7 @@ const DOC_HTML = `<main class="doc">
     <li>A szerver a <code>localStorage</code>-t nem látja, ezért a regisztrációs űrlap beküldésekor a <code>consent_marketing</code> érték az <code>attribution</code> rejtett mezőben utazik. Ez kliens-oldali állítás, ugyanolyan bizalommal kezeljük, mint bármely hozzájárulás-kezelő döntését.</li>
     <li>A szerver a döntést a fiókhoz menti (<code>viszontelado.marketing_hozzajarulas</code>, 0/1), mert a <code>Purchase</code> később, más kérésben fut.</li>
     <li>Hozzájárulás nélkül: nincs Pixel, nincs tárolt attribúció (még IP/User-Agent sem), nincs Meta-esemény.</li>
-    <li>Az adatkezelési tájékoztató (HU/DE/EN) leírja a Metának küldött adatokat. A cégadatok helyén kitöltendő helykitöltők vannak, és jogi átnézésen még nem esett át.</li>
+    <li>Az adatkezelési tájékoztató (HU/DE/EN) leírja a Metának küldött adatokat. A cégadatok ki vannak töltve (2026. október 1.), de jogi átnézésen még nem esett át.</li>
   </ul>
 
   <h2 id="kliens">4. Kliens-oldali mérés</h2>
